@@ -1,12 +1,180 @@
 export component MainWindow inherits Window {
-    width: 900px;
-    height: 600px;
+    width: 1200px;
+    height: 800px;
     title: "LibrePOS";
+    background: #505050;
 
-    Text {
-        text: "LibrePOS";
-        font-size: 32px;
-        horizontal-alignment: center;
-        vertical-alignment: center;
+    in-out property <bool> sidebar-open: false;
+
+    // ----- Top Header Bar -----
+    Rectangle {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: 56px;
+        background: #101010;
+
+        // Hamburger button
+        Rectangle {
+            x: 12px;
+            y: 8px;
+            width: 40px;
+            height: 40px;
+            background: hamburger-area.pressed ? #dddddd : #eeeeee;
+            border-radius: 6px;
+
+            hamburger-area := TouchArea {
+                clicked => {
+                    sidebar-open = !sidebar-open;
+                }
+            }
+
+            Text {
+                width: parent.width;
+                height: parent.height;
+                text: "☰";
+                font-size: 22px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        // Application title
+        Text {
+            x: 64px;
+            y: 0px;
+            height: parent.height;
+            text: "LibrePOS";
+            font-size: 20px;
+            color: #ff0000;
+            vertical-alignment: center;
+        }
+    }
+
+    // ----- Main Content Area -----
+    Rectangle {
+        x: 0px;
+        y: 56px;
+        width: parent.width;
+        height: parent.height - 56px;
+        background: #f5f5f5;
+
+        // Placeholder content
+        Text {
+            width: parent.width;
+            height: parent.height;
+            text: "Dashboard";
+            font-size: 32px;
+            color: #222222;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+
+        // ----- Overlay Sidebar -----
+        Rectangle {
+            x: 0px;
+            y: 0px;
+            width: sidebar-open ? 250px : 0px;
+            height: parent.height;
+            animate width { duration: 300ms; easing: ease-in-out; }
+            clip: true;
+            background: #2c3e50;
+
+            // Vertical layout for menu items
+            VerticalLayout {
+                padding: 12px;  // uniform padding on all sides
+                spacing: 0px;   // no automatic gaps
+
+                // Top items (no gap)
+                Text { text: "Dashboard"; color: white; font-size: 18px; }
+                Text { text: "Products"; color: white; font-size: 18px; }
+                Text { text: "Transactions"; color: white; font-size: 18px; }
+
+                // One blank line
+                Rectangle { height: 16px; }
+
+                // Settings
+                Text { text: "Settings"; color: white; font-size: 18px; }
+
+                // Spacer that takes all remaining space, pushing Quit down
+                Rectangle { vertical-stretch: 1; }
+
+                // Quit
+                Text { text: "Quit"; color: white; font-size: 18px; }
+
+                // Extra bottom margin (instead of padding on a Rectangle)
+                Rectangle { height: 12px; }
+            }
+        }
     }
 }
+
+
+
+// export component MainWindow inherits Window {
+//     width: 1200px;
+//     height: 800px;
+//     title: "LibrePOS";
+//     background: #505050;
+
+//     // Top application bar
+//     Rectangle {
+//         x: 0px;
+//         y: 0px;
+//         width: parent.width;
+//         height: 56px;
+//         background: #101010;
+
+//         // Hamburger button
+//         Rectangle {
+//             x: 12px;
+//             y: 8px;
+//             width: 40px;
+//             height: 40px;
+//             background: hamburger.pressed ? #dddddd : #eeeeee;
+//             border-radius: 6px;
+
+//             hamburger := TouchArea {
+//             }
+
+//             Text {
+//                 width: parent.width;
+//                 height: parent.height;
+//                 text: "☰";
+//                 font-size: 22px;
+//                 horizontal-alignment: center;
+//                 vertical-alignment: center;
+//             }
+//         }
+
+//         // Application title
+//         Text {
+//             x: 64px;
+//             y: 0px;
+//             height: parent.height;
+//             text: "LibrePOS";
+//             font-size: 20px;
+//             color: #ff0000;
+//             vertical-alignment: center;
+//         }
+//     }
+
+//     // Dashboard
+//     Rectangle {
+//         x: 0px;
+//         y: 56px;
+//         width: parent.width;
+//         height: parent.height - 56px;
+//         background: #f5f5f5;
+
+//         Text {
+//             width: parent.width;
+//             height: parent.height;
+//             text: "Dashboard";
+//             font-size: 32px;
+//             color: #222222;
+//             horizontal-alignment: center;
+//             vertical-alignment: center;
+//         }
+//     }
+// }
