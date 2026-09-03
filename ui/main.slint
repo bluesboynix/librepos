@@ -22,7 +22,7 @@ export component MainWindow inherits Window {
                 y: 8px;
                 width: 40px;
                 height: 40px;
-                background: hamburger-area.pressed ? #505050 : #505050;
+                background: sidebar-open ? #505050 : #101010;
                 border-radius: 6px;
 
                 hamburger-area := TouchArea {
@@ -53,12 +53,12 @@ export component MainWindow inherits Window {
                 vertical-alignment: center;
             }
 
-            // Version number
+            // Version number (next to title)
             Text {
                 x: 170px;
                 y: 0px;
                 height: parent.height;
-                text: "v0.1.3";
+                text: "v0.1.4";
                 font-size: 14px;
                 color: #909090;
                 vertical-alignment: center;
@@ -68,7 +68,16 @@ export component MainWindow inherits Window {
         // ----- Main Content Area -----
         Rectangle {
             vertical-stretch: 1;
-            background: #505050;
+            background: #5a5a5a;
+
+            // Touch area to close sidebar when clicking outside
+            TouchArea {
+                width: parent.width;
+                height: parent.height;
+                clicked => {
+                    sidebar-open = false;
+                }
+            }
 
             // Placeholder content
             Text {
@@ -90,35 +99,110 @@ export component MainWindow inherits Window {
                 animate width { duration: 300ms; easing: ease-in-out; }
                 clip: true;
                 background: #707070;
+                border-width: 1px;
+                border-color: #808080;
+
+                // Absorb clicks so they don't reach the background TouchArea
+                TouchArea {
+                    width: parent.width;
+                    height: parent.height;
+                }
 
                 VerticalLayout {
                     padding: 12px;
                     spacing: 0px;
 
-                    Text { text: ""; color: white; font-size: 18px; }
-                    Text { text: "Dashboard"; color: white; font-size: 18px; }
+                    // Dashboard
+                    Rectangle {
+                        height: 30px;
+                        background: transparent;
+                        TouchArea {
+                            clicked => { /* no-op for now */ }
+                        }
+                        Text {
+                            text: "Dashboard";
+                            color: white;
+                            font-size: 18px;
+                            vertical-alignment: center;
+                        }
+                    }
                     Text { text: ""; color: white; font-size: 18px; }
                     Rectangle { height: 1px; background: #3a4a5a; }
                     Text { text: ""; color: white; font-size: 18px; }
                     
-                    Text { text: "Reports"; color: white; font-size: 18px; }
+                    // Reports
+                    Rectangle {
+                        height: 30px;
+                        background: transparent;
+                        TouchArea {
+                            clicked => { /* no-op for now */ }
+                        }
+                        Text {
+                            text: "Reports";
+                            color: white;
+                            font-size: 18px;
+                            vertical-alignment: center;
+                        }
+                    }
                     Text { text: ""; color: white; font-size: 18px; }
                     Rectangle { height: 1px; background: #3a4a5a; }
                     Text { text: ""; color: white; font-size: 18px; }
                     
-                    Text { text: "Menu"; color: white; font-size: 18px; }
+                    // Menu
+                    Rectangle {
+                        height: 30px;
+                        background: transparent;
+                        TouchArea {
+                            clicked => { /* no-op for now */ }
+                        }
+                        Text {
+                            text: "Menu";
+                            color: white;
+                            font-size: 18px;
+                            vertical-alignment: center;
+                        }
+                    }
                     Text { text: ""; color: white; font-size: 18px; }
                     Rectangle { height: 1px; background: #3a4a5a; }
                     Text { text: ""; color: white; font-size: 18px; }
                     
-                    Text { text: "Settings"; color: white; font-size: 18px; }
+                    // Settings
+                    Rectangle {
+                        height: 30px;
+                        background: transparent;
+                        TouchArea {
+                            clicked => { /* no-op for now */ }
+                        }
+                        Text {
+                            text: "Settings";
+                            color: white;
+                            font-size: 18px;
+                            vertical-alignment: center;
+                        }
+                    }
                     Text { text: ""; color: white; font-size: 18px; }
                     Rectangle { height: 1px; background: #3a4a5a; }
-                    Text { text: ""; color: white; font-size: 18px; }
+                    Text {
+                        text: "";
+                        color: white;
+                        font-size: 18px;
+                    }
                     
                     Rectangle { vertical-stretch: 1; }
 
-                    Text { text: "Quit"; color: white; font-size: 18px; }
+                    // Quit
+                    Rectangle {
+                        height: 30px;
+                        background: transparent;
+                        TouchArea {
+                            clicked => { /* no-op for now */ }
+                        }
+                        Text {
+                            text: "Quit";
+                            color: white; font-size: 18px;
+                            vertical-alignment: center;
+                        }
+                    }
                     Rectangle { height: 1px; background: #3a4a5a; }
                     Rectangle { height: 12px; }
                 }
