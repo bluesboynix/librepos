@@ -1,14 +1,133 @@
+import { TableCard } from "../components/table_card.slint";
+
 export component DashboardView inherits Rectangle {
     width: 100%;
     height: 100%;
 
-    Text {
-        width: parent.width;
-        height: parent.height;
-        text: "Dashboard";
-        font-size: 32px;
-        color: #fafafa;
-        horizontal-alignment: center;
-        vertical-alignment: center;
+    VerticalLayout {
+        padding: 20px;
+        spacing: 20px;
+
+        // Title
+        Text {
+            text: "Dashboard";
+            font-size: 24px;
+            color: #fafafa;
+            horizontal-alignment: center;
+        }
+
+        // ----- Indoor Section -----
+        VerticalLayout {
+            spacing: 10px;
+
+            Text {
+                text: "Indoor";
+                font-size: 18px;
+                color: #00ffff;
+                horizontal-alignment: left;
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+
+                TableCard { label: "Table 1"; }
+                TableCard { label: "Table 2"; }
+                TableCard { label: "Table 3"; }
+                TableCard { label: "Table 4"; }
+                TableCard { label: "Table 5"; }
+            }
+        }
+
+        // ----- Outdoor Section -----
+        VerticalLayout {
+            spacing: 10px;
+
+            Text {
+                text: "Outdoor";
+                font-size: 18px;
+                color: #00ffff;
+                horizontal-alignment: left;
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+
+                TableCard { label: "Outdoor 1"; }
+                TableCard { label: "Outdoor 2"; }
+                TableCard { label: "Outdoor 3"; }
+                TableCard { label: "Outdoor 4"; }
+            }
+        }
+
+        // ----- Delivery / Take Away Section -----
+        VerticalLayout {
+            spacing: 10px;
+
+            Text {
+                text: "Delivery / Take Away";
+                font-size: 18px;
+                color: #00ffff;
+                horizontal-alignment: left;
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+
+                TableCard { label: "Delivery 1"; }
+                TableCard { label: "Delivery 2"; }
+                TableCard { label: "Take Away 3"; }
+                TableCard { label: "Delivery 4"; }
+
+                // Plus and minus buttons (visual only for now)
+                Rectangle {
+                    width: 30px;
+                    height: 30px;
+                    background: #505050;
+                    border-radius: 6px;
+                    border-width: 1px;
+                    border-color: #00ffff;
+
+                    TouchArea {
+                        clicked => { /* future: increase count */ }
+                    }
+
+                    Text {
+                        width: parent.width;
+                        height: parent.height;
+                        text: "+";
+                        color: white;
+                        font-size: 18px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Rectangle {
+                    width: 30px;
+                    height: 30px;
+                    background: #505050;
+                    border-radius: 6px;
+                    border-width: 1px;
+                    border-color: #00ffff;
+
+                    TouchArea {
+                        clicked => { /* future: decrease count */ }
+                    }
+
+                    Text {
+                        width: parent.width;
+                        height: parent.height;
+                        text: "-";
+                        color: white;
+                        font-size: 18px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // Spacer to fill remaining space
+        Rectangle { vertical-stretch: 1; }
     }
 }

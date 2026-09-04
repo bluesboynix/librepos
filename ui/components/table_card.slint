@@ -1,0 +1,20 @@
+export component TableCard inherits Rectangle {
+    width: 100px;
+    height: 60px;
+    background: #404040;
+    border-radius: 6px;
+    border-width: 2px;
+    border-color: #00ffff;
+
+    in property <string> label: "Table";
+
+    Text {
+        width: parent.width;
+        height: parent.height;
+        text: parent.label;
+        color: white;
+        font-size: 14px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
