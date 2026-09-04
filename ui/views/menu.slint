@@ -2,13 +2,148 @@ export component MenuView inherits Rectangle {
     width: 100%;
     height: 100%;
 
-    Text {
-        width: parent.width;
-        height: parent.height;
-        text: "Menu";
-        font-size: 32px;
-        color: #fafafa;
-        horizontal-alignment: center;
-        vertical-alignment: center;
+    VerticalLayout {
+        padding: 20px;
+        spacing: 10px;
+
+        // Title
+        Text {
+            text: "Menu";
+            font-size: 24px;
+            color: #fafafa;
+            horizontal-alignment: center;
+        }
+
+        // Spacer
+        Rectangle { height: 10px; }
+
+        // Sample product items (static)
+        // Item 1
+        Rectangle {
+            height: 40px;
+            background: #404040;
+            border-radius: 6px;
+            HorizontalLayout {
+                padding: 10px;
+                spacing: 0px;
+                Text {
+                    horizontal-stretch: 1;
+                    text: "Coffee (1kg)";
+                    color: white;
+                    font-size: 14px;
+                }
+                Text {
+                    horizontal-stretch: 0;
+                    width: 80px;
+                    text: "$12.50";
+                    color: white;
+                    font-size: 14px;
+                    horizontal-alignment: right;
+                }
+            }
+        }
+
+        // Item 2
+        Rectangle {
+            height: 40px;
+            background: #505050;
+            border-radius: 6px;
+            HorizontalLayout {
+                padding: 10px;
+                spacing: 0px;
+                Text {
+                    horizontal-stretch: 1;
+                    text: "Milk (1L)";
+                    color: white;
+                    font-size: 14px;
+                }
+                Text {
+                    horizontal-stretch: 0;
+                    width: 80px;
+                    text: "$2.10";
+                    color: white;
+                    font-size: 14px;
+                    horizontal-alignment: right;
+                }
+            }
+        }
+
+        // Item 3
+        Rectangle {
+            height: 40px;
+            background: #404040;
+            border-radius: 6px;
+            HorizontalLayout {
+                padding: 10px;
+                spacing: 0px;
+                Text {
+                    horizontal-stretch: 1;
+                    text: "Bread Loaf";
+                    color: white;
+                    font-size: 14px;
+                }
+                Text {
+                    horizontal-stretch: 0;
+                    width: 80px;
+                    text: "$3.75";
+                    color: white;
+                    font-size: 14px;
+                    horizontal-alignment: right;
+                }
+            }
+        }
+
+        // Item 4
+        Rectangle {
+            height: 40px;
+            background: #505050;
+            border-radius: 6px;
+            HorizontalLayout {
+                padding: 10px;
+                spacing: 0px;
+                Text {
+                    horizontal-stretch: 1;
+                    text: "Sugar (500g)";
+                    color: white;
+                    font-size: 14px;
+                }
+                Text {
+                    horizontal-stretch: 0;
+                    width: 80px;
+                    text: "$1.90";
+                    color: white;
+                    font-size: 14px;
+                    horizontal-alignment: right;
+                }
+            }
+        }
+
+        // Item 5
+        Rectangle {
+            height: 40px;
+            background: #404040;
+            border-radius: 6px;
+            HorizontalLayout {
+                padding: 10px;
+                spacing: 0px;
+                Text {
+                    horizontal-stretch: 1;
+                    text: "Butter (200g)";
+                    color: white;
+                    font-size: 14px;
+                }
+                Text {
+                    horizontal-stretch: 0;
+                    width: 80px;
+                    text: "$4.20";
+                    color: white;
+                    font-size: 14px;
+                    horizontal-alignment: right;
+                }
+            }
+        }
+
+        // Spacer to fill rest
+        Rectangle { vertical-stretch: 1; }
     }
 }
