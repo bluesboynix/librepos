@@ -7,9 +7,10 @@ export component TableCard inherits Rectangle {
     border-color: #00ffff;
 
     in property <string> label: "Table";
+    callback clicked();
 
     card-area := TouchArea {
-        // Future: handle table selection
+        clicked => { root.clicked(); }
     }
 
     Text {

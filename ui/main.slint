@@ -2,6 +2,7 @@ import { DashboardView } from "views/dashboard.slint";
 import { ReportsView } from "views/reports.slint";
 import { MenuView } from "views/menu.slint";
 import { SettingsView } from "views/settings.slint";
+import { BillView } from "views/bill.slint";   // new
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
@@ -15,12 +16,12 @@ export component MainWindow inherits Window {
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
     in-out property <int> current-view: 0;
+    in-out property <string> current-bill-table: "";
     callback quit();
 
     VerticalLayout {
         spacing: 0px;
 
-        // Top bar (with hamburger)
         TopBar {
             sidebar-open: root.sidebar-open;
             toggle-sidebar => {
@@ -28,12 +29,10 @@ export component MainWindow inherits Window {
             }
         }
 
-        // Main content area
         Rectangle {
             vertical-stretch: 1;
             background: #5a5a5a;
 
-            // Click outside closes sidebar
             TouchArea {
                 width: parent.width;
                 height: parent.height;
@@ -43,12 +42,25 @@ export component MainWindow inherits Window {
             }
 
             // Conditional views
-            if root.current-view == 0 : DashboardView { }
+            if root.current-view == 0 : DashboardView {
+                table-selected(table) => {
+                    root.current-bill-table = table;
+                    root.current-view = 4;  // navigate to bill view
+                }
+            }
             if root.current-view == 1 : ReportsView { }
             if root.current-view == 2 : MenuView { }
             if root.current-view == 3 : SettingsView { }
+            if root.current-view == 4 : BillView {
+                table-name: root.current-bill-table;
+                go-back => {
+                    root.current-view = 0;
+                }
+                save => { /* future */ }
+                print => { /* future */ }
+            }
 
-            // Sidebar overlay
+            // Sidebar overlay (still available, but will close sidebar when navigating)
             SideBar {
                 x: 0px;
                 y: 0px;
@@ -69,7 +81,7 @@ export component MainWindow inherits Window {
         }
     }
 
-    // Quit dialog (overlay)
+    // Quit dialog overlay (unchanged)
     if root.quit-dialog-open : QuitDialog {
         x: 0px;
         y: 0px;
