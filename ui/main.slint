@@ -6,6 +6,7 @@ export component MainWindow inherits Window {
 
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
+    in-out property <int> current-view: 0;  // 0=Dashboard, 1=Reports, 2=Menu, 3=Settings
     callback quit();
 
     VerticalLayout {
@@ -16,7 +17,7 @@ export component MainWindow inherits Window {
             height: 56px;
             background: #101010;
 
-            // Hamburger button (unchanged)
+            // Hamburger button
             Rectangle {
                 x: 12px;
                 y: 8px;
@@ -58,7 +59,7 @@ export component MainWindow inherits Window {
                 x: 170px;
                 y: 0px;
                 height: parent.height;
-                text: "v0.1.5";
+                text: "v0.1.6";
                 font-size: 14px;
                 color: #909090;
                 vertical-alignment: center;
@@ -79,15 +80,53 @@ export component MainWindow inherits Window {
                 }
             }
 
-            // Placeholder content
-            Text {
-                width: parent.width;
-                height: parent.height;
-                text: "Dashboard";
-                font-size: 32px;
-                color: #fafafa;
-                horizontal-alignment: center;
-                vertical-alignment: center;
+            // Conditional views (integer-based)
+            if current-view == 0 : Rectangle {
+                Text {
+                    width: parent.width;
+                    height: parent.height;
+                    text: "Dashboard";
+                    font-size: 32px;
+                    color: #fafafa;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            if current-view == 1 : Rectangle {
+                Text {
+                    width: parent.width;
+                    height: parent.height;
+                    text: "Reports";
+                    font-size: 32px;
+                    color: #fafafa;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            if current-view == 2 : Rectangle {
+                Text {
+                    width: parent.width;
+                    height: parent.height;
+                    text: "Menu";
+                    font-size: 32px;
+                    color: #fafafa;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            if current-view == 3 : Rectangle {
+                Text {
+                    width: parent.width;
+                    height: parent.height;
+                    text: "Settings";
+                    font-size: 32px;
+                    color: #fafafa;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
             }
 
             // ----- Overlay Sidebar -----
@@ -118,6 +157,7 @@ export component MainWindow inherits Window {
                         background: dashboard-hover.has-hover ? #8a8a8a : transparent;
                         dashboard-hover := TouchArea {
                             clicked => {
+                                current-view = 0;
                                 sidebar-open = false;
                             }
                         }
@@ -138,6 +178,7 @@ export component MainWindow inherits Window {
                         background: reports-hover.has-hover ? #8a8a8a : transparent;
                         reports-hover := TouchArea {
                             clicked => {
+                                current-view = 1;
                                 sidebar-open = false;
                             }
                         }
@@ -158,6 +199,7 @@ export component MainWindow inherits Window {
                         background: menu-hover.has-hover ? #8a8a8a : transparent;
                         menu-hover := TouchArea {
                             clicked => {
+                                current-view = 2;
                                 sidebar-open = false;
                             }
                         }
@@ -178,6 +220,7 @@ export component MainWindow inherits Window {
                         background: settings-hover.has-hover ? #8a8a8a : transparent;
                         settings-hover := TouchArea {
                             clicked => {
+                                current-view = 3;
                                 sidebar-open = false;
                             }
                         }
