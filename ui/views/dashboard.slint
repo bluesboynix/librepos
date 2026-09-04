@@ -28,7 +28,7 @@ export component DashboardView inherits Rectangle {
             }
 
             HorizontalLayout {
-                spacing: 10px;
+                spacing: 15px;   // increased from 10
 
                 TableCard { label: "Table 1"; }
                 TableCard { label: "Table 2"; }
@@ -50,7 +50,7 @@ export component DashboardView inherits Rectangle {
             }
 
             HorizontalLayout {
-                spacing: 10px;
+                spacing: 15px;
 
                 TableCard { label: "Outdoor 1"; }
                 TableCard { label: "Outdoor 2"; }
@@ -71,7 +71,7 @@ export component DashboardView inherits Rectangle {
             }
 
             HorizontalLayout {
-                spacing: 10px;
+                spacing: 15px;
 
                 TableCard { label: "Delivery 1"; }
                 TableCard { label: "Delivery 2"; }
@@ -80,8 +80,8 @@ export component DashboardView inherits Rectangle {
 
                 // Plus and minus buttons (visual only for now)
                 Rectangle {
-                    width: 30px;
-                    height: 30px;
+                    width: 40px;   // slightly larger for consistency
+                    height: 40px;
                     background: #505050;
                     border-radius: 6px;
                     border-width: 1px;
@@ -103,8 +103,8 @@ export component DashboardView inherits Rectangle {
                 }
 
                 Rectangle {
-                    width: 30px;
-                    height: 30px;
+                    width: 40px;
+                    height: 40px;
                     background: #505050;
                     border-radius: 6px;
                     border-width: 1px;
