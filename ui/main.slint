@@ -5,10 +5,10 @@ export component MainWindow inherits Window {
     background: #505050;
 
     in-out property <bool> sidebar-open: false;
+    in-out property <bool> quit-dialog-open: false;
+    callback quit();
 
     VerticalLayout {
-        width: 100%;
-        height: 100%;
         spacing: 0px;
 
         // ----- Top Header Bar -----
@@ -16,7 +16,7 @@ export component MainWindow inherits Window {
             height: 56px;
             background: #101010;
 
-            // Hamburger button
+            // Hamburger button (unchanged)
             Rectangle {
                 x: 12px;
                 y: 8px;
@@ -53,12 +53,12 @@ export component MainWindow inherits Window {
                 vertical-alignment: center;
             }
 
-            // Version number (next to title)
+            // Version number
             Text {
                 x: 170px;
                 y: 0px;
                 height: parent.height;
-                text: "v0.1.4";
+                text: "v0.1.5";
                 font-size: 14px;
                 color: #909090;
                 vertical-alignment: center;
@@ -70,7 +70,7 @@ export component MainWindow inherits Window {
             vertical-stretch: 1;
             background: #5a5a5a;
 
-            // Touch area to close sidebar when clicking outside
+            // Background click closes sidebar
             TouchArea {
                 width: parent.width;
                 height: parent.height;
@@ -102,7 +102,7 @@ export component MainWindow inherits Window {
                 border-width: 1px;
                 border-color: #808080;
 
-                // Absorb clicks so they don't reach the background TouchArea
+                // Absorb clicks inside sidebar
                 TouchArea {
                     width: parent.width;
                     height: parent.height;
@@ -115,9 +115,11 @@ export component MainWindow inherits Window {
                     // Dashboard
                     Rectangle {
                         height: 30px;
-                        background: transparent;
-                        TouchArea {
-                            clicked => { /* no-op for now */ }
+                        background: dashboard-hover.has-hover ? #8a8a8a : transparent;
+                        dashboard-hover := TouchArea {
+                            clicked => {
+                                sidebar-open = false;
+                            }
                         }
                         Text {
                             text: "Dashboard";
@@ -129,13 +131,15 @@ export component MainWindow inherits Window {
                     Text { text: ""; color: white; font-size: 18px; }
                     Rectangle { height: 1px; background: #3a4a5a; }
                     Text { text: ""; color: white; font-size: 18px; }
-                    
+
                     // Reports
                     Rectangle {
                         height: 30px;
-                        background: transparent;
-                        TouchArea {
-                            clicked => { /* no-op for now */ }
+                        background: reports-hover.has-hover ? #8a8a8a : transparent;
+                        reports-hover := TouchArea {
+                            clicked => {
+                                sidebar-open = false;
+                            }
                         }
                         Text {
                             text: "Reports";
@@ -147,13 +151,15 @@ export component MainWindow inherits Window {
                     Text { text: ""; color: white; font-size: 18px; }
                     Rectangle { height: 1px; background: #3a4a5a; }
                     Text { text: ""; color: white; font-size: 18px; }
-                    
+
                     // Menu
                     Rectangle {
                         height: 30px;
-                        background: transparent;
-                        TouchArea {
-                            clicked => { /* no-op for now */ }
+                        background: menu-hover.has-hover ? #8a8a8a : transparent;
+                        menu-hover := TouchArea {
+                            clicked => {
+                                sidebar-open = false;
+                            }
                         }
                         Text {
                             text: "Menu";
@@ -165,13 +171,15 @@ export component MainWindow inherits Window {
                     Text { text: ""; color: white; font-size: 18px; }
                     Rectangle { height: 1px; background: #3a4a5a; }
                     Text { text: ""; color: white; font-size: 18px; }
-                    
+
                     // Settings
                     Rectangle {
                         height: 30px;
-                        background: transparent;
-                        TouchArea {
-                            clicked => { /* no-op for now */ }
+                        background: settings-hover.has-hover ? #8a8a8a : transparent;
+                        settings-hover := TouchArea {
+                            clicked => {
+                                sidebar-open = false;
+                            }
                         }
                         Text {
                             text: "Settings";
@@ -182,29 +190,119 @@ export component MainWindow inherits Window {
                     }
                     Text { text: ""; color: white; font-size: 18px; }
                     Rectangle { height: 1px; background: #3a4a5a; }
-                    Text {
-                        text: "";
-                        color: white;
-                        font-size: 18px;
-                    }
-                    
+                    Text { text: ""; color: white; font-size: 18px; }
+
                     Rectangle { vertical-stretch: 1; }
 
                     // Quit
                     Rectangle {
                         height: 30px;
-                        background: transparent;
-                        TouchArea {
-                            clicked => { /* no-op for now */ }
+                        background: quit-hover.has-hover ? #8a8a8a : transparent;
+                        quit-hover := TouchArea {
+                            clicked => {
+                                quit-dialog-open = true;
+                            }
                         }
                         Text {
                             text: "Quit";
-                            color: white; font-size: 18px;
+                            color: white;
+                            font-size: 18px;
                             vertical-alignment: center;
                         }
                     }
                     Rectangle { height: 1px; background: #3a4a5a; }
                     Rectangle { height: 12px; }
+                }
+            }
+        }
+    }
+
+    // ----- Quit Confirmation Dialog (Modal Overlay) -----
+    if quit-dialog-open : Rectangle {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        background: #00000080;  // semi-transparent black
+
+        // Absorb clicks so they don't reach background
+        TouchArea {
+            width: parent.width;
+            height: parent.height;
+        }
+
+        // Dialog box
+        Rectangle {
+            x: (parent.width - 400px) / 2;
+            y: (parent.height - 200px) / 2;
+            width: 400px;
+            height: 200px;
+            background: #303030;
+            border-radius: 10px;
+            border-width: 2px;
+            border-color: #00ffff;
+
+            VerticalLayout {
+                padding: 20px;
+                spacing: 20px;
+
+                Text {
+                    text: "Are you sure you want to quit?";
+                    color: white;
+                    font-size: 18px;
+                    horizontal-alignment: center;
+                }
+
+                Rectangle { height: 20px; }
+
+                HorizontalLayout {
+                    spacing: 20px;
+                    alignment: center;
+
+                    // Yes button
+                    Rectangle {
+                        width: 100px;
+                        height: 40px;
+                        background: yes-hover.has-hover ? #cc0000 : #aa0000;
+                        border-radius: 6px;
+                        yes-hover := TouchArea {
+                            clicked => {
+                                quit-dialog-open = false;
+                                quit();
+                            }
+                        }
+                        Text {
+                            width: parent.width;
+                            height: parent.height;
+                            text: "Yes";
+                            color: white;
+                            font-size: 16px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // No button
+                    Rectangle {
+                        width: 100px;
+                        height: 40px;
+                        background: no-hover.has-hover ? #555555 : #444444;
+                        border-radius: 6px;
+                        no-hover := TouchArea {
+                            clicked => {
+                                quit-dialog-open = false;
+                            }
+                        }
+                        Text {
+                            width: parent.width;
+                            height: parent.height;
+                            text: "No";
+                            color: white;
+                            font-size: 16px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
                 }
             }
         }
