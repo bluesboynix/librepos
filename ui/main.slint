@@ -1,3 +1,11 @@
+import { DashboardView } from "views/dashboard.slint";
+import { ReportsView } from "views/reports.slint";
+import { MenuView } from "views/menu.slint";
+import { SettingsView } from "views/settings.slint";
+import { TopBar } from "components/top_bar.slint";
+import { SideBar } from "components/sidebar.slint";
+import { QuitDialog } from "components/quit_dialog.slint";
+
 export component MainWindow inherits Window {
     preferred-width: 100%;
     preferred-height: 100%;
@@ -6,348 +14,70 @@ export component MainWindow inherits Window {
 
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
-    in-out property <int> current-view: 0;  // 0=Dashboard, 1=Reports, 2=Menu, 3=Settings
+    in-out property <int> current-view: 0;
     callback quit();
 
     VerticalLayout {
         spacing: 0px;
 
-        // ----- Top Header Bar -----
-        Rectangle {
-            height: 56px;
-            background: #101010;
-
-            // Hamburger button
-            Rectangle {
-                x: 12px;
-                y: 8px;
-                width: 40px;
-                height: 40px;
-                background: sidebar-open ? #505050 : #101010;
-                border-radius: 6px;
-
-                hamburger-area := TouchArea {
-                    clicked => {
-                        sidebar-open = !sidebar-open;
-                    }
-                }
-
-                Text {
-                    width: parent.width;
-                    height: parent.height;
-                    text: "☰";
-                    color: #00ffff;
-                    font-size: 22px;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-            }
-
-            // Application title
-            Text {
-                x: 64px;
-                y: 0px;
-                height: parent.height;
-                text: "LibrePOS";
-                font-size: 20px;
-                color: #ff0000;
-                vertical-alignment: center;
-            }
-
-            // Version number
-            Text {
-                x: 170px;
-                y: 0px;
-                height: parent.height;
-                text: "v0.1.6";
-                font-size: 14px;
-                color: #909090;
-                vertical-alignment: center;
+        // Top bar (with hamburger)
+        TopBar {
+            sidebar-open: root.sidebar-open;
+            toggle-sidebar => {
+                root.sidebar-open = !root.sidebar-open;
             }
         }
 
-        // ----- Main Content Area -----
+        // Main content area
         Rectangle {
             vertical-stretch: 1;
             background: #5a5a5a;
 
-            // Background click closes sidebar
+            // Click outside closes sidebar
             TouchArea {
                 width: parent.width;
                 height: parent.height;
                 clicked => {
-                    sidebar-open = false;
+                    root.sidebar-open = false;
                 }
             }
 
-            // Conditional views (integer-based)
-            if current-view == 0 : Rectangle {
-                Text {
-                    width: parent.width;
-                    height: parent.height;
-                    text: "Dashboard";
-                    font-size: 32px;
-                    color: #fafafa;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-            }
+            // Conditional views
+            if root.current-view == 0 : DashboardView { }
+            if root.current-view == 1 : ReportsView { }
+            if root.current-view == 2 : MenuView { }
+            if root.current-view == 3 : SettingsView { }
 
-            if current-view == 1 : Rectangle {
-                Text {
-                    width: parent.width;
-                    height: parent.height;
-                    text: "Reports";
-                    font-size: 32px;
-                    color: #fafafa;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-            }
-
-            if current-view == 2 : Rectangle {
-                Text {
-                    width: parent.width;
-                    height: parent.height;
-                    text: "Menu";
-                    font-size: 32px;
-                    color: #fafafa;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-            }
-
-            if current-view == 3 : Rectangle {
-                Text {
-                    width: parent.width;
-                    height: parent.height;
-                    text: "Settings";
-                    font-size: 32px;
-                    color: #fafafa;
-                    horizontal-alignment: center;
-                    vertical-alignment: center;
-                }
-            }
-
-            // ----- Overlay Sidebar -----
-            Rectangle {
+            // Sidebar overlay
+            SideBar {
                 x: 0px;
                 y: 0px;
-                width: sidebar-open ? 250px : 0px;
+                width: root.sidebar-open ? 250px : 0px;
                 height: parent.height;
                 animate width { duration: 300ms; easing: ease-in-out; }
                 clip: true;
-                background: #707070;
-                border-width: 1px;
-                border-color: #808080;
 
-                // Absorb clicks inside sidebar
-                TouchArea {
-                    width: parent.width;
-                    height: parent.height;
+                current-view: root.current-view;
+                navigate(view) => {
+                    root.current-view = view;
+                    root.sidebar-open = false;
                 }
-
-                VerticalLayout {
-                    padding: 12px;
-                    spacing: 0px;
-
-                    // Dashboard
-                    Rectangle {
-                        height: 30px;
-                        background: dashboard-hover.has-hover ? #8a8a8a : transparent;
-                        dashboard-hover := TouchArea {
-                            clicked => {
-                                current-view = 0;
-                                sidebar-open = false;
-                            }
-                        }
-                        Text {
-                            text: "Dashboard";
-                            color: white;
-                            font-size: 18px;
-                            vertical-alignment: center;
-                        }
-                    }
-                    Text { text: ""; color: white; font-size: 18px; }
-                    Rectangle { height: 1px; background: #3a4a5a; }
-                    Text { text: ""; color: white; font-size: 18px; }
-
-                    // Reports
-                    Rectangle {
-                        height: 30px;
-                        background: reports-hover.has-hover ? #8a8a8a : transparent;
-                        reports-hover := TouchArea {
-                            clicked => {
-                                current-view = 1;
-                                sidebar-open = false;
-                            }
-                        }
-                        Text {
-                            text: "Reports";
-                            color: white;
-                            font-size: 18px;
-                            vertical-alignment: center;
-                        }
-                    }
-                    Text { text: ""; color: white; font-size: 18px; }
-                    Rectangle { height: 1px; background: #3a4a5a; }
-                    Text { text: ""; color: white; font-size: 18px; }
-
-                    // Menu
-                    Rectangle {
-                        height: 30px;
-                        background: menu-hover.has-hover ? #8a8a8a : transparent;
-                        menu-hover := TouchArea {
-                            clicked => {
-                                current-view = 2;
-                                sidebar-open = false;
-                            }
-                        }
-                        Text {
-                            text: "Menu";
-                            color: white;
-                            font-size: 18px;
-                            vertical-alignment: center;
-                        }
-                    }
-                    Text { text: ""; color: white; font-size: 18px; }
-                    Rectangle { height: 1px; background: #3a4a5a; }
-                    Text { text: ""; color: white; font-size: 18px; }
-
-                    // Settings
-                    Rectangle {
-                        height: 30px;
-                        background: settings-hover.has-hover ? #8a8a8a : transparent;
-                        settings-hover := TouchArea {
-                            clicked => {
-                                current-view = 3;
-                                sidebar-open = false;
-                            }
-                        }
-                        Text {
-                            text: "Settings";
-                            color: white;
-                            font-size: 18px;
-                            vertical-alignment: center;
-                        }
-                    }
-                    Text { text: ""; color: white; font-size: 18px; }
-                    Rectangle { height: 1px; background: #3a4a5a; }
-                    Text { text: ""; color: white; font-size: 18px; }
-
-                    Rectangle { vertical-stretch: 1; }
-
-                    // Quit
-                    Rectangle {
-                        height: 30px;
-                        background: quit-hover.has-hover ? #8a8a8a : transparent;
-                        quit-hover := TouchArea {
-                            clicked => {
-                                quit-dialog-open = true;
-                            }
-                        }
-                        Text {
-                            text: "Quit";
-                            color: white;
-                            font-size: 18px;
-                            vertical-alignment: center;
-                        }
-                    }
-                    Rectangle { height: 1px; background: #3a4a5a; }
-                    Rectangle { height: 12px; }
+                quit-requested => {
+                    root.quit-dialog-open = true;
                 }
             }
         }
     }
 
-    // ----- Quit Confirmation Dialog (Modal Overlay) -----
-    if quit-dialog-open : Rectangle {
+    // Quit dialog (overlay)
+    if root.quit-dialog-open : QuitDialog {
         x: 0px;
         y: 0px;
         width: parent.width;
         height: parent.height;
-        background: #00000080;  // semi-transparent black
-
-        // Absorb clicks so they don't reach background
-        TouchArea {
-            width: parent.width;
-            height: parent.height;
-        }
-
-        // Dialog box
-        Rectangle {
-            x: (parent.width - 400px) / 2;
-            y: (parent.height - 200px) / 2;
-            width: 400px;
-            height: 200px;
-            background: #303030;
-            border-radius: 10px;
-            border-width: 2px;
-            border-color: #00ffff;
-
-            VerticalLayout {
-                padding: 20px;
-                spacing: 20px;
-
-                Text {
-                    text: "Are you sure you want to quit?";
-                    color: white;
-                    font-size: 18px;
-                    horizontal-alignment: center;
-                }
-
-                Rectangle { height: 20px; }
-
-                HorizontalLayout {
-                    spacing: 20px;
-                    alignment: center;
-
-                    // Yes button
-                    Rectangle {
-                        width: 100px;
-                        height: 40px;
-                        background: yes-hover.has-hover ? #cc0000 : #aa0000;
-                        border-radius: 6px;
-                        yes-hover := TouchArea {
-                            clicked => {
-                                quit-dialog-open = false;
-                                quit();
-                            }
-                        }
-                        Text {
-                            width: parent.width;
-                            height: parent.height;
-                            text: "Yes";
-                            color: white;
-                            font-size: 16px;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                        }
-                    }
-
-                    // No button
-                    Rectangle {
-                        width: 100px;
-                        height: 40px;
-                        background: no-hover.has-hover ? #555555 : #444444;
-                        border-radius: 6px;
-                        no-hover := TouchArea {
-                            clicked => {
-                                quit-dialog-open = false;
-                            }
-                        }
-                        Text {
-                            width: parent.width;
-                            height: parent.height;
-                            text: "No";
-                            color: white;
-                            font-size: 16px;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                        }
-                    }
-                }
-            }
+        open: true;
+        confirmed => {
+            root.quit();
         }
     }
 }

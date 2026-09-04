@@ -1,0 +1,123 @@
+export component SideBar inherits Rectangle {
+    width: 250px;
+    height: 100%;
+    background: #707070;
+    border-width: 1px;
+    border-color: #808080;
+
+    in-out property <int> current-view: 0;
+    callback navigate(int);   // <-- changed: removed parameter name
+    callback quit-requested();
+
+    // Absorb clicks inside sidebar
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+    }
+
+    VerticalLayout {
+        padding: 12px;
+        spacing: 0px;
+
+        // Dashboard
+        Rectangle {
+            height: 30px;
+            background: dashboard-hover.has-hover ? #8a8a8a : transparent;
+            dashboard-hover := TouchArea {
+                clicked => {
+                    root.navigate(0);
+                }
+            }
+            Text {
+                text: "Dashboard";
+                color: white;
+                font-size: 18px;
+                vertical-alignment: center;
+            }
+        }
+        Text { text: ""; color: white; font-size: 18px; }
+        Rectangle { height: 1px; background: #3a4a5a; }
+        Text { text: ""; color: white; font-size: 18px; }
+
+        // Reports
+        Rectangle {
+            height: 30px;
+            background: reports-hover.has-hover ? #8a8a8a : transparent;
+            reports-hover := TouchArea {
+                clicked => {
+                    root.navigate(1);
+                }
+            }
+            Text {
+                text: "Reports";
+                color: white;
+                font-size: 18px;
+                vertical-alignment: center;
+            }
+        }
+        Text { text: ""; color: white; font-size: 18px; }
+        Rectangle { height: 1px; background: #3a4a5a; }
+        Text { text: ""; color: white; font-size: 18px; }
+
+        // Menu
+        Rectangle {
+            height: 30px;
+            background: menu-hover.has-hover ? #8a8a8a : transparent;
+            menu-hover := TouchArea {
+                clicked => {
+                    root.navigate(2);
+                }
+            }
+            Text {
+                text: "Menu";
+                color: white;
+                font-size: 18px;
+                vertical-alignment: center;
+            }
+        }
+        Text { text: ""; color: white; font-size: 18px; }
+        Rectangle { height: 1px; background: #3a4a5a; }
+        Text { text: ""; color: white; font-size: 18px; }
+
+        // Settings
+        Rectangle {
+            height: 30px;
+            background: settings-hover.has-hover ? #8a8a8a : transparent;
+            settings-hover := TouchArea {
+                clicked => {
+                    root.navigate(3);
+                }
+            }
+            Text {
+                text: "Settings";
+                color: white;
+                font-size: 18px;
+                vertical-alignment: center;
+            }
+        }
+        Text { text: ""; color: white; font-size: 18px; }
+        Rectangle { height: 1px; background: #3a4a5a; }
+        Text { text: ""; color: white; font-size: 18px; }
+
+        Rectangle { vertical-stretch: 1; }
+
+        // Quit
+        Rectangle {
+            height: 30px;
+            background: quit-hover.has-hover ? #8a8a8a : transparent;
+            quit-hover := TouchArea {
+                clicked => {
+                    root.quit-requested();
+                }
+            }
+            Text {
+                text: "Quit";
+                color: white;
+                font-size: 18px;
+                vertical-alignment: center;
+            }
+        }
+        Rectangle { height: 1px; background: #3a4a5a; }
+        Rectangle { height: 12px; }
+    }
+}

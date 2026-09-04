@@ -1,0 +1,55 @@
+export component TopBar inherits Rectangle {
+    height: 56px;
+    background: #101010;
+
+    in-out property <bool> sidebar-open: false;
+    callback toggle-sidebar();
+
+    // Hamburger button
+    Rectangle {
+        x: 12px;
+        y: 8px;
+        width: 40px;
+        height: 40px;
+        background: sidebar-open ? #505050 : #101010;
+        border-radius: 6px;
+
+        hamburger-area := TouchArea {
+            clicked => {
+                root.toggle-sidebar();
+            }
+        }
+
+        Text {
+            width: parent.width;
+            height: parent.height;
+            text: "☰";
+            color: #00ffff;
+            font-size: 22px;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+
+    // Application title
+    Text {
+        x: 64px;
+        y: 0px;
+        height: parent.height;
+        text: "LibrePOS";
+        font-size: 20px;
+        color: #ff0000;
+        vertical-alignment: center;
+    }
+
+    // Version number
+    Text {
+        x: 170px;
+        y: 0px;
+        height: parent.height;
+        text: "v0.1.8";
+        font-size: 14px;
+        color: #909090;
+        vertical-alignment: center;
+    }
+}

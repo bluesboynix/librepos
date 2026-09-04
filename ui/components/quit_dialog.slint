@@ -1,0 +1,86 @@
+export component QuitDialog inherits Rectangle {
+    // This component is meant to be used as an overlay; its size is set by parent.
+    // We'll set x,y,width,height in main.slint when open.
+    in-out property <bool> open: false;
+    callback confirmed();
+
+    background: #00000080;
+
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+    }
+
+    Rectangle {
+        x: (parent.width - 400px) / 2;
+        y: (parent.height - 200px) / 2;
+        width: 400px;
+        height: 200px;
+        background: #303030;
+        border-radius: 10px;
+        border-width: 2px;
+        border-color: #00ffff;
+
+        VerticalLayout {
+            padding: 20px;
+            spacing: 20px;
+
+            Text {
+                text: "Are you sure you want to quit?";
+                color: white;
+                font-size: 18px;
+                horizontal-alignment: center;
+            }
+
+            Rectangle { height: 20px; }
+
+            HorizontalLayout {
+                spacing: 20px;
+                alignment: center;
+
+                Rectangle {
+                    width: 100px;
+                    height: 40px;
+                    background: yes-hover.has-hover ? #cc0000 : #aa0000;
+                    border-radius: 6px;
+                    yes-hover := TouchArea {
+                        clicked => {
+                            root.open = false;
+                            root.confirmed();
+                        }
+                    }
+                    Text {
+                        width: parent.width;
+                        height: parent.height;
+                        text: "Yes";
+                        color: white;
+                        font-size: 16px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+
+                Rectangle {
+                    width: 100px;
+                    height: 40px;
+                    background: no-hover.has-hover ? #555555 : #444444;
+                    border-radius: 6px;
+                    no-hover := TouchArea {
+                        clicked => {
+                            root.open = false;
+                        }
+                    }
+                    Text {
+                        width: parent.width;
+                        height: parent.height;
+                        text: "No";
+                        color: white;
+                        font-size: 16px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}
