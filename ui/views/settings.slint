@@ -1,18 +1,18 @@
+export struct TableArea {
+    name: string,
+    tables: int,
+}
+
 export component SettingsView inherits Rectangle {
     width: 100%;
     height: 100%;
 
-    // Area configuration properties (bind to UI)
-    in-out property <string> area1-name: "Indoor";
-    in-out property <string> area1-tables: "4";
-    in-out property <string> area2-name: "Outdoor";
-    in-out property <string> area2-tables: "4";
-    in-out property <string> area3-name: "Delivery";
-    in-out property <string> area3-tables: "3";
-    in-out property <string> area4-name: "Take Away";
-    in-out property <string> area4-tables: "3";
+    in property <[TableArea]> areas;
+    callback add-area();
+    callback remove-area(int);
+    callback confirm-area(int);
 
-    // GST configuration (default 2.5% CGST + 2.5% SGST = 5% total)
+    // GST properties
     in-out property <string> cgst-text: "2.5";
     in-out property <string> sgst-text: "2.5";
 
@@ -38,14 +38,14 @@ export component SettingsView inherits Rectangle {
                 horizontal-alignment: left;
             }
 
-            // Add new area button (visual only)
+            // Add new area button
             Rectangle {
                 height: 30px;
                 width: 150px;
                 background: add-area-hover.has-hover ? #444444 : #333333;
                 border-radius: 4px;
                 add-area-hover := TouchArea {
-                    clicked => { /* future: add new area */ }
+                    clicked => { root.add-area(); }
                 }
                 Text {
                     text: "+ Add new Area";
@@ -56,128 +56,23 @@ export component SettingsView inherits Rectangle {
                 }
             }
 
-            // Area rows
-            // Area 1
-            HorizontalLayout {
+            // Dynamic area rows
+            for area[i] in root.areas : HorizontalLayout {
                 spacing: 10px;
-                Rectangle {
-                    width: 24px;
-                    height: 24px;
-                    background: delete-area1-hover.has-hover ? #aa3333 : #883333;
-                    border-radius: 4px;
-                    delete-area1-hover := TouchArea {
-                        clicked => { /* future: delete area */ }
-                    }
-                    Text { text: "x"; color: white; horizontal-alignment: center; vertical-alignment: center; }
-                }
-                Rectangle {
-                    horizontal-stretch: 1;
-                    height: 30px;
-                    background: #d0d0d0;
-                    border-radius: 4px;
-                    clip: true;
-                    TextInput {
-                        horizontal-stretch: 1;
-                        height: 100%;
-                        color: black;
-                        single-line: true;
-                        text <=> root.area1-name;
-                    }
-                }
-                Text { text: "Table"; color: white; vertical-alignment: center; }
-                Rectangle {
-                    width: 60px;
-                    height: 30px;
-                    background: #d0d0d0;
-                    border-radius: 4px;
-                    clip: true;
-                    TextInput {
-                        width: 100%;
-                        height: 100%;
-                        color: black;
-                        single-line: true;
-                        text <=> root.area1-tables;
-                    }
-                }
-                Rectangle {
-                    width: 80px;
-                    height: 30px;
-                    background: confirm-area1-hover.has-hover ? #005500 : #004400;
-                    border-radius: 4px;
-                    confirm-area1-hover := TouchArea {
-                        clicked => { /* future: confirm area changes */ }
-                    }
-                    Text { text: "Confirm"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
-                }
-            }
 
-            // Area 2
-            HorizontalLayout {
-                spacing: 10px;
+                // Delete button
                 Rectangle {
                     width: 24px;
                     height: 24px;
-                    background: delete-area2-hover.has-hover ? #aa3333 : #883333;
+                    background: del-hover.has-hover ? #aa3333 : #883333;
                     border-radius: 4px;
-                    delete-area2-hover := TouchArea {
-                        clicked => { /* future */ }
+                    del-hover := TouchArea {
+                        clicked => { root.remove-area(i); }
                     }
                     Text { text: "x"; color: white; horizontal-alignment: center; vertical-alignment: center; }
                 }
-                Rectangle {
-                    horizontal-stretch: 1;
-                    height: 30px;
-                    background: #d0d0d0;
-                    border-radius: 4px;
-                    clip: true;
-                    TextInput {
-                        horizontal-stretch: 1;
-                        height: 100%;
-                        color: black;
-                        single-line: true;
-                        text <=> root.area2-name;
-                    }
-                }
-                Text { text: "Table"; color: white; vertical-alignment: center; }
-                Rectangle {
-                    width: 60px;
-                    height: 30px;
-                    background: #d0d0d0;
-                    border-radius: 4px;
-                    clip: true;
-                    TextInput {
-                        width: 100%;
-                        height: 100%;
-                        color: black;
-                        single-line: true;
-                        text <=> root.area2-tables;
-                    }
-                }
-                Rectangle {
-                    width: 80px;
-                    height: 30px;
-                    background: confirm-area2-hover.has-hover ? #005500 : #004400;
-                    border-radius: 4px;
-                    confirm-area2-hover := TouchArea {
-                        clicked => { /* future */ }
-                    }
-                    Text { text: "Confirm"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
-                }
-            }
 
-            // Area 3
-            HorizontalLayout {
-                spacing: 10px;
-                Rectangle {
-                    width: 24px;
-                    height: 24px;
-                    background: delete-area3-hover.has-hover ? #aa3333 : #883333;
-                    border-radius: 4px;
-                    delete-area3-hover := TouchArea {
-                        clicked => { /* future */ }
-                    }
-                    Text { text: "x"; color: white; horizontal-alignment: center; vertical-alignment: center; }
-                }
+                // Name input
                 Rectangle {
                     horizontal-stretch: 1;
                     height: 30px;
@@ -189,64 +84,13 @@ export component SettingsView inherits Rectangle {
                         height: 100%;
                         color: black;
                         single-line: true;
-                        text <=> root.area3-name;
+                        text: area.name;
                     }
                 }
-                Text { text: "Table"; color: white; vertical-alignment: center; }
-                Rectangle {
-                    width: 60px;
-                    height: 30px;
-                    background: #d0d0d0;
-                    border-radius: 4px;
-                    clip: true;
-                    TextInput {
-                        width: 100%;
-                        height: 100%;
-                        color: black;
-                        single-line: true;
-                        text <=> root.area3-tables;
-                    }
-                }
-                Rectangle {
-                    width: 80px;
-                    height: 30px;
-                    background: confirm-area3-hover.has-hover ? #005500 : #004400;
-                    border-radius: 4px;
-                    confirm-area3-hover := TouchArea {
-                        clicked => { /* future */ }
-                    }
-                    Text { text: "Confirm"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
-                }
-            }
 
-            // Area 4
-            HorizontalLayout {
-                spacing: 10px;
-                Rectangle {
-                    width: 24px;
-                    height: 24px;
-                    background: delete-area4-hover.has-hover ? #aa3333 : #883333;
-                    border-radius: 4px;
-                    delete-area4-hover := TouchArea {
-                        clicked => { /* future */ }
-                    }
-                    Text { text: "x"; color: white; horizontal-alignment: center; vertical-alignment: center; }
-                }
-                Rectangle {
-                    horizontal-stretch: 1;
-                    height: 30px;
-                    background: #d0d0d0;
-                    border-radius: 4px;
-                    clip: true;
-                    TextInput {
-                        horizontal-stretch: 1;
-                        height: 100%;
-                        color: black;
-                        single-line: true;
-                        text <=> root.area4-name;
-                    }
-                }
                 Text { text: "Table"; color: white; vertical-alignment: center; }
+
+                // Tables count input
                 Rectangle {
                     width: 60px;
                     height: 30px;
@@ -258,16 +102,18 @@ export component SettingsView inherits Rectangle {
                         height: 100%;
                         color: black;
                         single-line: true;
-                        text <=> root.area4-tables;
+                        text: area.tables;
                     }
                 }
+
+                // Confirm button
                 Rectangle {
                     width: 80px;
                     height: 30px;
-                    background: confirm-area4-hover.has-hover ? #005500 : #004400;
+                    background: confirm-hover.has-hover ? #005500 : #004400;
                     border-radius: 4px;
-                    confirm-area4-hover := TouchArea {
-                        clicked => { /* future */ }
+                    confirm-hover := TouchArea {
+                        clicked => { root.confirm-area(i); }
                     }
                     Text { text: "Confirm"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
                 }
@@ -319,7 +165,6 @@ export component SettingsView inherits Rectangle {
                 }
             }
 
-            // Optional: show total GST
             HorizontalLayout {
                 Text { text: "Total GST:"; color: white; width: 80px; vertical-alignment: center; }
                 Text {

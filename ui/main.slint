@@ -1,8 +1,8 @@
 import { DashboardView } from "views/dashboard.slint";
 import { ReportsView } from "views/reports.slint";
 import { MenuView } from "views/menu.slint";
-import { SettingsView } from "views/settings.slint";
-import { BillView } from "views/bill.slint";   // new
+import { SettingsView, TableArea } from "views/settings.slint";
+import { BillView } from "views/bill.slint";
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
@@ -17,7 +17,10 @@ export component MainWindow inherits Window {
     in-out property <bool> quit-dialog-open: false;
     in-out property <int> current-view: 0;
     in-out property <string> current-bill-table: "";
+    in property <[TableArea]> areas;
     callback quit();
+    callback add-area();
+    callback remove-area(int);
 
     VerticalLayout {
         spacing: 0px;
@@ -41,26 +44,27 @@ export component MainWindow inherits Window {
                 }
             }
 
-            // Conditional views
             if root.current-view == 0 : DashboardView {
                 table-selected(table) => {
                     root.current-bill-table = table;
-                    root.current-view = 4;  // navigate to bill view
+                    root.current-view = 4;
                 }
             }
             if root.current-view == 1 : ReportsView { }
             if root.current-view == 2 : MenuView { }
-            if root.current-view == 3 : SettingsView { }
+            if root.current-view == 3 : SettingsView {
+                areas: root.areas;
+                add-area => { root.add-area(); }
+                remove-area(index) => { root.remove-area(index); }
+                confirm-area(index) => { /* optional */ }
+            }
             if root.current-view == 4 : BillView {
                 table-name: root.current-bill-table;
-                go-back => {
-                    root.current-view = 0;
-                }
+                go-back => { root.current-view = 0; }
                 save => { /* future */ }
                 print => { /* future */ }
             }
 
-            // Sidebar overlay (still available, but will close sidebar when navigating)
             SideBar {
                 x: 0px;
                 y: 0px;
@@ -81,7 +85,6 @@ export component MainWindow inherits Window {
         }
     }
 
-    // Quit dialog overlay (unchanged)
     if root.quit-dialog-open : QuitDialog {
         x: 0px;
         y: 0px;
