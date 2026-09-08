@@ -8,7 +8,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     window.window().set_maximized(true);
 
-    // Create initial areas using the generated TableArea type
     let areas: Rc<VecModel<TableArea>> = Rc::new(VecModel::from(vec![
         TableArea { name: "Indoor".into(), tables: 4 },
         TableArea { name: "Outdoor".into(), tables: 4 },
@@ -16,12 +15,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         TableArea { name: "Take Away".into(), tables: 3 },
     ]));
 
-    // Pass the model to the UI
     window.set_areas(areas.clone().into());
 
-    // Create two weak handles for the closures
     let weak_areas_add = Rc::downgrade(&areas);
     let weak_areas_remove = Rc::downgrade(&areas);
+    let weak_areas_set = Rc::downgrade(&areas);
 
     window.on_add_area(move || {
         if let Some(areas) = weak_areas_add.upgrade() {
@@ -38,7 +36,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
-    // Quit callback
+    window.on_set_tables(move |area_index, new_count| {
+        if let Some(areas) = weak_areas_set.upgrade() {
+            if area_index >= 0 && (area_index as usize) < areas.row_count() {
+                let mut area = areas.row_data(area_index as usize).unwrap();
+                area.tables = new_count;
+                areas.set_row_data(area_index as usize, area);
+            }
+        }
+    });
+
     window.on_quit(|| {
         std::process::exit(0);
     });

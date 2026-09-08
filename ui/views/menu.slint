@@ -2,11 +2,12 @@ export component MenuView inherits Rectangle {
     width: 100%;
     height: 100%;
 
+    in-out property <string> search-text: "";
+
     VerticalLayout {
         padding: 20px;
         spacing: 10px;
 
-        // Title
         Text {
             text: "Menu";
             font-size: 24px;
@@ -14,136 +15,87 @@ export component MenuView inherits Rectangle {
             horizontal-alignment: center;
         }
 
-        // Spacer
-        Rectangle { height: 10px; }
-
-        // Sample product items (static)
-        // Item 1
         Rectangle {
+            horizontal-stretch: 1;
+            height: 30px;
+            background: #d0d0d0;
+            border-radius: 4px;
+            clip: true;
+            HorizontalLayout {
+                padding-left: 8px;
+                padding-right: 8px;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text <=> root.search-text;
+                }
+                Rectangle {
+                    width: 20px;
+                    height: 20px;
+                    background: clear-search-hover.has-hover ? #aaaaaa : #cccccc;
+                    border-radius: 10px;
+                    clear-search-hover := TouchArea {
+                        clicked => { root.search-text = ""; }
+                    }
+                    Text { text: "×"; color: black; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
+                }
+            }
+        }
+
+        // Product list (filtered)
+        if root.search-text == "" || "Coffee".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
             height: 40px;
             background: #404040;
             border-radius: 6px;
             HorizontalLayout {
                 padding: 10px;
-                spacing: 0px;
-                Text {
-                    horizontal-stretch: 1;
-                    text: "Coffee (1kg)";
-                    color: white;
-                    font-size: 14px;
-                }
-                Text {
-                    horizontal-stretch: 0;
-                    width: 80px;
-                    text: "$12.50";
-                    color: white;
-                    font-size: 14px;
-                    horizontal-alignment: right;
-                }
+                Text { text: "Coffee (1kg)"; color: white; horizontal-stretch: 1; }
+                Text { text: "$12.50"; color: white; }
             }
         }
-
-        // Item 2
-        Rectangle {
+        if root.search-text == "" || "Milk".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
             height: 40px;
             background: #505050;
             border-radius: 6px;
             HorizontalLayout {
                 padding: 10px;
-                spacing: 0px;
-                Text {
-                    horizontal-stretch: 1;
-                    text: "Milk (1L)";
-                    color: white;
-                    font-size: 14px;
-                }
-                Text {
-                    horizontal-stretch: 0;
-                    width: 80px;
-                    text: "$2.10";
-                    color: white;
-                    font-size: 14px;
-                    horizontal-alignment: right;
-                }
+                Text { text: "Milk (1L)"; color: white; horizontal-stretch: 1; }
+                Text { text: "$2.10"; color: white; }
             }
         }
-
-        // Item 3
-        Rectangle {
+        if root.search-text == "" || "Bread".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
             height: 40px;
             background: #404040;
             border-radius: 6px;
             HorizontalLayout {
                 padding: 10px;
-                spacing: 0px;
-                Text {
-                    horizontal-stretch: 1;
-                    text: "Bread Loaf";
-                    color: white;
-                    font-size: 14px;
-                }
-                Text {
-                    horizontal-stretch: 0;
-                    width: 80px;
-                    text: "$3.75";
-                    color: white;
-                    font-size: 14px;
-                    horizontal-alignment: right;
-                }
+                Text { text: "Bread Loaf"; color: white; horizontal-stretch: 1; }
+                Text { text: "$3.75"; color: white; }
             }
         }
-
-        // Item 4
-        Rectangle {
+        if root.search-text == "" || "Sugar".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
             height: 40px;
             background: #505050;
             border-radius: 6px;
             HorizontalLayout {
                 padding: 10px;
-                spacing: 0px;
-                Text {
-                    horizontal-stretch: 1;
-                    text: "Sugar (500g)";
-                    color: white;
-                    font-size: 14px;
-                }
-                Text {
-                    horizontal-stretch: 0;
-                    width: 80px;
-                    text: "$1.90";
-                    color: white;
-                    font-size: 14px;
-                    horizontal-alignment: right;
-                }
+                Text { text: "Sugar (500g)"; color: white; horizontal-stretch: 1; }
+                Text { text: "$1.90"; color: white; }
             }
         }
-
-        // Item 5
-        Rectangle {
+        if root.search-text == "" || "Butter".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
             height: 40px;
             background: #404040;
             border-radius: 6px;
             HorizontalLayout {
                 padding: 10px;
-                spacing: 0px;
-                Text {
-                    horizontal-stretch: 1;
-                    text: "Butter (200g)";
-                    color: white;
-                    font-size: 14px;
-                }
-                Text {
-                    horizontal-stretch: 0;
-                    width: 80px;
-                    text: "$4.20";
-                    color: white;
-                    font-size: 14px;
-                    horizontal-alignment: right;
-                }
+                Text { text: "Butter (200g)"; color: white; horizontal-stretch: 1; }
+                Text { text: "$4.20"; color: white; }
             }
         }
 
-        // Spacer to fill rest
         Rectangle { vertical-stretch: 1; }
     }
 }

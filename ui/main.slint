@@ -21,6 +21,7 @@ export component MainWindow inherits Window {
     callback quit();
     callback add-area();
     callback remove-area(int);
+    callback set-tables(int, int);
 
     VerticalLayout {
         spacing: 0px;
@@ -45,9 +46,13 @@ export component MainWindow inherits Window {
             }
 
             if root.current-view == 0 : DashboardView {
+                areas: root.areas;
                 table-selected(table) => {
                     root.current-bill-table = table;
                     root.current-view = 4;
+                }
+                set-tables(area-index, new-count) => {
+                    root.set-tables(area-index, new-count);
                 }
             }
             if root.current-view == 1 : ReportsView { }
@@ -56,7 +61,6 @@ export component MainWindow inherits Window {
                 areas: root.areas;
                 add-area => { root.add-area(); }
                 remove-area(index) => { root.remove-area(index); }
-                confirm-area(index) => { /* optional */ }
             }
             if root.current-view == 4 : BillView {
                 table-name: root.current-bill-table;
@@ -81,6 +85,18 @@ export component MainWindow inherits Window {
                 quit-requested => {
                     root.quit-dialog-open = true;
                 }
+            }
+        }
+
+        // Status bar
+        Rectangle {
+            height: 24px;
+            background: #101010;
+            HorizontalLayout {
+                padding: 4px;
+                Text { text: "User: Admin"; color: white; font-size: 12px; }
+                Rectangle { horizontal-stretch: 1; }
+                Text { text: "v0.1.17"; color: white; font-size: 12px; }
             }
         }
     }

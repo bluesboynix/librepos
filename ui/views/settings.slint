@@ -10,9 +10,7 @@ export component SettingsView inherits Rectangle {
     in property <[TableArea]> areas;
     callback add-area();
     callback remove-area(int);
-    callback confirm-area(int);
 
-    // GST properties
     in-out property <string> cgst-text: "2.5";
     in-out property <string> sgst-text: "2.5";
 
@@ -27,7 +25,6 @@ export component SettingsView inherits Rectangle {
             horizontal-alignment: center;
         }
 
-        // ----- Table Area Configuration -----
         VerticalLayout {
             spacing: 10px;
 
@@ -38,7 +35,6 @@ export component SettingsView inherits Rectangle {
                 horizontal-alignment: left;
             }
 
-            // Add new area button
             Rectangle {
                 height: 30px;
                 width: 150px;
@@ -56,11 +52,9 @@ export component SettingsView inherits Rectangle {
                 }
             }
 
-            // Dynamic area rows
             for area[i] in root.areas : HorizontalLayout {
                 spacing: 10px;
 
-                // Delete button
                 Rectangle {
                     width: 24px;
                     height: 24px;
@@ -72,7 +66,6 @@ export component SettingsView inherits Rectangle {
                     Text { text: "x"; color: white; horizontal-alignment: center; vertical-alignment: center; }
                 }
 
-                // Name input
                 Rectangle {
                     horizontal-stretch: 1;
                     height: 30px;
@@ -84,13 +77,12 @@ export component SettingsView inherits Rectangle {
                         height: 100%;
                         color: black;
                         single-line: true;
-                        text: area.name;
+                        text <=> area.name;
                     }
                 }
 
                 Text { text: "Table"; color: white; vertical-alignment: center; }
 
-                // Tables count input
                 Rectangle {
                     width: 60px;
                     height: 30px;
@@ -102,25 +94,13 @@ export component SettingsView inherits Rectangle {
                         height: 100%;
                         color: black;
                         single-line: true;
-                        text: area.tables;
+                        // Display only for now; two-way editing will need a callback
+                        text: area.tables + "";
                     }
-                }
-
-                // Confirm button
-                Rectangle {
-                    width: 80px;
-                    height: 30px;
-                    background: confirm-hover.has-hover ? #005500 : #004400;
-                    border-radius: 4px;
-                    confirm-hover := TouchArea {
-                        clicked => { root.confirm-area(i); }
-                    }
-                    Text { text: "Confirm"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
                 }
             }
         }
 
-        // ----- GST Configuration -----
         VerticalLayout {
             spacing: 10px;
 

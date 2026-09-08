@@ -1,12 +1,13 @@
 export component TableCard inherits Rectangle {
     width: 120px;
     height: 80px;
-    background: card-area.has-hover ? #606060 : #404040;
+    background: selected ? #00aa00 : (card-area.has-hover ? #606060 : #404040);
     border-radius: 10px;
     border-width: 2px;
     border-color: #00ffff;
 
     in property <string> label: "Table";
+    in property <bool> selected: false;
     callback clicked();
 
     card-area := TouchArea {
@@ -17,7 +18,7 @@ export component TableCard inherits Rectangle {
         width: parent.width;
         height: parent.height;
         text: parent.label;
-        color: white;
+        color: selected ? black : white;
         font-size: 16px;
         horizontal-alignment: center;
         vertical-alignment: center;

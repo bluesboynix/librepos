@@ -1,9 +1,14 @@
 import { TableCard } from "../components/table_card.slint";
+import { TableArea } from "settings.slint";
 
 export component DashboardView inherits Rectangle {
     width: 100%;
     height: 100%;
+
+    in property <[TableArea]> areas;
+    in-out property <string> selected-table: "";
     callback table-selected(string);
+    callback set-tables(int, int);
 
     VerticalLayout {
         padding: 20px;
@@ -16,12 +21,11 @@ export component DashboardView inherits Rectangle {
             horizontal-alignment: center;
         }
 
-        // ----- Indoor Section -----
-        VerticalLayout {
+        for area[i] in root.areas : VerticalLayout {
             spacing: 10px;
 
             Text {
-                text: "Indoor";
+                text: area.name;
                 font-size: 18px;
                 color: #00ffff;
                 horizontal-alignment: left;
@@ -30,138 +34,42 @@ export component DashboardView inherits Rectangle {
             HorizontalLayout {
                 spacing: 15px;
 
-                TableCard {
-                    label: "Table 1";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Table 2";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Table 3";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Table 4";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Table 5";
-                    clicked => { root.table-selected(self.label); }
-                }
-            }
-        }
-
-        // ----- Outdoor Section -----
-        VerticalLayout {
-            spacing: 10px;
-
-            Text {
-                text: "Outdoor";
-                font-size: 18px;
-                color: #00ffff;
-                horizontal-alignment: left;
-            }
-
-            HorizontalLayout {
-                spacing: 15px;
-
-                TableCard {
-                    label: "Outdoor 1";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Outdoor 2";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Outdoor 3";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Outdoor 4";
-                    clicked => { root.table-selected(self.label); }
-                }
-            }
-        }
-
-        // ----- Delivery / Take Away Section -----
-        VerticalLayout {
-            spacing: 10px;
-
-            Text {
-                text: "Delivery / Take Away";
-                font-size: 18px;
-                color: #00ffff;
-                horizontal-alignment: left;
-            }
-
-            HorizontalLayout {
-                spacing: 15px;
-
-                TableCard {
-                    label: "Delivery 1";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Delivery 2";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Take Away 3";
-                    clicked => { root.table-selected(self.label); }
-                }
-                TableCard {
-                    label: "Delivery 4";
-                    clicked => { root.table-selected(self.label); }
-                }
-
-                // Plus and minus buttons (visual only)
-                Rectangle {
-                    width: 40px;
-                    height: 40px;
-                    background: #505050;
-                    border-radius: 6px;
-                    border-width: 1px;
-                    border-color: #00ffff;
-
-                    TouchArea {
-                        clicked => { /* future */ }
-                    }
-
-                    Text {
-                        width: parent.width;
-                        height: parent.height;
-                        text: "+";
-                        color: white;
-                        font-size: 18px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                // Generate up to 10 table cards per area, collapse unused ones
+                for table-num in [0,1,2,3,4,5,6,7,8,9] : TableCard {
+                    width: table-num < area.tables ? 120px : 0px;
+                    height: table-num < area.tables ? 80px : 0px;
+                    label: area.name + " " + (table-num + 1);
+                    selected: root.selected-table == (area.name + " " + (table-num + 1));
+                    clicked => {
+                        root.selected-table = self.label;
+                        root.table-selected(self.label);
                     }
                 }
 
                 Rectangle {
                     width: 40px;
                     height: 40px;
-                    background: #505050;
+                    background: plus-hover.has-hover ? #555555 : #444444;
                     border-radius: 6px;
                     border-width: 1px;
                     border-color: #00ffff;
-
-                    TouchArea {
-                        clicked => { /* future */ }
+                    plus-hover := TouchArea {
+                        clicked => { root.set-tables(i, area.tables + 1); }
                     }
+                    Text { text: "+"; color: white; font-size: 18px; horizontal-alignment: center; vertical-alignment: center; }
+                }
 
-                    Text {
-                        width: parent.width;
-                        height: parent.height;
-                        text: "-";
-                        color: white;
-                        font-size: 18px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                Rectangle {
+                    width: 40px;
+                    height: 40px;
+                    background: minus-hover.has-hover ? #555555 : #444444;
+                    border-radius: 6px;
+                    border-width: 1px;
+                    border-color: #00ffff;
+                    minus-hover := TouchArea {
+                        clicked => { root.set-tables(i, area.tables - 1); }
                     }
+                    Text { text: "-"; color: white; font-size: 18px; horizontal-alignment: center; vertical-alignment: center; }
                 }
             }
         }
