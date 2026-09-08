@@ -1,8 +1,10 @@
 import { DashboardView } from "views/dashboard.slint";
 import { ReportsView } from "views/reports.slint";
-import { MenuView, MenuItem } from "views/menu.slint";
+import { MenuView } from "views/menu.slint";
 import { SettingsView, TableArea } from "views/settings.slint";
 import { BillView } from "views/bill.slint";
+import { ItemDetailsView } from "views/item_details.slint";
+import { MenuItem, IngredientRow } from "db-types.slint";
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
@@ -19,12 +21,26 @@ export component MainWindow inherits Window {
     in-out property <string> current-bill-table: "";
     in property <[TableArea]> areas;
     in property <[MenuItem]> menu-items;
+    in property <MenuItem> current-menu-item;
+    in property <[IngredientRow]> current-ingredients;
+    in-out property <string> current-price-text: "0";
+    in-out property <string> name-text: "";
+    in-out property <string> code-text: "";
+    in-out property <string> category-text: "";
+    in-out property <string> total-cost-text: "0";
+    in-out property <string> profit-text: "0";
+
     callback quit();
     callback add-area();
     callback remove-area(int);
     callback set-tables(int, int);
     callback add-menu-item();
     callback remove-menu-item(int);
+    callback open-menu-item(int);
+    callback save-menu-item();
+    callback cancel-menu-item();
+    callback add-ingredient();
+    callback remove-ingredient(int);
 
     VerticalLayout {
         spacing: 0px;
@@ -63,6 +79,7 @@ export component MainWindow inherits Window {
                 items: root.menu-items;
                 add-item => { root.add-menu-item(); }
                 remove-item(index) => { root.remove-menu-item(index); }
+                open-item(index) => { root.open-menu-item(index); }
             }
             if root.current-view == 3 : SettingsView {
                 areas: root.areas;
@@ -74,6 +91,18 @@ export component MainWindow inherits Window {
                 go-back => { root.current-view = 0; }
                 save => { /* future */ }
                 print => { /* future */ }
+            }
+            if root.current-view == 5 : ItemDetailsView {
+                item: root.current-menu-item;
+                ingredients: root.current-ingredients;
+                name-text: root.name-text;
+                code-text: root.code-text;
+                price-text: root.current-price-text;
+                category-text: root.category-text;
+                save => { root.save-menu-item(); }
+                cancel => { root.cancel-menu-item(); }
+                add-ingredient => { root.add-ingredient(); }
+                remove-ingredient(index) => { root.remove-ingredient(index); }
             }
 
             SideBar {

@@ -1,10 +1,4 @@
-export struct MenuItem {
-    id: int,
-    name: string,
-    code: string,
-    price: float,
-    category: string,
-}
+import { MenuItem } from "../db-types.slint";
 
 export component MenuView inherits Rectangle {
     width: 100%;
@@ -13,37 +7,19 @@ export component MenuView inherits Rectangle {
     in property <[MenuItem]> items;
     callback add-item();
     callback remove-item(int);
+    callback open-item(int);
 
     VerticalLayout {
         padding: 20px;
         spacing: 10px;
 
-        Text {
-            text: "Menu";
-            font-size: 24px;
-            color: #fafafa;
-            horizontal-alignment: center;
+        Text { text: "Menu"; font-size: 24px; color: #fafafa; horizontal-alignment: center; }
+
+        Rectangle { height: 30px; width: 120px; background: add-button-hover.has-hover ? #444444 : #333333; border-radius: 4px;
+            add-button-hover := TouchArea { clicked => { root.add-item(); } }
+            Text { text: "+ Add Item"; color: white; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
         }
 
-        // Add button
-        Rectangle {
-            height: 30px;
-            width: 120px;
-            background: add-button-hover.has-hover ? #444444 : #333333;
-            border-radius: 4px;
-            add-button-hover := TouchArea {
-                clicked => { root.add-item(); }
-            }
-            Text {
-                text: "+ Add Item";
-                color: white;
-                font-size: 14px;
-                horizontal-alignment: center;
-                vertical-alignment: center;
-            }
-        }
-
-        // Items list
         for item[i] in root.items : Rectangle {
             height: 40px;
             background: Math.mod(i, 2) == 0 ? #404040 : #505050;
@@ -52,29 +28,22 @@ export component MenuView inherits Rectangle {
                 padding: 10px;
                 spacing: 10px;
 
+                // Use a transparent TouchArea over the whole row to open details
+                TouchArea {
+                    width: parent.width;
+                    height: parent.height;
+                    clicked => { root.open-item(i); }
+                }
+
                 Text {
                     text: item.name;
                     color: white;
                     horizontal-stretch: 1;
                 }
-                Text {
-                    text: "$" + item.price;
-                    color: white;
-                    width: 80px;
-                }
-                Text {
-                    text: item.category;
-                    color: white;
-                    width: 100px;
-                }
-                Rectangle {
-                    width: 60px;
-                    height: 24px;
-                    background: delete-hover.has-hover ? #aa3333 : #883333;
-                    border-radius: 4px;
-                    delete-hover := TouchArea {
-                        clicked => { root.remove-item(i); }
-                    }
+                Text { text: "$" + item.price; color: white; width: 80px; }
+                Text { text: item.category; color: white; width: 100px; }
+                Rectangle { width: 60px; height: 24px; background: delete-hover.has-hover ? #aa3333 : #883333; border-radius: 4px;
+                    delete-hover := TouchArea { clicked => { root.remove-item(i); } }
                     Text { text: "Remove"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
                 }
             }
