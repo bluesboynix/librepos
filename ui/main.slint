@@ -1,6 +1,6 @@
 import { DashboardView } from "views/dashboard.slint";
 import { ReportsView } from "views/reports.slint";
-import { MenuView } from "views/menu.slint";
+import { MenuView, MenuItem } from "views/menu.slint";
 import { SettingsView, TableArea } from "views/settings.slint";
 import { BillView } from "views/bill.slint";
 import { TopBar } from "components/top_bar.slint";
@@ -18,10 +18,13 @@ export component MainWindow inherits Window {
     in-out property <int> current-view: 0;
     in-out property <string> current-bill-table: "";
     in property <[TableArea]> areas;
+    in property <[MenuItem]> menu-items;
     callback quit();
     callback add-area();
     callback remove-area(int);
     callback set-tables(int, int);
+    callback add-menu-item();
+    callback remove-menu-item(int);
 
     VerticalLayout {
         spacing: 0px;
@@ -56,7 +59,11 @@ export component MainWindow inherits Window {
                 }
             }
             if root.current-view == 1 : ReportsView { }
-            if root.current-view == 2 : MenuView { }
+            if root.current-view == 2 : MenuView {
+                items: root.menu-items;
+                add-item => { root.add-menu-item(); }
+                remove-item(index) => { root.remove-menu-item(index); }
+            }
             if root.current-view == 3 : SettingsView {
                 areas: root.areas;
                 add-area => { root.add-area(); }
@@ -96,7 +103,7 @@ export component MainWindow inherits Window {
                 padding: 4px;
                 Text { text: "User: Admin"; color: white; font-size: 12px; }
                 Rectangle { horizontal-stretch: 1; }
-                Text { text: "v0.1.17"; color: white; font-size: 12px; }
+                Text { text: "v0.2.0"; color: white; font-size: 12px; }
             }
         }
     }

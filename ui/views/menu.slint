@@ -1,8 +1,18 @@
+export struct MenuItem {
+    id: int,
+    name: string,
+    code: string,
+    price: float,
+    category: string,
+}
+
 export component MenuView inherits Rectangle {
     width: 100%;
     height: 100%;
 
-    in-out property <string> search-text: "";
+    in property <[MenuItem]> items;
+    callback add-item();
+    callback remove-item(int);
 
     VerticalLayout {
         padding: 20px;
@@ -15,84 +25,58 @@ export component MenuView inherits Rectangle {
             horizontal-alignment: center;
         }
 
+        // Add button
         Rectangle {
-            horizontal-stretch: 1;
             height: 30px;
-            background: #d0d0d0;
+            width: 120px;
+            background: add-button-hover.has-hover ? #444444 : #333333;
             border-radius: 4px;
-            clip: true;
-            HorizontalLayout {
-                padding-left: 8px;
-                padding-right: 8px;
-                TextInput {
-                    horizontal-stretch: 1;
-                    height: 100%;
-                    color: black;
-                    single-line: true;
-                    text <=> root.search-text;
-                }
-                Rectangle {
-                    width: 20px;
-                    height: 20px;
-                    background: clear-search-hover.has-hover ? #aaaaaa : #cccccc;
-                    border-radius: 10px;
-                    clear-search-hover := TouchArea {
-                        clicked => { root.search-text = ""; }
-                    }
-                    Text { text: "×"; color: black; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
-                }
+            add-button-hover := TouchArea {
+                clicked => { root.add-item(); }
+            }
+            Text {
+                text: "+ Add Item";
+                color: white;
+                font-size: 14px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
             }
         }
 
-        // Product list (filtered)
-        if root.search-text == "" || "Coffee".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
+        // Items list
+        for item[i] in root.items : Rectangle {
             height: 40px;
-            background: #404040;
+            background: Math.mod(i, 2) == 0 ? #404040 : #505050;
             border-radius: 6px;
             HorizontalLayout {
                 padding: 10px;
-                Text { text: "Coffee (1kg)"; color: white; horizontal-stretch: 1; }
-                Text { text: "$12.50"; color: white; }
-            }
-        }
-        if root.search-text == "" || "Milk".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
-            height: 40px;
-            background: #505050;
-            border-radius: 6px;
-            HorizontalLayout {
-                padding: 10px;
-                Text { text: "Milk (1L)"; color: white; horizontal-stretch: 1; }
-                Text { text: "$2.10"; color: white; }
-            }
-        }
-        if root.search-text == "" || "Bread".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
-            height: 40px;
-            background: #404040;
-            border-radius: 6px;
-            HorizontalLayout {
-                padding: 10px;
-                Text { text: "Bread Loaf"; color: white; horizontal-stretch: 1; }
-                Text { text: "$3.75"; color: white; }
-            }
-        }
-        if root.search-text == "" || "Sugar".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
-            height: 40px;
-            background: #505050;
-            border-radius: 6px;
-            HorizontalLayout {
-                padding: 10px;
-                Text { text: "Sugar (500g)"; color: white; horizontal-stretch: 1; }
-                Text { text: "$1.90"; color: white; }
-            }
-        }
-        if root.search-text == "" || "Butter".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
-            height: 40px;
-            background: #404040;
-            border-radius: 6px;
-            HorizontalLayout {
-                padding: 10px;
-                Text { text: "Butter (200g)"; color: white; horizontal-stretch: 1; }
-                Text { text: "$4.20"; color: white; }
+                spacing: 10px;
+
+                Text {
+                    text: item.name;
+                    color: white;
+                    horizontal-stretch: 1;
+                }
+                Text {
+                    text: "$" + item.price;
+                    color: white;
+                    width: 80px;
+                }
+                Text {
+                    text: item.category;
+                    color: white;
+                    width: 100px;
+                }
+                Rectangle {
+                    width: 60px;
+                    height: 24px;
+                    background: delete-hover.has-hover ? #aa3333 : #883333;
+                    border-radius: 4px;
+                    delete-hover := TouchArea {
+                        clicked => { root.remove-item(i); }
+                    }
+                    Text { text: "Remove"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
+                }
             }
         }
 
