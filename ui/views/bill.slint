@@ -2,7 +2,7 @@ export component BillView inherits Rectangle {
     width: 100%;
     height: 100%;
 
-    in property <string> table-name: "Table";
+    in-out property <string> table-name: "Table";
     in-out property <int> payment-mode: 0;
     in-out property <string> search-text: "";
     in-out property <string> instructions: "";
@@ -34,7 +34,7 @@ export component BillView inherits Rectangle {
     property <float> price-bread: 3.75;
     property <float> price-sugar: 1.90;
 
-    // Computed totals (using editable fields via to-float())
+    // Computed totals
     property <float> subtotal: qty-coffee * price-coffee + qty-milk * price-milk + qty-bread * price-bread + qty-sugar * price-sugar;
     property <float> gst: subtotal * 0.05;
     property <float> total: subtotal + gst + packaging-text.to-float() + delivery-text.to-float() - discount-text.to-float();
@@ -99,7 +99,7 @@ export component BillView inherits Rectangle {
                     }
                 }
 
-                // Menu items with add buttons
+                // Menu items with add buttons and search filter
                 if root.search-text == "" || "Coffee".to-lowercase() == root.search-text.to-lowercase() : Rectangle {
                     height: 36px;
                     background: #505050;
@@ -113,7 +113,9 @@ export component BillView inherits Rectangle {
                             height: 24px;
                             background: add-coffee.has-hover ? #888888 : #666666;
                             border-radius: 4px;
-                            add-coffee := TouchArea { clicked => { root.qty-coffee += 1; } }
+                            add-coffee := TouchArea {
+                                clicked => { root.qty-coffee += 1; }
+                            }
                             Text { text: "+"; color: white; horizontal-alignment: center; vertical-alignment: center; }
                         }
                     }
@@ -132,7 +134,9 @@ export component BillView inherits Rectangle {
                             height: 24px;
                             background: add-milk.has-hover ? #888888 : #666666;
                             border-radius: 4px;
-                            add-milk := TouchArea { clicked => { root.qty-milk += 1; } }
+                            add-milk := TouchArea {
+                                clicked => { root.qty-milk += 1; }
+                            }
                             Text { text: "+"; color: white; horizontal-alignment: center; vertical-alignment: center; }
                         }
                     }
@@ -151,7 +155,9 @@ export component BillView inherits Rectangle {
                             height: 24px;
                             background: add-bread.has-hover ? #888888 : #666666;
                             border-radius: 4px;
-                            add-bread := TouchArea { clicked => { root.qty-bread += 1; } }
+                            add-bread := TouchArea {
+                                clicked => { root.qty-bread += 1; }
+                            }
                             Text { text: "+"; color: white; horizontal-alignment: center; vertical-alignment: center; }
                         }
                     }
@@ -170,7 +176,9 @@ export component BillView inherits Rectangle {
                             height: 24px;
                             background: add-sugar.has-hover ? #888888 : #666666;
                             border-radius: 4px;
-                            add-sugar := TouchArea { clicked => { root.qty-sugar += 1; } }
+                            add-sugar := TouchArea {
+                                clicked => { root.qty-sugar += 1; }
+                            }
                             Text { text: "+"; color: white; horizontal-alignment: center; vertical-alignment: center; }
                         }
                     }
@@ -198,7 +206,7 @@ export component BillView inherits Rectangle {
                     horizontal-alignment: center;
                 }
 
-                // Conditional order rows (only show if qty > 0)
+                // Conditional order rows
                 if root.qty-coffee > 0 : Rectangle {
                     height: 36px;
                     background: #505050;
@@ -208,15 +216,21 @@ export component BillView inherits Rectangle {
                         Text { text: "Coffee"; color: white; horizontal-stretch: 1; }
                         Text { text: "x" + root.qty-coffee; color: white; }
                         Text { text: "$" + (root.qty-coffee * root.price-coffee); color: white; }
-                        Rectangle { width: 20px; height: 20px; background: dec-coffee.has-hover ? #888888 : #666666; border-radius: 4px;
+                        Rectangle {
+                            width: 20px; height: 20px; background: dec-coffee.has-hover ? #888888 : #666666; border-radius: 4px;
                             dec-coffee := TouchArea { clicked => { if root.qty-coffee > 0 { root.qty-coffee -= 1; } } }
-                            Text { text: "-"; color: white; horizontal-alignment: center; vertical-alignment: center; } }
-                        Rectangle { width: 20px; height: 20px; background: inc-coffee.has-hover ? #888888 : #666666; border-radius: 4px;
+                            Text { text: "-"; color: white; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                        Rectangle {
+                            width: 20px; height: 20px; background: inc-coffee.has-hover ? #888888 : #666666; border-radius: 4px;
                             inc-coffee := TouchArea { clicked => { root.qty-coffee += 1; } }
-                            Text { text: "+"; color: white; horizontal-alignment: center; vertical-alignment: center; } }
-                        Rectangle { width: 40px; height: 20px; background: remove-coffee.has-hover ? #aa3333 : #883333; border-radius: 4px;
+                            Text { text: "+"; color: white; horizontal-alignment: center; vertical-alignment: center; }
+                        }
+                        Rectangle {
+                            width: 40px; height: 20px; background: remove-coffee.has-hover ? #aa3333 : #883333; border-radius: 4px;
                             remove-coffee := TouchArea { clicked => { root.qty-coffee = 0; } }
-                            Text { text: "X"; color: white; horizontal-alignment: center; vertical-alignment: center; font-size: 12px; } }
+                            Text { text: "X"; color: white; horizontal-alignment: center; vertical-alignment: center; font-size: 12px; }
+                        }
                     }
                 }
 
@@ -285,7 +299,7 @@ export component BillView inherits Rectangle {
 
                 Rectangle { vertical-stretch: 1; }
 
-                // Optional instructions input (expandable vertically)
+                // Optional instructions input
                 Rectangle {
                     horizontal-stretch: 1;
                     height: instructions-input.preferred-height + 12px;
@@ -405,7 +419,7 @@ export component BillView inherits Rectangle {
                         Text { text: "Due"; color: white; horizontal-alignment: center; vertical-alignment: center; } }
                 }
 
-                // Split payment inputs (expandable vertically)
+                // Split payment inputs
                 if root.payment-mode == 4 : Rectangle {
                     background: #303030;
                     border-radius: 4px;
@@ -443,7 +457,7 @@ export component BillView inherits Rectangle {
                     close-hover := TouchArea { clicked => { root.go-back(); } }
                     Text { text: "Dashboard"; color: white; horizontal-alignment: center; vertical-alignment: center; } }
 
-                // Customer details section (expandable vertically)
+                // Customer details section
                 Text { text: "Customer Details"; color: #00ffff; font-size: 14px; horizontal-alignment: center; }
                 HorizontalLayout {
                     Text { text: "Name:"; color: white; width: 60px; vertical-alignment: center; }
@@ -461,7 +475,7 @@ export component BillView inherits Rectangle {
                         customer-address-input := TextInput { horizontal-stretch: 1; height: 100%; color: black; wrap: word-wrap; text <=> root.customer-address; } }
                 }
 
-                // Change table section (no "New")
+                // Change table section
                 Text { text: "Change Table"; color: #00ffff; font-size: 14px; horizontal-alignment: center; }
                 HorizontalLayout {
                     Text { text: "Current:"; color: white; width: 60px; vertical-alignment: center; }
@@ -469,16 +483,24 @@ export component BillView inherits Rectangle {
                 }
                 HorizontalLayout {
                     Text { text: "Table:"; color: white; width: 60px; vertical-alignment: center; }
-                    Rectangle { horizontal-stretch: 1; height: table-input.preferred-height + 12px; background: #ccffcc; border-radius: 2px; clip: true;
-                        table-input := TextInput { horizontal-stretch: 1; height: 100%; color: black; wrap: word-wrap; text <=> root.new-table; } }
+                    Rectangle { horizontal-stretch: 1; height: 26px; background: #ccffcc; border-radius: 2px; clip: true;
+                        TextInput { horizontal-stretch: 1; height: 100%; color: black; single-line: true; text <=> root.new-table; } }
                 }
                 HorizontalLayout {
                     Text { text: "Area:"; color: white; width: 60px; vertical-alignment: center; }
-                    Rectangle { horizontal-stretch: 1; height: area-input.preferred-height + 12px; background: #ccffcc; border-radius: 2px; clip: true;
-                        area-input := TextInput { horizontal-stretch: 1; height: 100%; color: black; wrap: word-wrap; text <=> root.new-area; } }
+                    Rectangle { horizontal-stretch: 1; height: 26px; background: #ccffcc; border-radius: 2px; clip: true;
+                        TextInput { horizontal-stretch: 1; height: 100%; color: black; single-line: true; text <=> root.new-area; } }
                 }
                 Rectangle { height: 30px; background: move-hover.has-hover ? #444444 : #333333; border-radius: 4px;
-                    move-hover := TouchArea { clicked => { /* future: move table */ } }
+                    move-hover := TouchArea {
+                        clicked => {
+                            if root.new-area != "" && root.new-table != "" {
+                                root.table-name = root.new-area + " " + root.new-table;
+                                root.new-area = "";
+                                root.new-table = "";
+                            }
+                        }
+                    }
                     Text { text: "Move Table"; color: white; horizontal-alignment: center; vertical-alignment: center; } }
 
                 Rectangle { vertical-stretch: 1; }
