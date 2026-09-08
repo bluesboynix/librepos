@@ -7,6 +7,10 @@ use std::rc::Rc;
 
 fn reload_menu_items(conn: &rusqlite::Connection, model: &Rc<VecModel<MenuItem>>) {
     if let Ok(db_items) = db::menu::get_all_menu_items(conn) {
+        eprintln!("Loaded {} items from DB", db_items.len());
+        for it in &db_items {
+            eprintln!("  id={}, name='{}', price={}, category='{}'", it.id, it.name, it.price, it.category);
+        }
         model.set_vec(
             db_items
                 .into_iter()
@@ -19,6 +23,8 @@ fn reload_menu_items(conn: &rusqlite::Connection, model: &Rc<VecModel<MenuItem>>
                 })
                 .collect::<Vec<_>>(),
         );
+    } else {
+        eprintln!("Failed to load menu items");
     }
 }
 
@@ -116,21 +122,22 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let weak_menu_items_save = Rc::downgrade(&menu_items);
     let weak_window_save = window.as_weak();
     window.on_save_menu_item(move || {
-        if let (Some(window), Some(model)) = (weak_window_save.upgrade(), weak_menu_items_save.upgrade()) {
-            let item = window.get_current_menu_item();
-            let id = item.id as i64;
-            let name = window.get_name_text();
-            let code = window.get_code_text();
-            let price_text = window.get_current_price_text();
-            let price = price_text.parse::<f64>().unwrap_or(0.0);
-            let category = window.get_category_text();
-            if let Err(e) = db::menu::update_menu_item(&conn_save, id, &name, Some(&code), price, &category) {
-                eprintln!("Update failed: {}", e);
-            }
-            reload_menu_items(&conn_save, &model);
-            window.set_current_view(2);
+    if let (Some(window), Some(model)) = (weak_window_save.upgrade(), weak_menu_items_save.upgrade()) {
+        let item = window.get_current_menu_item();
+        let id = item.id as i64;
+        let name = window.get_name_text();
+        let code = window.get_code_text();
+        let price_text = window.get_current_price_text();
+        let price = price_text.parse::<f64>().unwrap_or(0.0);
+        let category = window.get_category_text();
+        eprintln!("Saving item id={}, name={}, price={}, category={}", id, name, price, category);
+        if let Err(e) = db::menu::update_menu_item(&conn_save, id, &name, Some(&code), price, &category) {
+            eprintln!("Update failed: {}", e);
         }
-    });
+        reload_menu_items(&conn_save, &model);
+        window.set_current_view(2);
+    }
+});
 
     // Cancel menu item
     let weak_window_cancel = window.as_weak();

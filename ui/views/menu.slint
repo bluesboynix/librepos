@@ -13,13 +13,32 @@ export component MenuView inherits Rectangle {
         padding: 20px;
         spacing: 10px;
 
-        Text { text: "Menu"; font-size: 24px; color: #fafafa; horizontal-alignment: center; }
-
-        Rectangle { height: 30px; width: 120px; background: add-button-hover.has-hover ? #444444 : #333333; border-radius: 4px;
-            add-button-hover := TouchArea { clicked => { root.add-item(); } }
-            Text { text: "+ Add Item"; color: white; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
+        Text {
+            text: "Menu";
+            font-size: 24px;
+            color: #fafafa;
+            horizontal-alignment: center;
         }
 
+        // Add button
+        Rectangle {
+            height: 30px;
+            width: 120px;
+            background: add-button-hover.has-hover ? #444444 : #333333;
+            border-radius: 4px;
+            add-button-hover := TouchArea {
+                clicked => { root.add-item(); }
+            }
+            Text {
+                text: "+ Add Item";
+                color: white;
+                font-size: 14px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        // Items list
         for item[i] in root.items : Rectangle {
             height: 40px;
             background: Math.mod(i, 2) == 0 ? #404040 : #505050;
@@ -28,23 +47,55 @@ export component MenuView inherits Rectangle {
                 padding: 10px;
                 spacing: 10px;
 
-                // Use a transparent TouchArea over the whole row to open details
-                TouchArea {
-                    width: parent.width;
-                    height: parent.height;
-                    clicked => { root.open-item(i); }
+                // Clickable name area
+                Rectangle {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    background: name-area.has-hover ? #606060 : transparent;
+                    border-radius: 4px;
+                    name-area := TouchArea {
+                        clicked => { root.open-item(i); }
+                    }
+                    Text {
+                        width: 100%;
+                        height: 100%;
+                        text: item.name;
+                        color: white;
+                        vertical-alignment: center;
+                        horizontal-alignment: left;
+                    }
                 }
 
+                // Price
                 Text {
-                    text: item.name;
+                    text: "$" + item.price;
                     color: white;
-                    horizontal-stretch: 1;
+                    width: 80px;
+                    vertical-alignment: center;
                 }
-                Text { text: "$" + item.price; color: white; width: 80px; }
-                Text { text: item.category; color: white; width: 100px; }
-                Rectangle { width: 60px; height: 24px; background: delete-hover.has-hover ? #aa3333 : #883333; border-radius: 4px;
-                    delete-hover := TouchArea { clicked => { root.remove-item(i); } }
-                    Text { text: "Remove"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
+                // Category
+                Text {
+                    text: item.category;
+                    color: white;
+                    width: 100px;
+                    vertical-alignment: center;
+                }
+                // Remove button
+                Rectangle {
+                    width: 60px;
+                    height: 24px;
+                    background: delete-hover.has-hover ? #aa3333 : #883333;
+                    border-radius: 4px;
+                    delete-hover := TouchArea {
+                        clicked => { root.remove-item(i); }
+                    }
+                    Text {
+                        text: "Remove";
+                        color: white;
+                        font-size: 12px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
                 }
             }
         }

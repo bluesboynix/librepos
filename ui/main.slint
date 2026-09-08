@@ -95,10 +95,10 @@ export component MainWindow inherits Window {
             if root.current-view == 5 : ItemDetailsView {
                 item: root.current-menu-item;
                 ingredients: root.current-ingredients;
-                name-text: root.name-text;
-                code-text: root.code-text;
-                price-text: root.current-price-text;
-                category-text: root.category-text;
+                name-text <=> root.name-text;
+                code-text <=> root.code-text;
+                price-text <=> root.current-price-text;
+                category-text <=> root.category-text;
                 save => { root.save-menu-item(); }
                 cancel => { root.cancel-menu-item(); }
                 add-ingredient => { root.add-ingredient(); }
