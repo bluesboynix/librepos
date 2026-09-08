@@ -8,7 +8,7 @@ export component ItemDetailsView inherits Rectangle {
     in property <[IngredientRow]> ingredients;
     in-out property <string> name-text;
     in-out property <string> code-text;
-    in-out property <string> price-text;    // changed from float
+    in-out property <string> price-text;
     in-out property <string> category-text;
     in-out property <string> total-cost-text: "0";
     in-out property <string> profit-text: "0";
@@ -17,11 +17,16 @@ export component ItemDetailsView inherits Rectangle {
     callback cancel();
     callback add-ingredient();
     callback remove-ingredient(int);
+    callback update-ingredient-name(int, string);
+    callback update-ingredient-quantity(int, string);
+    callback update-ingredient-unit(int, string);
+    callback update-ingredient-cost(int, string);
 
     VerticalLayout {
         padding: 20px;
-        spacing: 10px;
+        spacing: 4px;
 
+        // Header with Save and Cancel
         HorizontalLayout {
             Text { text: "Item Details"; font-size: 24px; color: #fafafa; horizontal-stretch: 1; }
             Rectangle { width: 80px; height: 40px; background: cancel-hover.has-hover ? #880000 : #660000; border-radius: 6px;
@@ -34,60 +39,115 @@ export component ItemDetailsView inherits Rectangle {
             }
         }
 
+        // Basic fields
         HorizontalLayout {
             Text { text: "Name *:"; color: white; width: 100px; vertical-alignment: center; }
-            Rectangle { horizontal-stretch: 1; height: 30px; background: #d0d0d0; border-radius: 4px; clip: true;
-                TextInput { horizontal-stretch: 1; height: 100%; color: black; single-line: true; text <=> root.name-text; }
+            Rectangle { width: 300px; height: 30px; background: #d0d0d0; border-radius: 4px; clip: true;
+                TextInput { width: 100%; height: 100%; color: black; single-line: true; text <=> root.name-text; }
             }
         }
         HorizontalLayout {
             Text { text: "Code:"; color: white; width: 100px; vertical-alignment: center; }
-            Rectangle { horizontal-stretch: 1; height: 30px; background: #d0d0d0; border-radius: 4px; clip: true;
-                TextInput { horizontal-stretch: 1; height: 100%; color: black; single-line: true; text <=> root.code-text; }
+            Rectangle { width: 300px; height: 30px; background: #d0d0d0; border-radius: 4px; clip: true;
+                TextInput { width: 100%; height: 100%; color: black; single-line: true; text <=> root.code-text; }
             }
         }
         HorizontalLayout {
             Text { text: "Price *:"; color: white; width: 100px; vertical-alignment: center; }
-            Rectangle { horizontal-stretch: 1; height: 30px; background: #d0d0d0; border-radius: 4px; clip: true;
-                TextInput { horizontal-stretch: 1; height: 100%; color: black; single-line: true; text <=> root.price-text; }
+            Rectangle { width: 300px; height: 30px; background: #d0d0d0; border-radius: 4px; clip: true;
+                TextInput { width: 100%; height: 100%; color: black; single-line: true; text <=> root.price-text; }
             }
         }
         HorizontalLayout {
             Text { text: "Category *:"; color: white; width: 100px; vertical-alignment: center; }
-            Rectangle { horizontal-stretch: 1; height: 30px; background: #d0d0d0; border-radius: 4px; clip: true;
-                TextInput { horizontal-stretch: 1; height: 100%; color: black; single-line: true; text <=> root.category-text; }
+            Rectangle { width: 300px; height: 30px; background: #d0d0d0; border-radius: 4px; clip: true;
+                TextInput { width: 100%; height: 100%; color: black; single-line: true; text <=> root.category-text; }
             }
         }
 
-        Text { text: "Ingredients"; color: #00ffff; font-size: 18px; }
-        Rectangle { height: 1px; background: #808080; }
+        // Ingredients block (tight)
+        VerticalLayout {
+            spacing: 1px;
+            vertical-stretch: 0;
 
-        for ing[i] in root.ingredients : HorizontalLayout {
-            spacing: 5px;
-            Text { text: ing.name; color: white; horizontal-stretch: 1; }
-            Rectangle { width: 50px; height: 24px; background: #505050; border-radius: 4px;
-                TextInput { width: 100%; height: 100%; color: black; single-line: true; text: ing.quantity; }
+            Text {
+                text: "Ingredients";
+                color: #00ffff;
+                font-size: 18px;
             }
-            Text { text: ing.unit; color: white; width: 40px; }
-            Text { text: "$" + ing.estimated_cost; color: white; width: 80px; }
-            Rectangle { width: 60px; height: 24px; background: remove-hover.has-hover ? #aa3333 : #883333; border-radius: 4px;
-                remove-hover := TouchArea { clicked => { root.remove-ingredient(i); } }
-                Text { text: "Remove"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
+
+            // Column headers
+            HorizontalLayout {
+                padding: 0px;
+                spacing: 5px;
+                Text { text: "Ingredient"; color: #00ffff; font-weight: 700; width: 250px; }
+                Text { text: "Qty"; color: #00ffff; font-weight: 700; width: 80px; horizontal-alignment: center; }
+                Text { text: "Unit"; color: #00ffff; font-weight: 700; width: 70px; horizontal-alignment: center; }
+                Text { text: "Price"; color: #00ffff; font-weight: 700; width: 120px; horizontal-alignment: center; }
+                Text { text: ""; color: white; width: 70px; } // spacer for remove button
+            }
+
+            Rectangle { height: 1px; background: #808080; }
+
+            // Ingredient rows
+            for ing[i] in root.ingredients : HorizontalLayout {
+                padding: 0px;
+                spacing: 5px;
+
+                // Editable name (background #d0d0d0)
+                Rectangle { width: 250px; height: 26px; background: #d0d0d0; border-radius: 4px; clip: true;
+                    TextInput { width: 100%; height: 100%; color: black; single-line: true;
+                        text: ing.name;
+                        edited => { root.update-ingredient-name(i, self.text); }
+                    }
+                }
+
+                // Quantity
+                Rectangle { width: 80px; height: 26px; background: #d0d0d0; border-radius: 4px; clip: true;
+                    TextInput { width: 100%; height: 100%; color: black; single-line: true;
+                        text: ing.quantity;
+                        edited => { root.update-ingredient-quantity(i, self.text); }
+                    }
+                }
+
+                // Unit
+                Rectangle { width: 70px; height: 26px; background: #d0d0d0; border-radius: 4px; clip: true;
+                    TextInput { width: 100%; height: 100%; color: black; single-line: true;
+                        text: ing.unit;
+                        edited => { root.update-ingredient-unit(i, self.text); }
+                    }
+                }
+
+                // Estimated cost
+                Rectangle { width: 120px; height: 26px; background: #d0d0d0; border-radius: 4px; clip: true;
+                    TextInput { width: 100%; height: 100%; color: black; single-line: true;
+                        text: ing.estimated_cost;
+                        edited => { root.update-ingredient-cost(i, self.text); }
+                    }
+                }
+
+                // Remove button
+                Rectangle { width: 70px; height: 26px; background: remove-hover.has-hover ? #aa3333 : #883333; border-radius: 4px;
+                    remove-hover := TouchArea { clicked => { root.remove-ingredient(i); } }
+                    Text { text: "Remove"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
+                }
+            }
+
+            // Add ingredient button
+            Rectangle { height: 30px; width: 120px; background: add-ing-hover.has-hover ? #444444 : #333333; border-radius: 4px;
+                add-ing-hover := TouchArea { clicked => { root.add-ingredient(); } }
+                Text { text: "+ Add Ingredient"; color: white; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
             }
         }
 
-        Rectangle { height: 30px; width: 120px; background: add-ing-hover.has-hover ? #444444 : #333333; border-radius: 4px;
-            add-ing-hover := TouchArea { clicked => { root.add-ingredient(); } }
-            Text { text: "+ Add Ingredient"; color: white; font-size: 14px; horizontal-alignment: center; vertical-alignment: center; }
+        // Summary (two lines, tight)
+        VerticalLayout {
+            spacing: 1px;
+            Text { text: "Total Cost: " + root.total-cost-text; color: white; }
+            Text { text: "Profit: " + root.profit-text; color: #00ff00; }
         }
 
-        HorizontalLayout {
-            Text { text: "Total Cost:"; color: white; }
-            Text { text: root.total-cost-text; color: white; }
-        }
-        HorizontalLayout {
-            Text { text: "Profit:"; color: white; }
-            Text { text: root.profit-text; color: #00ff00; }
-        }
+        // Spacer to absorb extra vertical space
+        Rectangle { vertical-stretch: 1; }
     }
 }

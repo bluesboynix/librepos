@@ -106,12 +106,12 @@ pub fn get_all_ingredients(conn: &Connection) -> Result<Vec<Ingredient>> {
 }
 
 // ---------- Menu Item Ingredients ----------
-pub fn add_ingredient_to_item(conn: &Connection, menu_item_id: i64, ingredient_id: i64, quantity: f64, unit: Option<&str>, estimated_cost: f64) -> Result<()> {
+pub fn add_ingredient_to_item(conn: &Connection, menu_item_id: i64, ingredient_id: i64, quantity: f64, unit: Option<&str>, estimated_cost: f64) -> Result<i64> {
     conn.execute(
         "INSERT INTO menu_item_ingredients (menu_item_id, ingredient_id, quantity, unit, estimated_cost) VALUES (?1, ?2, ?3, ?4, ?5)",
         params![menu_item_id, ingredient_id, quantity, unit, estimated_cost],
     )?;
-    Ok(())
+    Ok(conn.last_insert_rowid())
 }
 
 pub fn get_ingredients_for_item(conn: &Connection, menu_item_id: i64) -> Result<Vec<(i64, i64, String, f64, Option<String>, f64)>> {
@@ -143,5 +143,22 @@ pub fn delete_ingredient_link(conn: &Connection, link_id: i64) -> Result<()> {
 
 pub fn delete_all_ingredients_for_item(conn: &Connection, menu_item_id: i64) -> Result<()> {
     conn.execute("DELETE FROM menu_item_ingredients WHERE menu_item_id = ?1", [menu_item_id])?;
+    Ok(())
+}
+
+pub fn update_ingredient_link(conn: &Connection, link_id: i64, quantity: f64,
+    unit: Option<&str>, estimated_cost: f64) -> Result<()> {
+        conn.execute(
+            "UPDATE menu_item_ingredients SET quantity = ?1, unit = ?2, estimated_cost = ?3 WHERE id = ?4",
+            params![quantity, unit, estimated_cost, link_id],
+        )?;
+        Ok(())
+    }
+
+pub fn update_ingredient_name(conn: &Connection, ingredient_id: i64, new_name: &str) -> Result<()> {
+    conn.execute(
+        "UPDATE ingredients SET name = ?1 WHERE id = ?2",
+        params![new_name, ingredient_id],
+    )?;
     Ok(())
 }

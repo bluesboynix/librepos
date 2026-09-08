@@ -42,6 +42,11 @@ export component MainWindow inherits Window {
     callback add-ingredient();
     callback remove-ingredient(int);
 
+    callback update-ingredient-name(int, string);
+    callback update-ingredient-quantity(int, string);
+    callback update-ingredient-unit(int, string);
+    callback update-ingredient-cost(int, string);
+
     VerticalLayout {
         spacing: 0px;
 
@@ -99,10 +104,16 @@ export component MainWindow inherits Window {
                 code-text <=> root.code-text;
                 price-text <=> root.current-price-text;
                 category-text <=> root.category-text;
+                total-cost-text <=> root.total-cost-text;
+                profit-text <=> root.profit-text;
                 save => { root.save-menu-item(); }
                 cancel => { root.cancel-menu-item(); }
                 add-ingredient => { root.add-ingredient(); }
                 remove-ingredient(index) => { root.remove-ingredient(index); }
+                update-ingredient-quantity(index, text) => { root.update-ingredient-quantity(index, text); }
+                update-ingredient-unit(index, text) => { root.update-ingredient-unit(index, text); }
+                update-ingredient-cost(index, text) => { root.update-ingredient-cost(index, text); }
+                update-ingredient-name(index, text) => { root.update-ingredient-name(index, text); }
             }
 
             SideBar {
