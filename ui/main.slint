@@ -41,6 +41,7 @@ export component MainWindow inherits Window {
     in-out property <string> sgst-text: "0.0";
     in-out property <string> currency: "₹";
 
+    callback update-area-name(int, string);
     callback recalculate-gst();
     callback quit();
     callback add-area();
@@ -108,7 +109,12 @@ export component MainWindow inherits Window {
                 cgst-text <=> root.cgst-text;
                 sgst-text <=> root.sgst-text;
                 add-area => { root.add-area(); }
-                remove-area(index) => { root.remove-area(index); }
+                update-area-name(index, name) => {
+                    root.update-area-name(index, name);
+                }
+                remove-area(index) => {
+                    root.remove-area(index);
+                }
             }
             if root.current-view == 4 : BillView {
                 table-name: root.current-bill-table;

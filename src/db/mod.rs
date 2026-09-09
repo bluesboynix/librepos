@@ -1,4 +1,5 @@
 pub mod menu;
+pub mod areas;
 
 use rusqlite::Connection;
 
@@ -31,6 +32,11 @@ pub fn init_db(db_path: &str) -> rusqlite::Result<Connection> {
             estimated_cost REAL,
             FOREIGN KEY (menu_item_id) REFERENCES menu_items(id) ON DELETE CASCADE,
             FOREIGN KEY (ingredient_id) REFERENCES ingredients(id)
+        );
+        CREATE TABLE IF NOT EXISTS areas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            table_count INTEGER NOT NULL
         );
         "
     )?;

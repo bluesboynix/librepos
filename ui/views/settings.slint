@@ -7,10 +7,11 @@ export component SettingsView inherits Rectangle {
     in property <[TableArea]> areas;
     callback add-area();
     callback remove-area(int);
-    callback gst_change();
-    
-    in-out property <string> cgst-text: "0.0";
-    in-out property <string> sgst-text: "0.0";
+    callback update-area-name(int, string);
+    callback gst-changed();
+
+    in-out property <string> cgst-text: "0";
+    in-out property <string> sgst-text: "0";
     in-out property <string> currency: "₹";
 
     VerticalLayout {
@@ -57,6 +58,7 @@ export component SettingsView inherits Rectangle {
             for area[i] in root.areas : HorizontalLayout {
                 spacing: 10px;
 
+                // Delete button
                 Rectangle {
                     width: 24px;
                     height: 24px;
@@ -73,6 +75,7 @@ export component SettingsView inherits Rectangle {
                     }
                 }
 
+                // Area name input (editable)
                 Rectangle {
                     horizontal-stretch: 1;
                     height: 30px;
@@ -85,6 +88,7 @@ export component SettingsView inherits Rectangle {
                         color: black;
                         single-line: true;
                         text: area.name;
+                        edited => { root.update-area-name(i, self.text); }
                     }
                 }
 
@@ -94,6 +98,7 @@ export component SettingsView inherits Rectangle {
                     vertical-alignment: center;
                 }
 
+                // Table count input (read-only for now)
                 Rectangle {
                     width: 60px;
                     height: 30px;
@@ -142,6 +147,7 @@ export component SettingsView inherits Rectangle {
                         color: black;
                         single-line: true;
                         text <=> root.cgst-text;
+                        edited => { root.gst-changed(); }
                     }
                 }
                 Text {
@@ -162,6 +168,7 @@ export component SettingsView inherits Rectangle {
                         color: black;
                         single-line: true;
                         text <=> root.sgst-text;
+                        edited => { root.gst-changed(); }
                     }
                 }
             }
