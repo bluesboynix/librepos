@@ -49,7 +49,17 @@ fn update_bill_totals(window: &MainWindow) {
         })
         .sum();
 
-    let gst = subtotal * 0.05;
+    let cgst = window
+        .get_cgst_text()
+        .parse::<f64>()
+        .unwrap_or(0.0);
+    let sgst = window
+        .get_sgst_text()
+        .parse::<f64>()
+        .unwrap_or(0.0);
+    let gst_rate = cgst + sgst;
+
+    let gst = subtotal * gst_rate / 100.0;
     let packaging = window
         .get_packaging_text()
         .parse::<f64>()
@@ -67,6 +77,7 @@ fn update_bill_totals(window: &MainWindow) {
     window.set_bill_subtotal(subtotal as f32);
     window.set_bill_gst(gst as f32);
     window.set_bill_total(total as f32);
+    window.set_bill_gst_rate(gst_rate as f32);
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -459,13 +470,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Recalculate bill from charge inputs
-    let weak_window_recalc = window.as_weak();
-    window.on_recalculate_bill(move || {
-        if let Some(window) = weak_window_recalc.upgrade() {
-            update_bill_totals(&window);
+    let weak_window_gst = window.as_weak();
+    window.on_recalculate_gst(move || {
+        if let Some(window) = weak_window_gst.upgrade() {
+            let cgst = window
+                .get_cgst_text()
+                .parse::<f64>()
+                .unwrap_or(0.0);
+            let sgst = window
+                .get_sgst_text()
+                .parse::<f64>()
+                .unwrap_or(0.0);
+            let gst_rate = cgst + sgst;
+            window.set_bill_gst_rate(gst_rate as f32);
+            // If bill view is currently open, recalc totals immediately
+            if window.get_current_view() == 4 {
+                update_bill_totals(&window);
+            }
         }
     });
-
+    
     // ==================== Area Callbacks ====================
     let weak_areas_add = Rc::downgrade(&areas);
     let weak_areas_remove = Rc::downgrade(&areas);

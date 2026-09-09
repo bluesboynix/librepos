@@ -22,6 +22,7 @@ export component BillView inherits Rectangle {
     in property <float> subtotal;
     in property <float> gst;
     in property <float> total;
+    in property <float> gst-rate: 0.0;
     in property <string> currency: "₹";
 
     callback go-back();
@@ -315,7 +316,7 @@ export component BillView inherits Rectangle {
                 // GST
                 HorizontalLayout {
                     Text {
-                        text: "GST (5%):";
+                        text: "GST (" + root.gst-rate + "%):";
                         color: white;
                         horizontal-stretch: 1;
                     }

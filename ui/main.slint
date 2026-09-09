@@ -33,11 +33,15 @@ export component MainWindow inherits Window {
     in-out property <float> bill-subtotal: 0.0;
     in-out property <float> bill-gst: 0.0;
     in-out property <float> bill-total: 0.0;
+    in-out property <float> bill-gst-rate: 0.0;
     in-out property <string> packaging-text: "0.00";
     in-out property <string> delivery-text: "0.00";
     in-out property <string> discount-text: "0.00";
+    in-out property <string> cgst-text: "0.0";
+    in-out property <string> sgst-text: "0.0";
     in-out property <string> currency: "₹";
 
+    callback recalculate-gst();
     callback quit();
     callback add-area();
     callback remove-area(int);
@@ -101,6 +105,8 @@ export component MainWindow inherits Window {
             if root.current-view == 3 : SettingsView {
                 areas: root.areas;
                 currency: root.currency;
+                cgst-text <=> root.cgst-text;
+                sgst-text <=> root.sgst-text;
                 add-area => { root.add-area(); }
                 remove-area(index) => { root.remove-area(index); }
             }
@@ -111,9 +117,10 @@ export component MainWindow inherits Window {
                 subtotal: root.bill-subtotal;
                 gst: root.bill-gst;
                 total: root.bill-total;
-                packaging-text: root.packaging-text;
-                delivery-text: root.delivery-text;
-                discount-text: root.discount-text;
+                gst-rate: root.bill-gst-rate;
+                packaging-text <=> root.packaging-text;
+                delivery-text <=> root.delivery-text;
+                discount-text <=> root.discount-text;
                 currency: root.currency;
                 add-order-line(name, price) => {
                     root.add-order-line(name, price);
@@ -191,7 +198,7 @@ export component MainWindow inherits Window {
                 }
                 Rectangle { horizontal-stretch: 1; }
                 Text {
-                    text: "v0.2.6";
+                    text: "v0.2.7";
                     color: white;
                     font-size: 12px;
                 }

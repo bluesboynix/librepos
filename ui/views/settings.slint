@@ -7,9 +7,10 @@ export component SettingsView inherits Rectangle {
     in property <[TableArea]> areas;
     callback add-area();
     callback remove-area(int);
-
-    in-out property <string> cgst-text: "2.5";
-    in-out property <string> sgst-text: "2.5";
+    callback gst_change();
+    
+    in-out property <string> cgst-text: "0.0";
+    in-out property <string> sgst-text: "0.0";
     in-out property <string> currency: "₹";
 
     VerticalLayout {
