@@ -5,6 +5,7 @@ export component MenuView inherits Rectangle {
     height: 100%;
 
     in property <[MenuItem]> items;
+    in property <string> currency: "₹";
     callback add-item();
     callback remove-item(int);
     callback open-item(int);
@@ -20,7 +21,6 @@ export component MenuView inherits Rectangle {
             horizontal-alignment: center;
         }
 
-        // Add button
         Rectangle {
             height: 30px;
             width: 120px;
@@ -38,7 +38,6 @@ export component MenuView inherits Rectangle {
             }
         }
 
-        // Items list
         for item[i] in root.items : Rectangle {
             height: 40px;
             background: Math.mod(i, 2) == 0 ? #404040 : #505050;
@@ -47,7 +46,6 @@ export component MenuView inherits Rectangle {
                 padding: 10px;
                 spacing: 10px;
 
-                // Clickable name area
                 Rectangle {
                     horizontal-stretch: 1;
                     height: 100%;
@@ -66,21 +64,18 @@ export component MenuView inherits Rectangle {
                     }
                 }
 
-                // Price
                 Text {
-                    text: "$" + item.price;
+                    text: root.currency + item.price;
                     color: white;
                     width: 80px;
                     vertical-alignment: center;
                 }
-                // Category
                 Text {
                     text: item.category;
                     color: white;
                     width: 100px;
                     vertical-alignment: center;
                 }
-                // Remove button
                 Rectangle {
                     width: 60px;
                     height: 24px;

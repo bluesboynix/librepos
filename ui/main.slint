@@ -1,10 +1,10 @@
 import { DashboardView } from "views/dashboard.slint";
 import { ReportsView } from "views/reports.slint";
 import { MenuView } from "views/menu.slint";
-import { SettingsView, TableArea } from "views/settings.slint";
+import { SettingsView } from "views/settings.slint";
 import { BillView } from "views/bill.slint";
 import { ItemDetailsView } from "views/item_details.slint";
-import { MenuItem, IngredientRow, OrderLine } from "db-types.slint";
+import { MenuItem, IngredientRow, OrderLine, TableArea } from "db-types.slint";
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
@@ -33,11 +33,11 @@ export component MainWindow inherits Window {
     in-out property <float> bill-subtotal: 0.0;
     in-out property <float> bill-gst: 0.0;
     in-out property <float> bill-total: 0.0;
+    in-out property <string> packaging-text: "0.00";
+    in-out property <string> delivery-text: "0.00";
+    in-out property <string> discount-text: "0.00";
+    in-out property <string> currency: "₹";
 
-    in-out property <string> packaging-text: "0.50";
-    in-out property <string> delivery-text: "2.00";
-    in-out property <string> discount-text: "1.00";
-    
     callback quit();
     callback add-area();
     callback remove-area(int);
@@ -93,12 +93,14 @@ export component MainWindow inherits Window {
             if root.current-view == 1 : ReportsView { }
             if root.current-view == 2 : MenuView {
                 items: root.menu-items;
+                currency: root.currency;
                 add-item => { root.add-menu-item(); }
                 remove-item(index) => { root.remove-menu-item(index); }
                 open-item(index) => { root.open-menu-item(index); }
             }
             if root.current-view == 3 : SettingsView {
                 areas: root.areas;
+                currency: root.currency;
                 add-area => { root.add-area(); }
                 remove-area(index) => { root.remove-area(index); }
             }
@@ -109,9 +111,10 @@ export component MainWindow inherits Window {
                 subtotal: root.bill-subtotal;
                 gst: root.bill-gst;
                 total: root.bill-total;
-                packaging-text <=> root.packaging-text;
-                delivery-text <=> root.delivery-text;
-                discount-text <=> root.discount-text;
+                packaging-text: root.packaging-text;
+                delivery-text: root.delivery-text;
+                discount-text: root.discount-text;
+                currency: root.currency;
                 add-order-line(name, price) => {
                     root.add-order-line(name, price);
                 }
@@ -133,6 +136,9 @@ export component MainWindow inherits Window {
                 code-text <=> root.code-text;
                 price-text <=> root.current-price-text;
                 category-text <=> root.category-text;
+                currency: root.currency;
+                total-cost-text <=> root.total-cost-text;
+                profit-text <=> root.profit-text;
                 save => { root.save-menu-item(); }
                 cancel => { root.cancel-menu-item(); }
                 add-ingredient => { root.add-ingredient(); }
@@ -185,7 +191,7 @@ export component MainWindow inherits Window {
                 }
                 Rectangle { horizontal-stretch: 1; }
                 Text {
-                    text: "v0.2.5";
+                    text: "v0.2.6";
                     color: white;
                     font-size: 12px;
                 }

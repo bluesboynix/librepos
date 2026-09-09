@@ -6,6 +6,7 @@ export component ItemDetailsView inherits Rectangle {
 
     in property <MenuItem> item;
     in property <[IngredientRow]> ingredients;
+    in property <string> currency: "₹";
     in-out property <string> name-text;
     in-out property <string> code-text;
     in-out property <string> price-text;
@@ -143,7 +144,7 @@ export component ItemDetailsView inherits Rectangle {
         // Summary (two lines, tight)
         VerticalLayout {
             spacing: 1px;
-            Text { text: "Total Cost: " + root.total-cost-text; color: white; }
+            Text { text: "Cost  : " + root.total-cost-text; color: white; }
             Text { text: "Profit: " + root.profit-text; color: #00ff00; }
         }
 

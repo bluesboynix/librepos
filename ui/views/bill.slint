@@ -16,12 +16,13 @@ export component BillView inherits Rectangle {
     in-out property <string> bill-no: "001";
     in property <[MenuItem]> menu-items;
     in property <[OrderLine]> order-lines;
-    in-out property <string> discount-text: "1.00";
-    in-out property <string> delivery-text: "2.00";
-    in-out property <string> packaging-text: "0.50";
+    in-out property <string> discount-text: "0.00";
+    in-out property <string> delivery-text: "0.00";
+    in-out property <string> packaging-text: "0.00";
     in property <float> subtotal;
     in property <float> gst;
     in property <float> total;
+    in property <string> currency: "₹";
 
     callback go-back();
     callback save();
@@ -112,7 +113,7 @@ export component BillView inherits Rectangle {
                             font-size: 12px;
                         }
                         Text {
-                            text: "$" + item.price;
+                            text: root.currency + item.price;
                             color: white;
                         }
                         Rectangle {
@@ -170,7 +171,7 @@ export component BillView inherits Rectangle {
                             horizontal-stretch: 1;
                         }
                         Text {
-                            text: "$" + line.price;
+                            text: root.currency + line.price;
                             color: white;
                         }
                         Text {
@@ -306,7 +307,7 @@ export component BillView inherits Rectangle {
                         horizontal-stretch: 1;
                     }
                     Text {
-                        text: "$" + root.subtotal;
+                        text: root.currency + root.subtotal;
                         color: white;
                     }
                 }
@@ -319,7 +320,7 @@ export component BillView inherits Rectangle {
                         horizontal-stretch: 1;
                     }
                     Text {
-                        text: "$" + root.gst;
+                        text: root.currency + root.gst;
                         color: white;
                     }
                 }
@@ -408,7 +409,7 @@ export component BillView inherits Rectangle {
                         horizontal-stretch: 1;
                     }
                     Text {
-                        text: "$" + root.total;
+                        text: root.currency + root.total;
                         color: #00ff00;
                         font-weight: 700;
                     }
