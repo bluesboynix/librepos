@@ -1,7 +1,26 @@
-use crate::{MainWindow, TableArea};
+use crate::{MainWindow, TableArea, TableCardModel};
 use crate::db;
 use slint::{Model, VecModel};
 use std::rc::Rc;
+
+fn build_cards_for_area(
+    conn: &rusqlite::Connection,
+    area_name: &str,
+    table_count: i64,
+) -> Vec<TableCardModel> {
+    let open_tables = db::orders::get_open_order_tables(conn).unwrap_or_default();
+    let open_set: std::collections::HashSet<String> = open_tables.into_iter().collect();
+    (1..=table_count)
+        .map(|n| {
+            let label = format!("{} {}", area_name, n);
+            let occupied = open_set.contains(&label);
+            TableCardModel {
+                label: label.into(),
+                occupied,
+            }
+        })
+        .collect()
+}
 
 pub fn setup_area_callbacks(
     window: &MainWindow,
@@ -14,10 +33,12 @@ pub fn setup_area_callbacks(
     window.on_add_area(move || {
         if let Some(model) = weak_areas_add.upgrade() {
             let new_id = db::areas::add_area(&conn_add_area, "New Area", 0).unwrap();
+            let empty_cards = Rc::new(VecModel::<TableCardModel>::default());
             model.push(TableArea {
                 id: new_id as i32,
                 name: "New Area".into(),
                 tables: 0,
+                cards: empty_cards.into(),
             });
         }
     });
@@ -35,27 +56,7 @@ pub fn setup_area_callbacks(
         }
     });
 
-    // Update table count
-    let conn_set_tables = conn.clone();
-    let weak_areas_set = Rc::downgrade(&areas);
-    window.on_set_tables(move |area_index, new_count| {
-        if let Some(model) = weak_areas_set.upgrade() {
-            if area_index >= 0 && (area_index as usize) < model.row_count() {
-                let area = model.row_data(area_index as usize).unwrap();
-                let _ = db::areas::update_area(
-                    &conn_set_tables,
-                    area.id as i64,
-                    &area.name,
-                    new_count as i64,
-                );
-                let mut updated = area.clone();
-                updated.tables = new_count;
-                model.set_row_data(area_index as usize, updated);
-            }
-        }
-    });
-
-    // Update area name
+    // Update area name (also rebuild cards to reflect new name)
     let conn_update_name = conn.clone();
     let weak_areas_name = Rc::downgrade(&areas);
     window.on_update_area_name(move |index, name| {
@@ -68,9 +69,44 @@ pub fn setup_area_callbacks(
                     &name,
                     area.tables as i64,
                 );
+                let cards_vec = build_cards_for_area(
+                    &conn_update_name,
+                    &name,
+                    area.tables as i64,
+                );
+                let cards_model = Rc::new(VecModel::from(cards_vec));
                 let mut updated = area.clone();
                 updated.name = name.into();
+                updated.cards = cards_model.into();
                 model.set_row_data(index as usize, updated);
+            }
+        }
+    });
+
+    // Update table count (rebuild cards)
+    let conn_set_tables = conn.clone();
+    let weak_areas_set = Rc::downgrade(&areas);
+    window.on_set_tables(move |area_index, new_count| {
+        if let Some(model) = weak_areas_set.upgrade() {
+            if area_index >= 0 && (area_index as usize) < model.row_count() {
+                let area = model.row_data(area_index as usize).unwrap();
+                let new_count = if new_count < 0 { 0 } else { new_count };
+                let _ = db::areas::update_area(
+                    &conn_set_tables,
+                    area.id as i64,
+                    &area.name,
+                    new_count as i64,
+                );
+                let cards_vec = build_cards_for_area(
+                    &conn_set_tables,
+                    &area.name,
+                    new_count as i64,
+                );
+                let cards_model = Rc::new(VecModel::from(cards_vec));
+                let mut updated = area.clone();
+                updated.tables = new_count;
+                updated.cards = cards_model.into();
+                model.set_row_data(area_index as usize, updated);
             }
         }
     });

@@ -33,20 +33,18 @@ export component MainWindow inherits Window {
     in-out property <float> bill-subtotal: 0.0;
     in-out property <float> bill-gst: 0.0;
     in-out property <float> bill-total: 0.0;
-    in-out property <float> bill-gst-rate: 0.0;
+    in-out property <float> bill-gst-rate: 5.0;
     in-out property <string> packaging-text: "0.00";
     in-out property <string> delivery-text: "0.00";
     in-out property <string> discount-text: "0.00";
-    in-out property <string> cgst-text: "0.0";
-    in-out property <string> sgst-text: "0.0";
+    in-out property <string> cgst-text: "0";
+    in-out property <string> sgst-text: "0";
     in-out property <string> currency: "₹";
 
-    callback update-area-name(int, string);
-    callback recalculate-gst();
     callback quit();
     callback add-area();
     callback remove-area(int);
-    callback set-tables(int, int);
+    callback update-area-name(int, string);
     callback add-menu-item();
     callback remove-menu-item(int);
     callback open-menu-item(int);
@@ -62,7 +60,13 @@ export component MainWindow inherits Window {
     callback update-order-line-quantity(int, int);
     callback remove-order-line(int);
     callback recalculate-bill();
-
+    callback recalculate-gst();
+    callback open-table(string);
+    callback save-order();
+    callback save-and-close-order();
+    callback close-bill();
+    callback set-tables(int, int);
+    
     VerticalLayout {
         spacing: 0px;
 
@@ -88,8 +92,7 @@ export component MainWindow inherits Window {
             if root.current-view == 0 : DashboardView {
                 areas: root.areas;
                 table-selected(table) => {
-                    root.current-bill-table = table;
-                    root.current-view = 4;
+                    root.open-table(table);
                 }
                 set-tables(area-index, new-count) => {
                     root.set-tables(area-index, new-count);
@@ -109,12 +112,9 @@ export component MainWindow inherits Window {
                 cgst-text <=> root.cgst-text;
                 sgst-text <=> root.sgst-text;
                 add-area => { root.add-area(); }
-                update-area-name(index, name) => {
-                    root.update-area-name(index, name);
-                }
-                remove-area(index) => {
-                    root.remove-area(index);
-                }
+                remove-area(index) => { root.remove-area(index); }
+                update-area-name(index, name) => { root.update-area-name(index, name); }
+                gst-changed => { root.recalculate-gst(); }
             }
             if root.current-view == 4 : BillView {
                 table-name: root.current-bill-table;
@@ -138,9 +138,9 @@ export component MainWindow inherits Window {
                     root.remove-order-line(index);
                 }
                 recalculate => { root.recalculate-bill(); }
-                go-back => { root.current-view = 0; }
-                save => { /* future */ }
-                print-order => { /* future */ }
+                go-back => { root.close-bill(); }
+                save => { root.save-and-close-order(); }
+                print-order => { root.save-order(); }
             }
             if root.current-view == 5 : ItemDetailsView {
                 item: root.current-menu-item;
@@ -204,7 +204,7 @@ export component MainWindow inherits Window {
                 }
                 Rectangle { horizontal-stretch: 1; }
                 Text {
-                    text: "v0.2.7";
+                    text: "v0.2.9";
                     color: white;
                     font-size: 12px;
                 }

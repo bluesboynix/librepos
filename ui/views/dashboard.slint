@@ -34,18 +34,19 @@ export component DashboardView inherits Rectangle {
             HorizontalLayout {
                 spacing: 15px;
 
-                // Generate up to 10 table cards per area, collapse unused ones
-                for table-num in [0,1,2,3,4,5,6,7,8,9] : TableCard {
-                    width: table-num < area.tables ? 120px : 0px;
-                    height: table-num < area.tables ? 80px : 0px;
-                    label: area.name + " " + (table-num + 1);
-                    selected: root.selected-table == (area.name + " " + (table-num + 1));
+                for card in area.cards : TableCard {
+                    width: 120px;
+                    height: 80px;
+                    label: card.label;
+                    selected: root.selected-table == card.label;
+                    occupied: card.occupied;
                     clicked => {
                         root.selected-table = self.label;
                         root.table-selected(self.label);
                     }
                 }
 
+                // Plus and minus buttons
                 Rectangle {
                     width: 40px;
                     height: 40px;

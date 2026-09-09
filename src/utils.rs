@@ -1,4 +1,4 @@
-use crate::{IngredientRow, MainWindow, MenuItem, OrderLine};
+use crate::{MainWindow, MenuItem};
 use crate::db;
 use slint::{Model, VecModel};
 use std::rc::Rc;

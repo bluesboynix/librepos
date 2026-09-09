@@ -1,5 +1,6 @@
 pub mod menu;
 pub mod areas;
+pub mod orders;
 
 use rusqlite::Connection;
 
@@ -37,6 +38,27 @@ pub fn init_db(db_path: &str) -> rusqlite::Result<Connection> {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             table_count INTEGER NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS orders (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            table_name TEXT NOT NULL,
+            status TEXT DEFAULT 'open',
+            subtotal REAL DEFAULT 0,
+            gst REAL DEFAULT 0,
+            packaging REAL DEFAULT 0,
+            delivery REAL DEFAULT 0,
+            discount REAL DEFAULT 0,
+            total REAL DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
+        CREATE TABLE IF NOT EXISTS order_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER NOT NULL,
+            name TEXT NOT NULL,
+            price REAL NOT NULL,
+            quantity INTEGER NOT NULL,
+            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
         );
         "
     )?;

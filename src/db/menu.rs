@@ -10,6 +10,7 @@ pub struct MenuItem {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Ingredient {
     pub id: i64,
     pub name: String,
@@ -18,6 +19,7 @@ pub struct Ingredient {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct MenuItemIngredient {
     pub id: i64,
     pub menu_item_id: i64,
@@ -36,6 +38,7 @@ pub fn add_menu_item(conn: &Connection, name: &str, code: Option<&str>, price: f
     Ok(conn.last_insert_rowid())
 }
 
+#[allow(dead_code)]
 pub fn get_menu_item(conn: &Connection, id: i64) -> Result<MenuItem> {
     conn.query_row(
         "SELECT id, name, code, price, category FROM menu_items WHERE id = ?1",
@@ -90,6 +93,7 @@ pub fn add_ingredient(conn: &Connection, name: &str, unit: Option<&str>, unit_pr
     Ok(conn.last_insert_rowid())
 }
 
+#[allow(dead_code)]
 pub fn get_all_ingredients(conn: &Connection) -> Result<Vec<Ingredient>> {
     let mut stmt = conn.prepare("SELECT id, name, unit, unit_price FROM ingredients ORDER BY name")?;
     let ingredients = stmt
@@ -141,6 +145,7 @@ pub fn delete_ingredient_link(conn: &Connection, link_id: i64) -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn delete_all_ingredients_for_item(conn: &Connection, menu_item_id: i64) -> Result<()> {
     conn.execute("DELETE FROM menu_item_ingredients WHERE menu_item_id = ?1", [menu_item_id])?;
     Ok(())
