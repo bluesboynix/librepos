@@ -25,15 +25,11 @@ fn reload_menu_items(conn: &rusqlite::Connection, model: &Rc<VecModel<MenuItem>>
 
 fn update_totals(window: &MainWindow) {
     let ingredients = window.get_current_ingredients();
-    let mut total_cost = 0.0;
-    for i in 0..ingredients.row_count() {
-        let ing = ingredients.row_data(i).unwrap();
-        total_cost += ing.estimated_cost as f64;
-        eprintln!("  ingredient {}: cost={}", i, ing.estimated_cost);
-    }
+    let total_cost: f64 = (0..ingredients.row_count())
+        .map(|i| ingredients.row_data(i).unwrap().estimated_cost as f64)
+        .sum();
     let price = window.get_current_price_text().parse::<f64>().unwrap_or(0.0);
     let profit = price - total_cost;
-    eprintln!("update_totals: total_cost={}, price={}, profit={}", total_cost, price, profit);
     window.set_total_cost_text(format!("{:.2}", total_cost).into());
     window.set_profit_text(format!("{:.2}", profit).into());
 }
@@ -60,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ));
     window.set_menu_items(menu_items.clone().into());
 
-    // Areas (in-memory)
+    // Areas (in-memory for now)
     let areas: Rc<VecModel<TableArea>> = Rc::new(VecModel::from(vec![
         TableArea { name: "Indoor".into(), tables: 4 },
         TableArea { name: "Outdoor".into(), tables: 4 },
@@ -71,6 +67,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Shared current ingredient model
     let current_ingredients: Rc<RefCell<Option<Rc<VecModel<IngredientRow>>>>> = Rc::new(RefCell::new(None));
+
+    // Order lines model
+    let order_lines: Rc<VecModel<OrderLine>> = Rc::new(VecModel::default());
+    window.set_order_lines(order_lines.clone().into());
 
     // ==================== Menu Item Callbacks ====================
 
@@ -257,7 +257,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             if index >= 0 && (index as usize) < model.row_count() {
                 let ing = model.row_data(index as usize).unwrap();
                 let new_cost = text.parse::<f64>().unwrap_or(0.0);
-                eprintln!("Updating cost index={}, new_cost={}", index, new_cost);
                 let _ = db::menu::update_ingredient_link(
                     &conn_update_cost,
                     ing.link_id as i64,
@@ -286,6 +285,54 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 updated.name = text.into();
                 model.set_row_data(index as usize, updated);
                 if let Some(window) = weak_window_name.upgrade() { update_totals(&window); }
+            }
+        }
+    });
+
+    // ==================== Order Line Callbacks ====================
+
+    // Add order line
+    let weak_order_lines_add = Rc::downgrade(&order_lines);
+    window.on_add_order_line(move |name, price| {
+        if let Some(model) = weak_order_lines_add.upgrade() {
+            let mut found = false;
+            for i in 0..model.row_count() {
+                let mut line = model.row_data(i).unwrap();
+                if line.name == name {
+                    line.quantity += 1;
+                    model.set_row_data(i, line);
+                    found = true;
+                    break;
+                }
+            }
+            if !found {
+                model.push(OrderLine { name, price, quantity: 1 });
+            }
+        }
+    });
+
+    // Update order line quantity
+    let weak_order_lines_update = Rc::downgrade(&order_lines);
+    window.on_update_order_line_quantity(move |index, qty| {
+        if let Some(model) = weak_order_lines_update.upgrade() {
+            if index >= 0 && (index as usize) < model.row_count() {
+                if qty > 0 {
+                    let mut line = model.row_data(index as usize).unwrap();
+                    line.quantity = qty;
+                    model.set_row_data(index as usize, line);
+                } else {
+                    model.remove(index as usize);
+                }
+            }
+        }
+    });
+
+    // Remove order line
+    let weak_order_lines_remove = Rc::downgrade(&order_lines);
+    window.on_remove_order_line(move |index| {
+        if let Some(model) = weak_order_lines_remove.upgrade() {
+            if index >= 0 && (index as usize) < model.row_count() {
+                model.remove(index as usize);
             }
         }
     });
@@ -320,6 +367,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     });
 
+    // Quit
     window.on_quit(|| {
         std::process::exit(0);
     });

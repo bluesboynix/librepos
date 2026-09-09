@@ -4,7 +4,7 @@ import { MenuView } from "views/menu.slint";
 import { SettingsView, TableArea } from "views/settings.slint";
 import { BillView } from "views/bill.slint";
 import { ItemDetailsView } from "views/item_details.slint";
-import { MenuItem, IngredientRow } from "db-types.slint";
+import { MenuItem, IngredientRow, OrderLine } from "db-types.slint";
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
@@ -21,6 +21,7 @@ export component MainWindow inherits Window {
     in-out property <string> current-bill-table: "";
     in property <[TableArea]> areas;
     in property <[MenuItem]> menu-items;
+    in property <[OrderLine]> order-lines;
     in property <MenuItem> current-menu-item;
     in property <[IngredientRow]> current-ingredients;
     in-out property <string> current-price-text: "0";
@@ -41,11 +42,13 @@ export component MainWindow inherits Window {
     callback cancel-menu-item();
     callback add-ingredient();
     callback remove-ingredient(int);
-
     callback update-ingredient-name(int, string);
     callback update-ingredient-quantity(int, string);
     callback update-ingredient-unit(int, string);
     callback update-ingredient-cost(int, string);
+    callback add-order-line(string, float);
+    callback update-order-line-quantity(int, int);
+    callback remove-order-line(int);
 
     VerticalLayout {
         spacing: 0px;
@@ -93,9 +96,14 @@ export component MainWindow inherits Window {
             }
             if root.current-view == 4 : BillView {
                 table-name: root.current-bill-table;
+                menu-items: root.menu-items;
+                order-lines: root.order-lines;
+                add-order-line(name, price) => { root.add-order-line(name, price); }
+                update-order-line-quantity(index, qty) => { root.update-order-line-quantity(index, qty); }
+                remove-order-line(index) => { root.remove-order-line(index); }
                 go-back => { root.current-view = 0; }
                 save => { /* future */ }
-                print => { /* future */ }
+                print-order => { /* future */ }
             }
             if root.current-view == 5 : ItemDetailsView {
                 item: root.current-menu-item;
@@ -104,16 +112,14 @@ export component MainWindow inherits Window {
                 code-text <=> root.code-text;
                 price-text <=> root.current-price-text;
                 category-text <=> root.category-text;
-                total-cost-text <=> root.total-cost-text;
-                profit-text <=> root.profit-text;
                 save => { root.save-menu-item(); }
                 cancel => { root.cancel-menu-item(); }
                 add-ingredient => { root.add-ingredient(); }
                 remove-ingredient(index) => { root.remove-ingredient(index); }
+                update-ingredient-name(index, text) => { root.update-ingredient-name(index, text); }
                 update-ingredient-quantity(index, text) => { root.update-ingredient-quantity(index, text); }
                 update-ingredient-unit(index, text) => { root.update-ingredient-unit(index, text); }
                 update-ingredient-cost(index, text) => { root.update-ingredient-cost(index, text); }
-                update-ingredient-name(index, text) => { root.update-ingredient-name(index, text); }
             }
 
             SideBar {
