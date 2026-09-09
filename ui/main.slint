@@ -30,7 +30,14 @@ export component MainWindow inherits Window {
     in-out property <string> category-text: "";
     in-out property <string> total-cost-text: "0";
     in-out property <string> profit-text: "0";
+    in-out property <float> bill-subtotal: 0.0;
+    in-out property <float> bill-gst: 0.0;
+    in-out property <float> bill-total: 0.0;
 
+    in-out property <string> packaging-text: "0.50";
+    in-out property <string> delivery-text: "2.00";
+    in-out property <string> discount-text: "1.00";
+    
     callback quit();
     callback add-area();
     callback remove-area(int);
@@ -49,6 +56,7 @@ export component MainWindow inherits Window {
     callback add-order-line(string, float);
     callback update-order-line-quantity(int, int);
     callback remove-order-line(int);
+    callback recalculate-bill();
 
     VerticalLayout {
         spacing: 0px;
@@ -98,9 +106,22 @@ export component MainWindow inherits Window {
                 table-name: root.current-bill-table;
                 menu-items: root.menu-items;
                 order-lines: root.order-lines;
-                add-order-line(name, price) => { root.add-order-line(name, price); }
-                update-order-line-quantity(index, qty) => { root.update-order-line-quantity(index, qty); }
-                remove-order-line(index) => { root.remove-order-line(index); }
+                subtotal: root.bill-subtotal;
+                gst: root.bill-gst;
+                total: root.bill-total;
+                packaging-text <=> root.packaging-text;
+                delivery-text <=> root.delivery-text;
+                discount-text <=> root.discount-text;
+                add-order-line(name, price) => {
+                    root.add-order-line(name, price);
+                }
+                update-order-line-quantity(index, qty) => {
+                    root.update-order-line-quantity(index, qty);
+                }
+                remove-order-line(index) => {
+                    root.remove-order-line(index);
+                }
+                recalculate => { root.recalculate-bill(); }
                 go-back => { root.current-view = 0; }
                 save => { /* future */ }
                 print-order => { /* future */ }
@@ -115,11 +136,21 @@ export component MainWindow inherits Window {
                 save => { root.save-menu-item(); }
                 cancel => { root.cancel-menu-item(); }
                 add-ingredient => { root.add-ingredient(); }
-                remove-ingredient(index) => { root.remove-ingredient(index); }
-                update-ingredient-name(index, text) => { root.update-ingredient-name(index, text); }
-                update-ingredient-quantity(index, text) => { root.update-ingredient-quantity(index, text); }
-                update-ingredient-unit(index, text) => { root.update-ingredient-unit(index, text); }
-                update-ingredient-cost(index, text) => { root.update-ingredient-cost(index, text); }
+                remove-ingredient(index) => {
+                    root.remove-ingredient(index);
+                }
+                update-ingredient-name(index, text) => {
+                    root.update-ingredient-name(index, text);
+                }
+                update-ingredient-quantity(index, text) => {
+                    root.update-ingredient-quantity(index, text);
+                }
+                update-ingredient-unit(index, text) => {
+                    root.update-ingredient-unit(index, text);
+                }
+                update-ingredient-cost(index, text) => {
+                    root.update-ingredient-cost(index, text);
+                }
             }
 
             SideBar {
@@ -147,9 +178,17 @@ export component MainWindow inherits Window {
             background: #101010;
             HorizontalLayout {
                 padding: 4px;
-                Text { text: "User: Admin"; color: white; font-size: 12px; }
+                Text {
+                    text: "User: Admin";
+                    color: white;
+                    font-size: 12px;
+                }
                 Rectangle { horizontal-stretch: 1; }
-                Text { text: "v0.2.0"; color: white; font-size: 12px; }
+                Text {
+                    text: "v0.2.5";
+                    color: white;
+                    font-size: 12px;
+                }
             }
         }
     }
