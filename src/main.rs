@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Rc::new(VecModel::default());
     window.set_order_lines(order_lines.clone().into());
 
-    // Setup callbacks
+        // Setup callbacks
     setup::menu::setup_menu_callbacks(
         &window,
         conn.clone(),
@@ -68,14 +68,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     setup::order::setup_order_callbacks(&window, order_lines.clone());
     setup::areas::setup_area_callbacks(&window, conn.clone(), areas.clone());
-
     setup::settings::load_settings(&window, &conn);
     setup::settings::setup_settings_persistence(&window, conn.clone());
-    
     setup::orders::setup_order_persistence(
         &window,
         conn.clone(),
         order_lines.clone(),
+        menu_items.clone(),
         areas.clone(),
     );
 
