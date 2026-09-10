@@ -1,6 +1,6 @@
 export component TableCard inherits Rectangle {
     width: 120px;
-    height: 80px;
+    height: 90px;
     background: selected ? #00aa00 : (card-area.has-hover ? #606060 : #404040);
     border-radius: 10px;
     border-width: 2px;
@@ -9,20 +9,32 @@ export component TableCard inherits Rectangle {
     in property <string> label: "Table";
     in property <bool> selected: false;
     in property <bool> occupied: false;
-    
+    in property <float> total: 0.0;
+    in property <string> currency: "₹";
     callback clicked();
 
-    card-area := TouchArea {
-        clicked => { root.clicked(); }
+    // Layout with label and total
+    VerticalLayout {
+        alignment: center;
+        spacing: 4px;
+
+        Text {
+            text: root.label;
+            color: root.selected ? black : white;
+            font-size: 16px;
+            horizontal-alignment: center;
+        }
+
+        if root.occupied : Text {
+            text: root.currency + (Math.round(root.total * 100) / 100);
+            color: root.selected ? black : #ffcc00;
+            font-size: 12px;
+            horizontal-alignment: center;
+        }
     }
 
-    Text {
-        width: parent.width;
-        height: parent.height;
-        text: parent.label;
-        color: selected ? black : white;
-        font-size: 16px;
-        horizontal-alignment: center;
-        vertical-alignment: center;
+    // Click area on top
+    card-area := TouchArea {
+        clicked => { root.clicked(); }
     }
 }

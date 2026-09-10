@@ -49,6 +49,9 @@ pub fn init_db(db_path: &str) -> rusqlite::Result<Connection> {
             delivery REAL DEFAULT 0,
             discount REAL DEFAULT 0,
             total REAL DEFAULT 0,
+            customer_name TEXT DEFAULT '',
+            customer_phone TEXT DEFAULT '',
+            customer_address TEXT DEFAULT '',
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now'))
         );
@@ -62,5 +65,11 @@ pub fn init_db(db_path: &str) -> rusqlite::Result<Connection> {
         );
         "
     )?;
+
+    // Safe migrations for existing DBs
+    let _ = conn.execute("ALTER TABLE orders ADD COLUMN customer_name TEXT DEFAULT ''", []);
+    let _ = conn.execute("ALTER TABLE orders ADD COLUMN customer_phone TEXT DEFAULT ''", []);
+    let _ = conn.execute("ALTER TABLE orders ADD COLUMN customer_address TEXT DEFAULT ''", []);
+    
     Ok(conn)
 }

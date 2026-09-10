@@ -6,6 +6,7 @@ export component DashboardView inherits Rectangle {
     height: 100%;
 
     in property <[TableArea]> areas;
+    in property <string> currency: "₹";
     in-out property <string> selected-table: "";
     callback table-selected(string);
     callback set-tables(int, int);
@@ -35,18 +36,17 @@ export component DashboardView inherits Rectangle {
                 spacing: 15px;
 
                 for card in area.cards : TableCard {
-                    width: 120px;
-                    height: 80px;
                     label: card.label;
                     selected: root.selected-table == card.label;
                     occupied: card.occupied;
+                    total: card.total;
+                    currency: root.currency;
                     clicked => {
                         root.selected-table = self.label;
                         root.table-selected(self.label);
                     }
                 }
 
-                // Plus and minus buttons
                 Rectangle {
                     width: 40px;
                     height: 40px;

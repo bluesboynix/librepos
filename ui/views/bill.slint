@@ -33,7 +33,8 @@ export component BillView inherits Rectangle {
     callback update-order-line-quantity(int, int);
     callback remove-order-line(int);
     callback recalculate();
-
+    callback move-table(string);
+    
     HorizontalLayout {
         width: 100%;
         height: 100%;
@@ -751,7 +752,15 @@ export component BillView inherits Rectangle {
                     height: 30px;
                     background: move-hover.has-hover ? #444444 : #333333;
                     border-radius: 4px;
-                    move-hover := TouchArea { clicked => { /* future */ } }
+                    move-hover := TouchArea {
+                        clicked => {
+                            if root.new-area != "" && root.new-table != "" {
+                                root.move-table(root.new-area + " " + root.new-table);
+                                root.new-area = "";
+                                root.new-table = "";
+                            }
+                        }
+                    }
                     Text {
                         text: "Move Table";
                         color: white;

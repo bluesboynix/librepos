@@ -11,6 +11,9 @@ pub struct Order {
     pub delivery: f64,
     pub discount: f64,
     pub total: f64,
+    pub customer_name: String,
+    pub customer_phone: String,
+    pub customer_address: String,
 }
 
 #[derive(Debug, Clone)]
@@ -30,7 +33,8 @@ pub fn create_order(conn: &Connection, table_name: &str) -> Result<i64> {
 
 pub fn get_open_order_by_table(conn: &Connection, table_name: &str) -> Result<Option<Order>> {
     let mut stmt = conn.prepare(
-        "SELECT id, table_name, subtotal, gst, packaging, delivery, discount, total
+        "SELECT id, table_name, subtotal, gst, packaging, delivery, discount, total,
+                customer_name, customer_phone, customer_address
          FROM orders WHERE table_name = ?1 AND status = 'open'
          ORDER BY id DESC LIMIT 1",
     )?;
@@ -44,6 +48,9 @@ pub fn get_open_order_by_table(conn: &Connection, table_name: &str) -> Result<Op
             delivery: row.get(5)?,
             discount: row.get(6)?,
             total: row.get(7)?,
+            customer_name: row.get(8)?,
+            customer_phone: row.get(9)?,
+            customer_address: row.get(10)?,
         })
     }).optional()?;
     Ok(order)
@@ -84,6 +91,7 @@ pub fn add_order_item(
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn update_order_totals(
     conn: &Connection,
     order_id: i64,
@@ -93,10 +101,18 @@ pub fn update_order_totals(
     delivery: f64,
     discount: f64,
     total: f64,
+    customer_name: &str,
+    customer_phone: &str,
+    customer_address: &str,
 ) -> Result<()> {
     conn.execute(
-        "UPDATE orders SET subtotal = ?1, gst = ?2, packaging = ?3, delivery = ?4, discount = ?5, total = ?6, updated_at = datetime('now') WHERE id = ?7",
-        params![subtotal, gst, packaging, delivery, discount, total, order_id],
+        "UPDATE orders SET subtotal = ?1, gst = ?2, packaging = ?3, delivery = ?4,
+                          discount = ?5, total = ?6,
+                          customer_name = ?7, customer_phone = ?8, customer_address = ?9,
+                          updated_at = datetime('now')
+         WHERE id = ?10",
+        params![subtotal, gst, packaging, delivery, discount, total,
+                customer_name, customer_phone, customer_address, order_id],
     )?;
     Ok(())
 }
@@ -109,8 +125,37 @@ pub fn close_order(conn: &Connection, order_id: i64) -> Result<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 pub fn get_open_order_tables(conn: &Connection) -> Result<Vec<String>> {
     let mut stmt = conn.prepare("SELECT table_name FROM orders WHERE status='open'")?;
     let tables = stmt.query_map([], |row| row.get::<_, String>(0))?.collect::<Result<Vec<_>>>()?;
     Ok(tables)
+}
+
+#[allow(dead_code)]
+pub fn update_order_table(
+    conn: &Connection,
+    order_id: i64,
+    new_table_name: &str,
+) -> Result<()> {
+    conn.execute(
+        "UPDATE orders SET table_name = ?1, updated_at = datetime('now') WHERE id = ?2",
+        params![new_table_name, order_id],
+    )?;
+    Ok(())
+}
+
+pub fn get_open_order_totals(conn: &Connection) -> Result<std::collections::HashMap<String, f64>> {
+    let mut stmt = conn.prepare(
+        "SELECT table_name, total FROM orders WHERE status='open'",
+    )?;
+    let rows = stmt.query_map([], |row| {
+        Ok((row.get::<_, String>(0)?, row.get::<_, f64>(1)?))
+    })?;
+    let mut map = std::collections::HashMap::new();
+    for row in rows {
+        let (name, total) = row?;
+        map.insert(name, total);
+    }
+    Ok(map)
 }

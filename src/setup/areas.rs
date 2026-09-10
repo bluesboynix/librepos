@@ -7,36 +7,37 @@ pub fn rebuild_areas(
     conn: &rusqlite::Connection,
     areas: &Rc<VecModel<TableArea>>,
 ) {
-    if let Ok(db_areas) = db::areas::get_all_areas(conn) {
-        let open_tables = db::orders::get_open_order_tables(conn).unwrap_or_default();
-        let open_set: std::collections::HashSet<String> =
-            open_tables.into_iter().collect();
+    let db_areas = match db::areas::get_all_areas(conn) {
+        Ok(a) => a,
+        Err(_) => return,
+    };
+    let totals = db::orders::get_open_order_totals(conn).unwrap_or_default();
 
-        let new_areas: Vec<TableArea> = db_areas
-            .into_iter()
-            .map(|area| {
-                let cards_vec: Vec<TableCardModel> = (1..=area.table_count)
-                    .map(|n| {
-                        let label = format!("{} {}", area.name, n);
-                        let occupied = open_set.contains(&label);
-                        TableCardModel {
-                            label: label.into(),
-                            occupied,
-                        }
-                    })
-                    .collect();
-                let cards_model = Rc::new(VecModel::from(cards_vec));
-                TableArea {
-                    id: area.id as i32,
-                    name: area.name.into(),
-                    tables: area.table_count as i32,
-                    cards: cards_model.into(),
-                }
-            })
-            .collect();
+    let new_areas: Vec<TableArea> = db_areas
+        .into_iter()
+        .map(|area| {
+            let cards_vec: Vec<TableCardModel> = (1..=area.table_count)
+                .map(|n| {
+                    let label = format!("{} {}", area.name, n);
+                    let total = totals.get(&label).copied().unwrap_or(0.0);
+                    TableCardModel {
+                        label: label.into(),
+                        occupied: total > 0.0,
+                        total: total as f32,
+                    }
+                })
+                .collect();
+            let cards_model = Rc::new(VecModel::from(cards_vec));
+            TableArea {
+                id: area.id as i32,
+                name: area.name.into(),
+                tables: area.table_count as i32,
+                cards: cards_model.into(),
+            }
+        })
+        .collect();
 
-        areas.set_vec(new_areas);
-    }
+    areas.set_vec(new_areas);
 }
 
 fn build_cards_for_area(
@@ -44,15 +45,15 @@ fn build_cards_for_area(
     area_name: &str,
     table_count: i64,
 ) -> Vec<TableCardModel> {
-    let open_tables = db::orders::get_open_order_tables(conn).unwrap_or_default();
-    let open_set: std::collections::HashSet<String> = open_tables.into_iter().collect();
+    let totals = db::orders::get_open_order_totals(conn).unwrap_or_default();
     (1..=table_count)
         .map(|n| {
             let label = format!("{} {}", area_name, n);
-            let occupied = open_set.contains(&label);
+            let total = totals.get(&label).copied().unwrap_or(0.0);
             TableCardModel {
                 label: label.into(),
-                occupied,
+                occupied: total > 0.0,
+                total: total as f32,
             }
         })
         .collect()
