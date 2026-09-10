@@ -68,7 +68,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     setup::order::setup_order_callbacks(&window, order_lines.clone());
     setup::areas::setup_area_callbacks(&window, conn.clone(), areas.clone());
-    setup::gst::setup_gst_callback(&window);
+
+    setup::settings::load_settings(&window, &conn);
+    setup::settings::setup_settings_persistence(&window, conn.clone());
+    
     setup::orders::setup_order_persistence(
         &window,
         conn.clone(),

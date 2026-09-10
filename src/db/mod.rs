@@ -1,6 +1,7 @@
 pub mod menu;
 pub mod areas;
 pub mod orders;
+pub mod settings;
 
 use rusqlite::Connection;
 
@@ -62,6 +63,10 @@ pub fn init_db(db_path: &str) -> rusqlite::Result<Connection> {
             price REAL NOT NULL,
             quantity INTEGER NOT NULL,
             FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+        );
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
         );
         "
     )?;

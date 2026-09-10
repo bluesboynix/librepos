@@ -9,7 +9,8 @@ export component SettingsView inherits Rectangle {
     callback remove-area(int);
     callback update-area-name(int, string);
     callback gst-changed();
-
+    callback currency-changed();
+    
     in-out property <string> cgst-text: "0";
     in-out property <string> sgst-text: "0";
     in-out property <string> currency: "₹";
@@ -219,6 +220,7 @@ export component SettingsView inherits Rectangle {
                         color: black;
                         single-line: true;
                         text <=> root.currency;
+                        edited => { root.currency-changed(); }
                     }
                 }
             }

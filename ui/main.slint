@@ -49,6 +49,7 @@ export component MainWindow inherits Window {
     in-out property <string> sgst-text: "0";
     in-out property <string> currency: "₹";
 
+    callback currency-changed();
     callback filter-menu-items(string);
     callback home();
     callback quit();
@@ -134,6 +135,7 @@ export component MainWindow inherits Window {
                 remove-area(index) => { root.remove-area(index); }
                 update-area-name(index, name) => { root.update-area-name(index, name); }
                 gst-changed => { root.recalculate-gst(); }
+                currency-changed => { root.currency-changed(); }
             }
             if root.current-view == 4 : BillView {
                 table-name: root.current-bill-table;
