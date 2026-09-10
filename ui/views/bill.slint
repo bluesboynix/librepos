@@ -100,6 +100,16 @@ export component BillView inherits Rectangle {
                     height: 36px;
                     background: #505050;
                     border-radius: 4px;
+
+                    // Row click area (adds the item to the order)
+                    TouchArea {
+                        width: parent.width;
+                        height: parent.height;
+                        clicked => {
+                            root.add-order-line(item.name, item.price);
+                        }
+                    }
+
                     HorizontalLayout {
                         padding: 4px;
                         spacing: 8px;
@@ -124,7 +134,9 @@ export component BillView inherits Rectangle {
                             background: add-hover.has-hover ? #888888 : #666666;
                             border-radius: 4px;
                             add-hover := TouchArea {
-                                clicked => { root.add-order-line(item.name, item.price); }
+                                clicked => {
+                                    root.add-order-line(item.name, item.price);
+                                }
                             }
                             Text {
                                 text: "+";
@@ -572,43 +584,51 @@ export component BillView inherits Rectangle {
 
                 Rectangle { height: 10px; }
 
-                Rectangle {
-                    height: 40px;
-                    background: save-hover.has-hover ? #005500 : #004400;
-                    border-radius: 6px;
-                    save-hover := TouchArea { clicked => { root.save(); } }
-                    Text {
-                        text: "Save & Close";
-                        color: white;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+                                HorizontalLayout {
+                    spacing: 4px;
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        height: 40px;
+                        background: save-hover.has-hover ? #005500 : #004400;
+                        border-radius: 6px;
+                        save-hover := TouchArea { clicked => { root.save(); } }
+                        Text {
+                            text: "Save & Close";
+                            color: white;
+                            font-size: 12px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        height: 40px;
+                        background: print-hover.has-hover ? #555500 : #444400;
+                        border-radius: 6px;
+                        print-hover := TouchArea { clicked => { root.print(); } }
+                        Text {
+                            text: "Print Bill";
+                            color: white;
+                            font-size: 12px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        height: 40px;
+                        background: close-hover.has-hover ? #880000 : #660000;
+                        border-radius: 6px;
+                        close-hover := TouchArea { clicked => { root.go-back(); } }
+                        Text {
+                            text: "Dashboard";
+                            color: white;
+                            font-size: 12px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
                     }
                 }
-                Rectangle {
-                    height: 40px;
-                    background: print-hover.has-hover ? #555500 : #444400;
-                    border-radius: 6px;
-                    print-hover := TouchArea { clicked => { root.print(); } }
-                    Text {
-                        text: "Print Bill";
-                        color: white;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
-                Rectangle {
-                    height: 40px;
-                    background: close-hover.has-hover ? #880000 : #660000;
-                    border-radius: 6px;
-                    close-hover := TouchArea { clicked => { root.go-back(); } }
-                    Text {
-                        text: "Dashboard";
-                        color: white;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
-
                 // Customer details
                 Text {
                     text: "Customer Details";

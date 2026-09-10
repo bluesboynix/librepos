@@ -46,6 +46,7 @@ export component MainWindow inherits Window {
     in-out property <string> sgst-text: "0";
     in-out property <string> currency: "₹";
 
+    callback home();
     callback quit();
     callback add-area();
     callback remove-area(int);
@@ -80,6 +81,10 @@ export component MainWindow inherits Window {
             sidebar-open: root.sidebar-open;
             toggle-sidebar => {
                 root.sidebar-open = !root.sidebar-open;
+            }
+            home => {
+                root.current-view = 0;
+                root.sidebar-open = false;
             }
         }
 

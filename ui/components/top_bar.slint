@@ -4,6 +4,7 @@ export component TopBar inherits Rectangle {
 
     in-out property <bool> sidebar-open: false;
     callback toggle-sidebar();
+    callback home();
 
     // Hamburger button
     Rectangle {
@@ -42,12 +43,24 @@ export component TopBar inherits Rectangle {
         vertical-alignment: center;
     }
 
+    // Clickable area over the title (home shortcut)
+    TouchArea {
+        x: 64px;
+        y: 0px;
+        width: 100px;
+        height: parent.height;
+        mouse-cursor: pointer;
+        clicked => {
+            root.home();
+        }
+    }
+
     // Version number
     Text {
         x: 170px;
         y: 0px;
         height: parent.height;
-        text: "v0.2.1";
+        text: "v0.2.13";
         font-size: 14px;
         color: #909090;
         vertical-alignment: center;
