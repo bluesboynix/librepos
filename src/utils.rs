@@ -5,21 +5,22 @@ use std::rc::Rc;
 
 pub fn reload_menu_items(
     conn: &rusqlite::Connection,
-    model: &Rc<VecModel<MenuItem>>,
+    full: &Rc<VecModel<MenuItem>>,
+    filtered: &Rc<VecModel<MenuItem>>,
 ) {
     if let Ok(db_items) = db::menu::get_all_menu_items(conn) {
-        model.set_vec(
-            db_items
-                .into_iter()
-                .map(|item| MenuItem {
-                    id: item.id as i32,
-                    name: item.name.into(),
-                    code: item.code.unwrap_or_default().into(),
-                    price: item.price as f32,
-                    category: item.category.into(),
-                })
-                .collect::<Vec<_>>(),
-        );
+        let vec: Vec<MenuItem> = db_items
+            .into_iter()
+            .map(|item| MenuItem {
+                id: item.id as i32,
+                name: item.name.into(),
+                code: item.code.unwrap_or_default().into(),
+                price: item.price as f32,
+                category: item.category.into(),
+            })
+            .collect();
+        full.set_vec(vec.clone());
+        filtered.set_vec(vec);
     }
 }
 

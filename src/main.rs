@@ -4,7 +4,7 @@ mod db;
 mod setup;
 mod utils;
 
-use slint::VecModel;
+use slint::{Model, VecModel};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -30,7 +30,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ));
     window.set_menu_items(menu_items.clone().into());
 
-    // Load areas (initial empty model, then rebuild)
+    // Filtered model (initially identical to full list)
+    let filtered_menu_items: Rc<VecModel<MenuItem>> = Rc::new(VecModel::from(
+        (0..menu_items.row_count())
+            .map(|i| menu_items.row_data(i).unwrap())
+            .collect::<Vec<_>>(),
+    ));
+    window.set_filtered_menu_items(filtered_menu_items.clone().into());
+
+    // Load areas
     let areas: Rc<VecModel<TableArea>> = Rc::new(VecModel::default());
     window.set_areas(areas.clone().into());
     setup::areas::rebuild_areas(&conn, &areas);
@@ -40,7 +48,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         RefCell<Option<Rc<VecModel<IngredientRow>>>>,
     > = Rc::new(RefCell::new(None));
 
-    // Order lines model (working buffer for currently open table)
+    // Order lines model
     let order_lines: Rc<VecModel<OrderLine>> =
         Rc::new(VecModel::default());
     window.set_order_lines(order_lines.clone().into());
@@ -50,7 +58,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &window,
         conn.clone(),
         menu_items.clone(),
+        filtered_menu_items.clone(),
         current_ingredients,
+    );
+    setup::menu::setup_menu_search(
+        &window,
+        menu_items.clone(),
+        filtered_menu_items.clone(),
     );
     setup::order::setup_order_callbacks(&window, order_lines.clone());
     setup::areas::setup_area_callbacks(&window, conn.clone(), areas.clone());

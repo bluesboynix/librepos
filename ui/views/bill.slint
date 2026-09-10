@@ -34,6 +34,7 @@ export component BillView inherits Rectangle {
     callback remove-order-line(int);
     callback recalculate();
     callback move-table(string);
+    callback search-changed(string);
     
     HorizontalLayout {
         width: 100%;
@@ -75,6 +76,7 @@ export component BillView inherits Rectangle {
                             color: black;
                             single-line: true;
                             text <=> root.search-text;
+                            edited => { root.search-changed(self.text); }
                         }
                         Rectangle {
                             width: 20px;
@@ -82,7 +84,10 @@ export component BillView inherits Rectangle {
                             background: clear-search-hover.has-hover ? #aaaaaa : #cccccc;
                             border-radius: 10px;
                             clear-search-hover := TouchArea {
-                                clicked => { root.search-text = ""; }
+                                clicked => {
+                                    root.search-text = "";
+                                    root.search-changed("");
+                                }
                             }
                             Text {
                                 text: "×";

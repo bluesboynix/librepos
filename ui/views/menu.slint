@@ -6,6 +6,8 @@ export component MenuView inherits Rectangle {
 
     in property <[MenuItem]> items;
     in property <string> currency: "₹";
+    in-out property <string> search-text: "";
+    callback search-changed(string);
     callback add-item();
     callback remove-item(int);
     callback open-item(int);
@@ -19,6 +21,46 @@ export component MenuView inherits Rectangle {
             font-size: 24px;
             color: #fafafa;
             horizontal-alignment: center;
+        }
+
+        // Search box
+        Rectangle {
+            horizontal-stretch: 1;
+            height: 30px;
+            background: #d0d0d0;
+            border-radius: 4px;
+            clip: true;
+            HorizontalLayout {
+                padding-left: 8px;
+                padding-right: 4px;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text <=> root.search-text;
+                    edited => { root.search-changed(self.text); }
+                }
+                Rectangle {
+                    width: 20px;
+                    height: 20px;
+                    background: clear-hover.has-hover ? #aaaaaa : #cccccc;
+                    border-radius: 10px;
+                    clear-hover := TouchArea {
+                        clicked => {
+                            root.search-text = "";
+                            root.search-changed("");
+                        }
+                    }
+                    Text {
+                        text: "×";
+                        color: black;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
         }
 
         Rectangle {
@@ -38,6 +80,7 @@ export component MenuView inherits Rectangle {
             }
         }
 
+        // Items list
         for item[i] in root.items : Rectangle {
             height: 40px;
             background: Math.mod(i, 2) == 0 ? #404040 : #505050;

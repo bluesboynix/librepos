@@ -15,6 +15,9 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
+    in property <[MenuItem]> filtered-menu-items;
+    in-out property <string> menu-search-text: "";
+
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
     in-out property <int> current-view: 0;
@@ -46,6 +49,7 @@ export component MainWindow inherits Window {
     in-out property <string> sgst-text: "0";
     in-out property <string> currency: "₹";
 
+    callback filter-menu-items(string);
     callback home();
     callback quit();
     callback add-area();
@@ -113,8 +117,10 @@ export component MainWindow inherits Window {
             }
             if root.current-view == 1 : ReportsView { }
             if root.current-view == 2 : MenuView {
-                items: root.menu-items;
+                items: root.filtered-menu-items;
                 currency: root.currency;
+                search-text <=> root.menu-search-text;
+                search-changed(text) => { root.filter-menu-items(text); }
                 add-item => { root.add-menu-item(); }
                 remove-item(index) => { root.remove-menu-item(index); }
                 open-item(index) => { root.open-menu-item(index); }
@@ -131,7 +137,7 @@ export component MainWindow inherits Window {
             }
             if root.current-view == 4 : BillView {
                 table-name: root.current-bill-table;
-                menu-items: root.menu-items;
+                menu-items: root.filtered-menu-items;
                 order-lines: root.order-lines;
                 subtotal: root.bill-subtotal;
                 gst: root.bill-gst;
@@ -141,56 +147,39 @@ export component MainWindow inherits Window {
                 delivery-text <=> root.delivery-text;
                 discount-text <=> root.discount-text;
                 currency: root.currency;
-
-                customer-name <=> root.customer-name;
-                customer-phone <=> root.customer-phone;
-                customer-address <=> root.customer-address;
-                
-                add-order-line(name, price) => {
-                    root.add-order-line(name, price);
-                }
-                update-order-line-quantity(index, qty) => {
-                    root.update-order-line-quantity(index, qty);
-                }
-                remove-order-line(index) => {
-                    root.remove-order-line(index);
-                }
+                search-text <=> root.menu-search-text;
+                search-changed(text) => { root.filter-menu-items(text); }
+                add-order-line(name, price) => { root.add-order-line(name, price); }
+                update-order-line-quantity(index, qty) => { root.update-order-line-quantity(index, qty); }
+                remove-order-line(index) => { root.remove-order-line(index); }
                 recalculate => { root.recalculate-bill(); }
+                move-table(new-table) => { root.move-table(new-table); }
                 go-back => { root.close-bill(); }
                 save => { root.save-and-close-order(); }
                 print-order => { root.save-order(); }
-                move-table(new-table) => {
-                    root.move-table(new-table);
-                }
             }
-            if root.current-view == 5 : ItemDetailsView {
-                item: root.current-menu-item;
-                ingredients: root.current-ingredients;
-                name-text <=> root.name-text;
-                code-text <=> root.code-text;
-                price-text <=> root.current-price-text;
-                category-text <=> root.category-text;
+            if root.current-view == 4 : BillView {
+                table-name: root.current-bill-table;
+                menu-items: root.filtered-menu-items;
+                order-lines: root.order-lines;
+                subtotal: root.bill-subtotal;
+                gst: root.bill-gst;
+                total: root.bill-total;
+                gst-rate: root.bill-gst-rate;
+                packaging-text <=> root.packaging-text;
+                delivery-text <=> root.delivery-text;
+                discount-text <=> root.discount-text;
                 currency: root.currency;
-                total-cost-text <=> root.total-cost-text;
-                profit-text <=> root.profit-text;
-                save => { root.save-menu-item(); }
-                cancel => { root.cancel-menu-item(); }
-                add-ingredient => { root.add-ingredient(); }
-                remove-ingredient(index) => {
-                    root.remove-ingredient(index);
-                }
-                update-ingredient-name(index, text) => {
-                    root.update-ingredient-name(index, text);
-                }
-                update-ingredient-quantity(index, text) => {
-                    root.update-ingredient-quantity(index, text);
-                }
-                update-ingredient-unit(index, text) => {
-                    root.update-ingredient-unit(index, text);
-                }
-                update-ingredient-cost(index, text) => {
-                    root.update-ingredient-cost(index, text);
-                }
+                search-text <=> root.menu-search-text;
+                search-changed(text) => { root.filter-menu-items(text); }
+                add-order-line(name, price) => { root.add-order-line(name, price); }
+                update-order-line-quantity(index, qty) => { root.update-order-line-quantity(index, qty); }
+                remove-order-line(index) => { root.remove-order-line(index); }
+                recalculate => { root.recalculate-bill(); }
+                move-table(new-table) => { root.move-table(new-table); }
+                go-back => { root.close-bill(); }
+                save => { root.save-and-close-order(); }
+                print-order => { root.save-order(); }
             }
 
             SideBar {

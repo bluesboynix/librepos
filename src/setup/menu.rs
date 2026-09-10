@@ -1,7 +1,7 @@
 use crate::{IngredientRow, MainWindow, MenuItem};
 use crate::db;
 use crate::utils::{reload_menu_items, update_totals};
-use slint::{ComponentHandle, Model, VecModel};   // add ComponentHandle
+use slint::{ComponentHandle, Model, VecModel};
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -9,6 +9,7 @@ pub fn setup_menu_callbacks(
     window: &MainWindow,
     conn: Rc<rusqlite::Connection>,
     menu_items: Rc<VecModel<MenuItem>>,
+    filtered_menu_items: Rc<VecModel<MenuItem>>,
     current_ingredients: Rc<RefCell<Option<Rc<VecModel<IngredientRow>>>>>,
 ) {
     let conn = conn.clone();
@@ -16,8 +17,11 @@ pub fn setup_menu_callbacks(
     // Add menu item
     let conn_add = conn.clone();
     let weak_menu_items_add = Rc::downgrade(&menu_items);
+    let weak_filtered_add = Rc::downgrade(&filtered_menu_items);
     window.on_add_menu_item(move || {
-        if let Some(model) = weak_menu_items_add.upgrade() {
+        if let (Some(model), Some(filtered)) =
+            (weak_menu_items_add.upgrade(), weak_filtered_add.upgrade())
+        {
             let _ = db::menu::add_menu_item(
                 &conn_add,
                 "New Item",
@@ -25,19 +29,22 @@ pub fn setup_menu_callbacks(
                 0.0,
                 "Test",
             );
-            reload_menu_items(&conn_add, &model);
+            reload_menu_items(&conn_add, &model, &filtered);
         }
     });
 
     // Remove menu item
     let conn_remove = conn.clone();
     let weak_menu_items_remove = Rc::downgrade(&menu_items);
+    let weak_filtered_remove = Rc::downgrade(&filtered_menu_items);
     window.on_remove_menu_item(move |index| {
-        if let Some(model) = weak_menu_items_remove.upgrade() {
+        if let (Some(model), Some(filtered)) =
+            (weak_menu_items_remove.upgrade(), weak_filtered_remove.upgrade())
+        {
             if index >= 0 && (index as usize) < model.row_count() {
                 let id = model.row_data(index as usize).unwrap().id as i64;
                 let _ = db::menu::delete_menu_item(&conn_remove, id);
-                reload_menu_items(&conn_remove, &model);
+                reload_menu_items(&conn_remove, &model, &filtered);
             }
         }
     });
@@ -93,11 +100,13 @@ pub fn setup_menu_callbacks(
     // Save menu item
     let conn_save = conn.clone();
     let weak_menu_items_save = Rc::downgrade(&menu_items);
+    let weak_filtered_save = Rc::downgrade(&filtered_menu_items);
     let weak_window_save = window.as_weak();
     window.on_save_menu_item(move || {
-        if let (Some(window), Some(model)) = (
+        if let (Some(window), Some(model), Some(filtered)) = (
             weak_window_save.upgrade(),
             weak_menu_items_save.upgrade(),
+            weak_filtered_save.upgrade(),
         ) {
             let item = window.get_current_menu_item();
             let id = item.id as i64;
@@ -116,7 +125,7 @@ pub fn setup_menu_callbacks(
             ) {
                 eprintln!("Update failed: {}", e);
             }
-            reload_menu_items(&conn_save, &model);
+            reload_menu_items(&conn_save, &model, &filtered);
             window.set_current_view(2);
         }
     });
@@ -286,5 +295,32 @@ pub fn setup_menu_callbacks(
                 }
             }
         }
+    });
+}
+
+pub fn setup_menu_search(
+    window: &MainWindow,
+    full: Rc<VecModel<MenuItem>>,
+    filtered: Rc<VecModel<MenuItem>>,
+) {
+    let weak_full = Rc::downgrade(&full);
+    let weak_filtered = Rc::downgrade(&filtered);
+    window.on_filter_menu_items(move |query| {
+        let (Some(full), Some(filtered)) =
+            (weak_full.upgrade(), weak_filtered.upgrade())
+        else {
+            return;
+        };
+        let q = query.to_string().to_lowercase();
+        let mut list: Vec<MenuItem> = Vec::new();
+        for i in 0..full.row_count() {
+            let item = full.row_data(i).unwrap();
+            let name = item.name.to_lowercase();
+            let category = item.category.to_lowercase();
+            if q.is_empty() || name.contains(&q) || category.contains(&q) {
+                list.push(item);
+            }
+        }
+        filtered.set_vec(list);
     });
 }
