@@ -15,25 +15,13 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
-    in-out property <int> payment-mode: 0;
-    in-out property <string> split-cash-text: "";
-    in-out property <string> split-upi-text: "";
-    in-out property <string> split-card-text: "";
-    
-    in property <[MenuItem]> filtered-menu-items;
-    in-out property <string> menu-search-text: "";
-
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
     in-out property <int> current-view: 0;
     in-out property <string> current-bill-table: "";
-
-    in-out property <string> customer-name: "";
-    in-out property <string> customer-phone: "";
-    in-out property <string> customer-address: "";
-    
     in property <[TableArea]> areas;
     in property <[MenuItem]> menu-items;
+    in property <[MenuItem]> filtered-menu-items;
     in property <[OrderLine]> order-lines;
     in property <MenuItem> current-menu-item;
     in property <[IngredientRow]> current-ingredients;
@@ -53,13 +41,21 @@ export component MainWindow inherits Window {
     in-out property <string> cgst-text: "0";
     in-out property <string> sgst-text: "0";
     in-out property <string> currency: "₹";
+    in-out property <int> payment-mode: 0;
+    in-out property <string> split-cash-text: "";
+    in-out property <string> split-upi-text: "";
+    in-out property <string> split-card-text: "";
+    in-out property <string> menu-search-text: "";
 
-    callback currency-changed();
-    callback filter-menu-items(string);
-    callback home();
+    in-out property <string> customer-name: "";
+    in-out property <string> customer-phone: "";
+    in-out property <string> customer-address: "";
+
     callback quit();
+    callback home();
     callback add-area();
     callback remove-area(int);
+    callback set-tables(int, int);
     callback update-area-name(int, string);
     callback add-menu-item();
     callback remove-menu-item(int);
@@ -77,13 +73,14 @@ export component MainWindow inherits Window {
     callback remove-order-line(int);
     callback recalculate-bill();
     callback recalculate-gst();
+    callback currency-changed();
+    callback filter-menu-items(string);
     callback open-table(string);
     callback save-order();
     callback save-and-close-order();
     callback close-bill();
-    callback set-tables(int, int);
     callback move-table(string);
-    
+
     VerticalLayout {
         spacing: 0px;
 
@@ -110,6 +107,7 @@ export component MainWindow inherits Window {
                 }
             }
 
+            // Dashboard
             if root.current-view == 0 : DashboardView {
                 areas: root.areas;
                 currency: root.currency;
@@ -119,18 +117,23 @@ export component MainWindow inherits Window {
                 set-tables(area-index, new-count) => {
                     root.set-tables(area-index, new-count);
                 }
-                
             }
+
+            // Reports
             if root.current-view == 1 : ReportsView { }
+
+            // Menu
             if root.current-view == 2 : MenuView {
                 items: root.filtered-menu-items;
                 currency: root.currency;
                 search-text <=> root.menu-search-text;
                 search-changed(text) => { root.filter-menu-items(text); }
                 add-item => { root.add-menu-item(); }
-                remove-item(index) => { root.remove-menu-item(index); }
-                open-item(index) => { root.open-menu-item(index); }
+                remove-item(id) => { root.remove-menu-item(id); }
+                open-item(id) => { root.open-menu-item(id); }
             }
+
+            // Settings
             if root.current-view == 3 : SettingsView {
                 areas: root.areas;
                 currency: root.currency;
@@ -138,10 +141,14 @@ export component MainWindow inherits Window {
                 sgst-text <=> root.sgst-text;
                 add-area => { root.add-area(); }
                 remove-area(index) => { root.remove-area(index); }
-                update-area-name(index, name) => { root.update-area-name(index, name); }
+                update-area-name(index, name) => {
+                    root.update-area-name(index, name);
+                }
                 gst-changed => { root.recalculate-gst(); }
                 currency-changed => { root.currency-changed(); }
             }
+
+            // Bill
             if root.current-view == 4 : BillView {
                 table-name: root.current-bill-table;
                 menu-items: root.filtered-menu-items;
@@ -154,38 +161,24 @@ export component MainWindow inherits Window {
                 delivery-text <=> root.delivery-text;
                 discount-text <=> root.discount-text;
                 currency: root.currency;
-                search-text <=> root.menu-search-text;
                 payment-mode <=> root.payment-mode;
                 split-cash-text <=> root.split-cash-text;
                 split-upi-text <=> root.split-upi-text;
                 split-card-text <=> root.split-card-text;
-                search-changed(text) => { root.filter-menu-items(text); }
-                add-order-line(name, price) => { root.add-order-line(name, price); }
-                update-order-line-quantity(index, qty) => { root.update-order-line-quantity(index, qty); }
-                remove-order-line(index) => { root.remove-order-line(index); }
-                recalculate => { root.recalculate-bill(); }
-                move-table(new-table) => { root.move-table(new-table); }
-                go-back => { root.close-bill(); }
-                save => { root.save-and-close-order(); }
-                print-order => { root.save-order(); }
-            }
-            if root.current-view == 4 : BillView {
-                table-name: root.current-bill-table;
-                menu-items: root.filtered-menu-items;
-                order-lines: root.order-lines;
-                subtotal: root.bill-subtotal;
-                gst: root.bill-gst;
-                total: root.bill-total;
-                gst-rate: root.bill-gst-rate;
-                packaging-text <=> root.packaging-text;
-                delivery-text <=> root.delivery-text;
-                discount-text <=> root.discount-text;
-                currency: root.currency;
                 search-text <=> root.menu-search-text;
+                customer-name <=> root.customer-name;
+                customer-phone <=> root.customer-phone;
+                customer-address <=> root.customer-address;
                 search-changed(text) => { root.filter-menu-items(text); }
-                add-order-line(name, price) => { root.add-order-line(name, price); }
-                update-order-line-quantity(index, qty) => { root.update-order-line-quantity(index, qty); }
-                remove-order-line(index) => { root.remove-order-line(index); }
+                add-order-line(name, price) => {
+                    root.add-order-line(name, price);
+                }
+                update-order-line-quantity(index, qty) => {
+                    root.update-order-line-quantity(index, qty);
+                }
+                remove-order-line(index) => {
+                    root.remove-order-line(index);
+                }
                 recalculate => { root.recalculate-bill(); }
                 move-table(new-table) => { root.move-table(new-table); }
                 go-back => { root.close-bill(); }
@@ -193,6 +186,38 @@ export component MainWindow inherits Window {
                 print-order => { root.save-order(); }
             }
 
+            // Item Details
+            if root.current-view == 5 : ItemDetailsView {
+                item: root.current-menu-item;
+                ingredients: root.current-ingredients;
+                name-text <=> root.name-text;
+                code-text <=> root.code-text;
+                price-text <=> root.current-price-text;
+                category-text <=> root.category-text;
+                currency: root.currency;
+                total-cost-text <=> root.total-cost-text;
+                profit-text <=> root.profit-text;
+                save => { root.save-menu-item(); }
+                cancel => { root.cancel-menu-item(); }
+                add-ingredient => { root.add-ingredient(); }
+                remove-ingredient(index) => {
+                    root.remove-ingredient(index);
+                }
+                update-ingredient-name(index, text) => {
+                    root.update-ingredient-name(index, text);
+                }
+                update-ingredient-quantity(index, text) => {
+                    root.update-ingredient-quantity(index, text);
+                }
+                update-ingredient-unit(index, text) => {
+                    root.update-ingredient-unit(index, text);
+                }
+                update-ingredient-cost(index, text) => {
+                    root.update-ingredient-cost(index, text);
+                }
+            }
+
+            // Sidebar overlay
             SideBar {
                 x: 0px;
                 y: 0px;
@@ -225,7 +250,7 @@ export component MainWindow inherits Window {
                 }
                 Rectangle { horizontal-stretch: 1; }
                 Text {
-                    text: "v0.2.9";
+                    text: "v0.3.1";
                     color: white;
                     font-size: 12px;
                 }
