@@ -4,6 +4,7 @@ pub mod orders;
 pub mod payments;
 pub mod sequences;
 pub mod settings;
+pub mod reports;
 
 use rusqlite::Connection;
 

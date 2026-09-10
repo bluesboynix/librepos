@@ -21,6 +21,7 @@ export struct OrderLine {
     quantity: int,
 }
 
+// Declare TableCardModel BEFORE TableArea so it can be referenced
 export struct TableCardModel {
     label: string,
     occupied: bool,
@@ -32,4 +33,37 @@ export struct TableArea {
     name: string,
     tables: int,
     cards: [TableCardModel],
+}
+
+export struct ReportSummary {
+    total_sales: float,
+    order_count: int,
+    avg_order: float,
+}
+
+export struct ReportItem {
+    name: string,
+    quantity: int,
+    revenue: float,
+}
+
+export struct ReportPayment {
+    method: string,
+    amount: float,
+    count: int,
+}
+
+export struct ReportDay {
+    date: string,
+    sales: float,
+    orders: int,
+}
+
+export struct ReportBill {
+    bill_no: string,
+    table_name: string,
+    area_name: string,
+    total: float,
+    closed_at: string,
+    payment_status: string,
 }

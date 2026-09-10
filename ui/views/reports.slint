@@ -1,14 +1,187 @@
+import { ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill } from "../db-types.slint";
+import { ReportSummaryView } from "reports/summary.slint";
+import { ReportItemsView } from "reports/items.slint";
+import { ReportPaymentsView } from "reports/payments.slint";
+import { ReportDailyView } from "reports/daily.slint";
+import { ReportBillsView } from "reports/bills.slint";
+
 export component ReportsView inherits Rectangle {
     width: 100%;
     height: 100%;
 
-    Text {
-        width: parent.width;
-        height: parent.height;
-        text: "Reports";
-        font-size: 32px;
-        color: #fafafa;
-        horizontal-alignment: center;
-        vertical-alignment: center;
+    in-out property <string> from-date: "";
+    in-out property <string> to-date: "";
+    in-out property <int> active-tab: 0;
+    in property <ReportSummary> summary;
+    in property <[ReportItem]> top-items;
+    in property <[ReportPayment]> payment-breakdown;
+    in property <[ReportDay]> daily-sales;
+    in property <[ReportBill]> bills;
+    in property <string> currency: "₹";
+
+    callback refresh(string, string);
+    callback quick-range(int);
+
+    VerticalLayout {
+        padding: 15px;
+        spacing: 10px;
+
+        Text {
+            text: "Reports";
+            font-size: 22px;
+            color: #fafafa;
+            horizontal-alignment: center;
+        }
+
+        // Date range bar
+        HorizontalLayout {
+            spacing: 8px;
+
+            Text { text: "From:"; color: white; vertical-alignment: center; }
+            Rectangle {
+                width: 130px;
+                height: 30px;
+                background: #d0d0d0;
+                border-radius: 4px;
+                clip: true;
+                TextInput {
+                    width: 100%;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text <=> root.from-date;
+                }
+            }
+            Text { text: "To:"; color: white; vertical-alignment: center; }
+            Rectangle {
+                width: 130px;
+                height: 30px;
+                background: #d0d0d0;
+                border-radius: 4px;
+                clip: true;
+                TextInput {
+                    width: 100%;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text <=> root.to-date;
+                }
+            }
+            Rectangle {
+                width: 80px;
+                height: 30px;
+                background: refresh-hover.has-hover ? #005500 : #004400;
+                border-radius: 4px;
+                refresh-hover := TouchArea {
+                    clicked => { root.refresh(root.from-date, root.to-date); }
+                }
+                Text {
+                    text: "Refresh";
+                    color: white;
+                    font-size: 12px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+            Rectangle {
+                width: 70px;
+                height: 30px;
+                background: q1.has-hover ? #555555 : #444444;
+                border-radius: 4px;
+                q1 := TouchArea { clicked => { root.quick-range(0); } }
+                Text { text: "Today"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
+            }
+            Rectangle {
+                width: 80px;
+                height: 30px;
+                background: q2.has-hover ? #555555 : #444444;
+                border-radius: 4px;
+                q2 := TouchArea { clicked => { root.quick-range(1); } }
+                Text { text: "Week"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
+            }
+            Rectangle {
+                width: 80px;
+                height: 30px;
+                background: q3.has-hover ? #555555 : #444444;
+                border-radius: 4px;
+                q3 := TouchArea { clicked => { root.quick-range(2); } }
+                Text { text: "Month"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
+            }
+        }
+
+        // Tab buttons
+        HorizontalLayout {
+            spacing: 4px;
+
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 32px;
+                background: root.active-tab == 0 ? #0066aa : #333333;
+                border-radius: 4px;
+                TouchArea { clicked => { root.active-tab = 0; } }
+                Text { text: "Summary"; color: white; font-size: 13px; horizontal-alignment: center; vertical-alignment: center; }
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 32px;
+                background: root.active-tab == 1 ? #0066aa : #333333;
+                border-radius: 4px;
+                TouchArea { clicked => { root.active-tab = 1; } }
+                Text { text: "Top Items"; color: white; font-size: 13px; horizontal-alignment: center; vertical-alignment: center; }
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 32px;
+                background: root.active-tab == 2 ? #0066aa : #333333;
+                border-radius: 4px;
+                TouchArea { clicked => { root.active-tab = 2; } }
+                Text { text: "Payments"; color: white; font-size: 13px; horizontal-alignment: center; vertical-alignment: center; }
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 32px;
+                background: root.active-tab == 3 ? #0066aa : #333333;
+                border-radius: 4px;
+                TouchArea { clicked => { root.active-tab = 3; } }
+                Text { text: "Daily Sales"; color: white; font-size: 13px; horizontal-alignment: center; vertical-alignment: center; }
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 32px;
+                background: root.active-tab == 4 ? #0066aa : #333333;
+                border-radius: 4px;
+                TouchArea { clicked => { root.active-tab = 4; } }
+                Text { text: "Bills"; color: white; font-size: 13px; horizontal-alignment: center; vertical-alignment: center; }
+            }
+        }
+
+        // Tab content
+        Rectangle {
+            vertical-stretch: 1;
+            background: #303030;
+            border-radius: 8px;
+            clip: true;
+
+            if root.active-tab == 0 : ReportSummaryView {
+                summary: root.summary;
+                currency: root.currency;
+            }
+            if root.active-tab == 1 : ReportItemsView {
+                items: root.top-items;
+                currency: root.currency;
+            }
+            if root.active-tab == 2 : ReportPaymentsView {
+                payments: root.payment-breakdown;
+                currency: root.currency;
+            }
+            if root.active-tab == 3 : ReportDailyView {
+                days: root.daily-sales;
+                currency: root.currency;
+            }
+            if root.active-tab == 4 : ReportBillsView {
+                bills: root.bills;
+                currency: root.currency;
+            }
+        }
     }
 }

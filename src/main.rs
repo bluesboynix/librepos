@@ -78,6 +78,41 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         areas.clone(),
     );
 
+        // Report models
+    let report_top_items: Rc<VecModel<ReportItem>> = Rc::new(VecModel::default());
+    let report_payments: Rc<VecModel<ReportPayment>> = Rc::new(VecModel::default());
+    let report_days: Rc<VecModel<ReportDay>> = Rc::new(VecModel::default());
+    let report_bills: Rc<VecModel<ReportBill>> = Rc::new(VecModel::default());
+
+    window.set_report_bills(report_bills.clone().into());
+    window.set_report_top_items(report_top_items.clone().into());
+    window.set_report_payment_breakdown(report_payments.clone().into());
+    window.set_report_daily_sales(report_days.clone().into());
+
+    setup::reports::setup_reports_callbacks(
+        &window,
+        conn.clone(),
+        report_top_items.clone(),
+        report_payments.clone(),
+        report_days.clone(),
+        report_bills.clone(),
+    );
+
+    // Initialize with today's date and load once
+    let today: String = conn
+        .query_row(
+            "SELECT date('now', 'localtime')",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or_default();
+    window.set_report_from_date(today.clone().into());
+    window.set_report_to_date(today.clone().into());
+
+    // Trigger an initial refresh by firing the callback manually
+    window.invoke_load_reports(today.clone().into(), today.into());
+
+    
     window.on_quit(|| {
         std::process::exit(0);
     });

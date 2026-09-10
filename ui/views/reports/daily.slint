@@ -1,0 +1,73 @@
+import { ReportDay } from "../../db-types.slint";
+
+export component ReportDailyView inherits Rectangle {
+    width: 100%;
+    height: 100%;
+
+    in property <[ReportDay]> days;
+    in property <string> currency: "₹";
+
+    VerticalLayout {
+        padding: 15px;
+        spacing: 8px;
+
+        Text {
+            text: "Daily Sales";
+            color: #00ffff;
+            font-size: 18px;
+            horizontal-alignment: center;
+        }
+
+        HorizontalLayout {
+            padding-left: 8px;
+            padding-right: 8px;
+            spacing: 8px;
+            Text { text: "Date"; color: #00ffff; font-weight: 700; width: 140px; }
+            Text { text: "Orders"; color: #00ffff; font-weight: 700; width: 100px; horizontal-alignment: center; }
+            Text { text: "Sales"; color: #00ffff; font-weight: 700; horizontal-stretch: 1; horizontal-alignment: right; }
+        }
+        Rectangle { height: 1px; background: #808080; }
+
+        Flickable {
+            viewport-width: self.width;
+            viewport-height: inner.preferred-height;
+            interactive: true;
+            horizontal-stretch: 1;
+            vertical-stretch: 1;
+
+            inner := VerticalLayout {
+                spacing: 4px;
+                for d[i] in root.days : Rectangle {
+                    height: 36px;
+                    background: Math.mod(i, 2) == 0 ? #383838 : #404040;
+                    border-radius: 4px;
+                    HorizontalLayout {
+                        padding-left: 8px;
+                        padding-right: 8px;
+                        spacing: 8px;
+                        Text {
+                            text: d.date;
+                            color: white;
+                            width: 140px;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: d.orders;
+                            color: white;
+                            width: 100px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: root.currency + d.sales;
+                            color: #00ff00;
+                            horizontal-stretch: 1;
+                            horizontal-alignment: right;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

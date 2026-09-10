@@ -1,0 +1,96 @@
+import { ReportSummary } from "../../db-types.slint";
+
+export component ReportSummaryView inherits Rectangle {
+    width: 100%;
+    height: 100%;
+
+    in property <ReportSummary> summary;
+    in property <string> currency: "₹";
+
+    VerticalLayout {
+        padding: 30px;
+        spacing: 20px;
+        alignment: center;
+
+        Text {
+            text: "Summary";
+            color: #00ffff;
+            font-size: 20px;
+            horizontal-alignment: center;
+        }
+
+        HorizontalLayout {
+            spacing: 20px;
+            alignment: center;
+
+            Rectangle {
+                width: 220px;
+                height: 120px;
+                background: #404040;
+                border-radius: 10px;
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 8px;
+                    Text {
+                        text: "Total Sales";
+                        color: #00ffff;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: root.currency + root.summary.total-sales;
+                        color: white;
+                        font-size: 28px;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 220px;
+                height: 120px;
+                background: #404040;
+                border-radius: 10px;
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 8px;
+                    Text {
+                        text: "Orders";
+                        color: #00ffff;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: root.summary.order-count;
+                        color: white;
+                        font-size: 28px;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+
+            Rectangle {
+                width: 220px;
+                height: 120px;
+                background: #404040;
+                border-radius: 10px;
+                VerticalLayout {
+                    alignment: center;
+                    spacing: 8px;
+                    Text {
+                        text: "Avg Order";
+                        color: #00ffff;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                    }
+                    Text {
+                        text: root.currency + root.summary.avg-order;
+                        color: white;
+                        font-size: 28px;
+                        horizontal-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -4,10 +4,12 @@ import { MenuView } from "views/menu.slint";
 import { SettingsView } from "views/settings.slint";
 import { BillView } from "views/bill.slint";
 import { ItemDetailsView } from "views/item_details.slint";
-import { MenuItem, IngredientRow, OrderLine, TableArea } from "db-types.slint";
+import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill } from "db-types.slint";
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
+import { ReportSummary, ReportItem, ReportPayment, ReportDay } from "db-types.slint";
+
 
 export component MainWindow inherits Window {
     preferred-width: 100%;
@@ -15,6 +17,7 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
+    in-out property <int> report-active-tab: 0;
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
     in-out property <int> current-view: 0;
@@ -25,6 +28,7 @@ export component MainWindow inherits Window {
     in property <[OrderLine]> order-lines;
     in property <MenuItem> current-menu-item;
     in property <[IngredientRow]> current-ingredients;
+    in property <[ReportBill]> report-bills;
     in-out property <string> current-price-text: "0";
     in-out property <string> name-text: "";
     in-out property <string> code-text: "";
@@ -51,6 +55,16 @@ export component MainWindow inherits Window {
     in-out property <string> customer-phone: "";
     in-out property <string> customer-address: "";
 
+    in-out property <string> report-from-date: "";
+    in-out property <string> report-to-date: "";
+    in property <ReportSummary> report-summary;
+    in property <[ReportItem]> report-top-items;
+    in property <[ReportPayment]> report-payment-breakdown;
+    in property <[ReportDay]> report-daily-sales;
+
+    callback load-reports(string, string);
+    callback reports-quick-range(int);
+    
     callback quit();
     callback home();
     callback add-area();
@@ -120,7 +134,19 @@ export component MainWindow inherits Window {
             }
 
             // Reports
-            if root.current-view == 1 : ReportsView { }
+            if root.current-view == 1 : ReportsView {
+                from-date <=> root.report-from-date;
+                to-date <=> root.report-to-date;
+                active-tab <=> root.report-active-tab;
+                summary: root.report-summary;
+                top-items: root.report-top-items;
+                payment-breakdown: root.report-payment-breakdown;
+                daily-sales: root.report-daily-sales;
+                bills: root.report-bills;
+                currency: root.currency;
+                refresh(from, to) => { root.load-reports(from, to); }
+                quick-range(kind) => { root.reports-quick-range(kind); }
+            }
 
             // Menu
             if root.current-view == 2 : MenuView {
