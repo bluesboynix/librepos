@@ -1,4 +1,4 @@
-use crate::{MainWindow, OrderLine};
+use crate::{MainWindow, OrderLine, TableArea};
 use crate::db;
 use slint::{ComponentHandle, Model, VecModel};
 use std::cell::RefCell;
@@ -9,11 +9,12 @@ pub fn setup_order_persistence(
     window: &MainWindow,
     conn: Rc<rusqlite::Connection>,
     order_lines: Rc<VecModel<OrderLine>>,
+    areas: Rc<VecModel<TableArea>>,
 ) {
     let open_orders: Rc<RefCell<HashMap<String, i64>>> =
         Rc::new(RefCell::new(HashMap::new()));
 
-    // OPEN TABLE
+    // ==================== OPEN TABLE ====================
     let weak_window_open = window.as_weak();
     let weak_order_lines_open = Rc::downgrade(&order_lines);
     let conn_open = conn.clone();
@@ -80,11 +81,12 @@ pub fn setup_order_persistence(
         }
     });
 
-    // SAVE ORDER (PRINT)
+    // ==================== SAVE ORDER (PRINT) ====================
     let weak_window_save = window.as_weak();
     let weak_order_lines_save = Rc::downgrade(&order_lines);
     let conn_save = conn.clone();
     let open_orders_save = open_orders.clone();
+    let areas_save = areas.clone();
     window.on_save_order(move || {
         if let (Some(window), Some(order_model)) = (
             weak_window_save.upgrade(),
@@ -110,7 +112,8 @@ pub fn setup_order_persistence(
             let order_id = if let Some(id) = open_orders_save.borrow().get(&table) {
                 *id
             } else {
-                let new_id = db::orders::create_order(&conn_save, &table).unwrap();
+                let new_id =
+                    db::orders::create_order(&conn_save, &table).unwrap();
                 open_orders_save.borrow_mut().insert(table.clone(), new_id);
                 new_id
             };
@@ -138,14 +141,17 @@ pub fn setup_order_persistence(
                 total,
             )
             .unwrap();
+
+            crate::setup::areas::rebuild_areas(&conn_save, &areas_save);
         }
     });
 
-    // SAVE & CLOSE ORDER
+    // ==================== SAVE & CLOSE ORDER ====================
     let weak_window_save_close = window.as_weak();
     let weak_order_lines_save_close = Rc::downgrade(&order_lines);
     let conn_save_close = conn.clone();
     let open_orders_save_close = open_orders.clone();
+    let areas_save_close = areas.clone();
     window.on_save_and_close_order(move || {
         if let (Some(window), Some(order_model)) = (
             weak_window_save_close.upgrade(),
@@ -168,13 +174,18 @@ pub fn setup_order_persistence(
                 .unwrap_or(0.0);
             let total = window.get_bill_total() as f64;
 
-            let order_id = if let Some(id) = open_orders_save_close.borrow().get(&table) {
-                *id
-            } else {
-                let new_id = db::orders::create_order(&conn_save_close, &table).unwrap();
-                open_orders_save_close.borrow_mut().insert(table.clone(), new_id);
-                new_id
-            };
+            let order_id =
+                if let Some(id) = open_orders_save_close.borrow().get(&table) {
+                    *id
+                } else {
+                    let new_id =
+                        db::orders::create_order(&conn_save_close, &table)
+                            .unwrap();
+                    open_orders_save_close
+                        .borrow_mut()
+                        .insert(table.clone(), new_id);
+                    new_id
+                };
 
             db::orders::clear_order_items(&conn_save_close, order_id).unwrap();
             for i in 0..order_model.row_count() {
@@ -203,16 +214,22 @@ pub fn setup_order_persistence(
             db::orders::close_order(&conn_save_close, order_id).unwrap();
             open_orders_save_close.borrow_mut().remove(&table);
 
+            crate::setup::areas::rebuild_areas(
+                &conn_save_close,
+                &areas_save_close,
+            );
+
             order_model.set_vec(Vec::<OrderLine>::new());
             window.set_current_view(0);
         }
     });
 
-    // DASHBOARD (SAVE OPEN & GO BACK)
+    // ==================== DASHBOARD (SAVE OPEN & GO BACK) ====================
     let weak_window_back = window.as_weak();
     let weak_order_lines_back = Rc::downgrade(&order_lines);
     let conn_back = conn.clone();
     let open_orders_back = open_orders.clone();
+    let areas_back = areas.clone();
     window.on_close_bill(move || {
         if let (Some(window), Some(order_model)) = (
             weak_window_back.upgrade(),
@@ -247,10 +264,12 @@ pub fn setup_order_persistence(
                 return;
             }
 
-            let order_id = if let Some(id) = open_orders_back.borrow().get(&table) {
+            let order_id = if let Some(id) = open_orders_back.borrow().get(&table)
+            {
                 *id
             } else {
-                let new_id = db::orders::create_order(&conn_back, &table).unwrap();
+                let new_id =
+                    db::orders::create_order(&conn_back, &table).unwrap();
                 open_orders_back.borrow_mut().insert(table.clone(), new_id);
                 new_id
             };
@@ -278,6 +297,8 @@ pub fn setup_order_persistence(
                 total,
             )
             .unwrap();
+
+            crate::setup::areas::rebuild_areas(&conn_back, &areas_back);
 
             order_model.set_vec(Vec::<OrderLine>::new());
             window.set_current_view(0);

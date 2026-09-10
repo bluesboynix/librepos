@@ -3,6 +3,42 @@ use crate::db;
 use slint::{Model, VecModel};
 use std::rc::Rc;
 
+pub fn rebuild_areas(
+    conn: &rusqlite::Connection,
+    areas: &Rc<VecModel<TableArea>>,
+) {
+    if let Ok(db_areas) = db::areas::get_all_areas(conn) {
+        let open_tables = db::orders::get_open_order_tables(conn).unwrap_or_default();
+        let open_set: std::collections::HashSet<String> =
+            open_tables.into_iter().collect();
+
+        let new_areas: Vec<TableArea> = db_areas
+            .into_iter()
+            .map(|area| {
+                let cards_vec: Vec<TableCardModel> = (1..=area.table_count)
+                    .map(|n| {
+                        let label = format!("{} {}", area.name, n);
+                        let occupied = open_set.contains(&label);
+                        TableCardModel {
+                            label: label.into(),
+                            occupied,
+                        }
+                    })
+                    .collect();
+                let cards_model = Rc::new(VecModel::from(cards_vec));
+                TableArea {
+                    id: area.id as i32,
+                    name: area.name.into(),
+                    tables: area.table_count as i32,
+                    cards: cards_model.into(),
+                }
+            })
+            .collect();
+
+        areas.set_vec(new_areas);
+    }
+}
+
 fn build_cards_for_area(
     conn: &rusqlite::Connection,
     area_name: &str,

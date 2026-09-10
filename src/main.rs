@@ -6,7 +6,6 @@ mod utils;
 
 use slint::VecModel;
 use std::cell::RefCell;
-use std::collections::HashSet;
 use std::rc::Rc;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -31,36 +30,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ));
     window.set_menu_items(menu_items.clone().into());
 
-       // Load areas and build per-table cards
-    let db_areas = db::areas::get_all_areas(&conn)?;
-    let open_tables = db::orders::get_open_order_tables(&conn)?;
-    let open_set: HashSet<String> = open_tables.into_iter().collect();
-
-    let areas: Rc<VecModel<TableArea>> = Rc::new(VecModel::from(
-        db_areas
-            .into_iter()
-            .map(|area| {
-                let cards_vec: Vec<TableCardModel> = (1..=area.table_count)
-                    .map(|n| {
-                        let label = format!("{} {}", area.name, n);
-                        let occupied = open_set.contains(&label);
-                        TableCardModel {
-                            label: label.into(),
-                            occupied,
-                        }
-                    })
-                    .collect();
-                let cards_model = Rc::new(VecModel::from(cards_vec));
-                TableArea {
-                    id: area.id as i32,
-                    name: area.name.into(),
-                    tables: area.table_count as i32,
-                    cards: cards_model.into(),
-                }
-            })
-            .collect::<Vec<_>>(),
-    ));
+    // Load areas (initial empty model, then rebuild)
+    let areas: Rc<VecModel<TableArea>> = Rc::new(VecModel::default());
     window.set_areas(areas.clone().into());
+    setup::areas::rebuild_areas(&conn, &areas);
 
     // Shared current ingredient model
     let current_ingredients: Rc<
@@ -82,7 +55,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     setup::order::setup_order_callbacks(&window, order_lines.clone());
     setup::areas::setup_area_callbacks(&window, conn.clone(), areas.clone());
     setup::gst::setup_gst_callback(&window);
-    setup::orders::setup_order_persistence(&window, conn.clone(), order_lines.clone());
+    setup::orders::setup_order_persistence(
+        &window,
+        conn.clone(),
+        order_lines.clone(),
+        areas.clone(),
+    );
 
     window.on_quit(|| {
         std::process::exit(0);
