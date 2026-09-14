@@ -15,6 +15,7 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
+    in-out property <int> report-active-range: 0;
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
     in-out property <int> current-view: 0;
@@ -103,7 +104,7 @@ export component MainWindow inherits Window {
     callback move-table(string);
     callback load-reports(string, string);
     callback reports-quick-range(int);
-    callback load-bill-detail(string);
+    callback load-bill-detail(int);
     callback clear-bill-detail();
 
     VerticalLayout {
@@ -162,8 +163,9 @@ export component MainWindow inherits Window {
                 bills-detail-open <=> root.bills-detail-open;
                 refresh(from, to) => { root.load-reports(from, to); }
                 quick-range(kind) => { root.reports-quick-range(kind); }
-                load-bill-detail(bill-no) => { root.load-bill-detail(bill-no); }
+                load-bill-detail(order-id) => { root.load-bill-detail(order-id); }
                 clear-bill-detail => { root.clear-bill-detail(); }
+                active-range <=> root.report-active-range;
             }
 
             // Menu

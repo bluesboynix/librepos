@@ -11,7 +11,7 @@ export component ReportBillsView inherits Rectangle {
     in property <BillDetail> detail;
     in-out property <bool> detail-open: false;
 
-    callback bill-selected(string);
+    callback bill-selected(int);
     callback back-to-list();
 
     if root.detail-open : BillDetailView {
@@ -51,7 +51,7 @@ export component ReportBillsView inherits Rectangle {
                     border-radius: 4px;
 
                     row-hover := TouchArea {
-                        clicked => { root.bill-selected(b.bill-no); }
+                        clicked => { root.bill-selected(b.id); }
                     }
 
                     HorizontalLayout {

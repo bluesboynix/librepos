@@ -103,7 +103,23 @@ export component BillDetailView inherits Rectangle {
 
                         for item[i] in root.detail.items : HorizontalLayout {
                             spacing: 8px;
-                            Text { text: item.name; color: white; horizontal-stretch: 1; font-size: 13px; }
+
+                            // Name + optional note
+                            VerticalLayout {
+                                horizontal-stretch: 1;
+                                spacing: 0px;
+                                Text {
+                                    text: item.name;
+                                    color: white;
+                                    font-size: 13px;
+                                }
+                                if item.note != "" : Text {
+                                    text: "↳ " + item.note;
+                                    color: #ffcc00;
+                                    font-size: 11px;
+                                }
+                            }
+
                             Text { text: item.category; color: #cccccc; width: 100px; font-size: 13px; }
                             Text { text: item.quantity; color: white; width: 50px; horizontal-alignment: center; font-size: 13px; }
                             Text { text: root.currency + item.unit-price; color: white; width: 80px; horizontal-alignment: right; font-size: 13px; }

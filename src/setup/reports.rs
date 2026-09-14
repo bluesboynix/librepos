@@ -96,10 +96,11 @@ fn run_report(
         days.set_vec(rows);
     }
     
-    if let Ok(b) = db::reports::get_bills(conn, from, to, 100) {
+        if let Ok(b) = db::reports::get_bills(conn, from, to, 100) {
         let rows: Vec<ReportBill> = b
             .into_iter()
             .map(|x| ReportBill {
+                id: x.id as i32,
                 bill_no: x.bill_no.into(),
                 table_name: x.table_name.into(),
                 area_name: x.area_name.into(),
@@ -236,15 +237,15 @@ pub fn setup_reports_callbacks(
         // ==================== LOAD BILL DETAIL ====================
     let weak_window_bill = window.as_weak();
     let conn_bill = conn.clone();
-    window.on_load_bill_detail(move |bill_no| {
+    window.on_load_bill_detail(move |order_id| {
         let Some(window) = weak_window_bill.upgrade() else {
             return;
         };
         let Some(detail) =
-            db::reports::get_bill_detail(&conn_bill, &bill_no).ok().flatten()
-        else {
-            return;
-        };
+            db::reports::get_bill_detail(&conn_bill, order_id as i64).ok().flatten()
+            else {
+                return;
+            };
 
         let items: Vec<BillLine> = detail
             .items
@@ -255,6 +256,7 @@ pub fn setup_reports_callbacks(
                 quantity: i.quantity,
                 unit_price: format!("{:.2}", i.unit_price).into(),
                 line_total: format!("{:.2}", i.line_total).into(),
+                note: i.note.into(),
             })
             .collect();
 

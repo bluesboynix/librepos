@@ -61,6 +61,7 @@ export struct ReportDay {
 }
 
 export struct ReportBill {
+    id: int,
     bill_no: string,
     table_name: string,
     area_name: string,
@@ -75,6 +76,7 @@ export struct BillLine {
     quantity: int,
     unit_price: string,
     line_total: string,
+    note: string,
 }
 
 export struct BillPayment {
