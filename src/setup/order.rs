@@ -27,6 +27,7 @@ pub fn setup_order_callbacks(
                     name,
                     price,
                     quantity: 1,
+                    note: "".into(),
                 });
             }
             if let Some(window) = weak_window_order_add.upgrade() {
@@ -74,6 +75,18 @@ pub fn setup_order_callbacks(
     window.on_recalculate_bill(move || {
         if let Some(window) = weak_window_recalc.upgrade() {
             update_bill_totals(&window);
+        }
+    });
+
+    // Update order line note (in-memory)
+    let weak_order_lines_note = Rc::downgrade(&order_lines);
+    window.on_update_order_line_note(move |index, note| {
+        if let Some(model) = weak_order_lines_note.upgrade() {
+            if index >= 0 && (index as usize) < model.row_count() {
+                let mut line = model.row_data(index as usize).unwrap();
+                line.note = note;
+                model.set_row_data(index as usize, line);
+            }
         }
     });
 }

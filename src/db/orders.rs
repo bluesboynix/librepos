@@ -1,4 +1,4 @@
-use rusqlite::{Connection, Result, OptionalExtension, params};
+use rusqlite::{Connection, OptionalExtension, Result, params};
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
@@ -21,6 +21,7 @@ pub struct OrderItem {
     pub name: String,
     pub price: f64,
     pub quantity: i32,
+    pub note: String,
 }
 
 pub fn create_order(conn: &Connection, table_name: &str) -> Result<i64> {
@@ -66,7 +67,8 @@ pub fn get_open_order_by_table(
 
 pub fn get_order_items(conn: &Connection, order_id: i64) -> Result<Vec<OrderItem>> {
     let mut stmt = conn.prepare(
-        "SELECT name, unit_price, quantity FROM order_items WHERE order_id = ?1",
+        "SELECT name, unit_price, quantity, COALESCE(note, '')
+         FROM order_items WHERE order_id = ?1",
     )?;
     let items = stmt
         .query_map([order_id], |row| {
@@ -74,6 +76,7 @@ pub fn get_order_items(conn: &Connection, order_id: i64) -> Result<Vec<OrderItem
                 name: row.get(0)?,
                 price: row.get(1)?,
                 quantity: row.get(2)?,
+                note: row.get(3)?,
             })
         })?
         .collect::<Result<Vec<_>>>()?;
@@ -81,11 +84,13 @@ pub fn get_order_items(conn: &Connection, order_id: i64) -> Result<Vec<OrderItem
 }
 
 pub fn clear_order_items(conn: &Connection, order_id: i64) -> Result<()> {
-    conn.execute("DELETE FROM order_items WHERE order_id = ?1", [order_id])?;
+    conn.execute(
+        "DELETE FROM order_items WHERE order_id = ?1",
+        [order_id],
+    )?;
     Ok(())
 }
 
-/// Insert one snapshot line. All prices/names are frozen at this moment.
 #[allow(clippy::too_many_arguments)]
 pub fn add_order_item_snapshot(
     conn: &Connection,
@@ -98,12 +103,13 @@ pub fn add_order_item_snapshot(
     cost_price: f64,
     quantity: i32,
     line_total: f64,
+    note: &str,
 ) -> Result<()> {
     conn.execute(
         "INSERT INTO order_items
          (order_id, menu_item_id, name, code, category,
-          unit_price, cost_price, quantity, line_total, price)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+          unit_price, cost_price, quantity, line_total, price, note)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
         params![
             order_id,
             menu_item_id,
@@ -114,7 +120,8 @@ pub fn add_order_item_snapshot(
             cost_price,
             quantity,
             line_total,
-            unit_price
+            unit_price,
+            note
         ],
     )?;
     Ok(())
@@ -144,16 +151,23 @@ pub fn update_order_totals(
             updated_at = datetime('now','localtime')
          WHERE id = ?12",
         params![
-            subtotal, cgst, sgst, gst,
-            packaging, delivery, discount, total,
-            customer_name, customer_phone, customer_address,
+            subtotal,
+            cgst,
+            sgst,
+            gst,
+            packaging,
+            delivery,
+            discount,
+            total,
+            customer_name,
+            customer_phone,
+            customer_address,
             order_id
         ],
     )?;
     Ok(())
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn close_order(
     conn: &Connection,
     order_id: i64,
@@ -216,8 +230,10 @@ pub fn get_open_order_totals(
     Ok(map)
 }
 
-/// Get the cost price for a menu item by summing its ingredients.
-pub fn get_menu_item_cost(conn: &Connection, menu_item_id: i64) -> Result<f64> {
+pub fn get_menu_item_cost(
+    conn: &Connection,
+    menu_item_id: i64,
+) -> Result<f64> {
     let cost: f64 = conn.query_row(
         "SELECT COALESCE(SUM(estimated_cost), 0)
          FROM menu_item_ingredients
@@ -228,7 +244,6 @@ pub fn get_menu_item_cost(conn: &Connection, menu_item_id: i64) -> Result<f64> {
     Ok(cost)
 }
 
-/// Look up a menu item's code and category by id.
 #[allow(dead_code)]
 pub fn get_menu_item_meta(
     conn: &Connection,

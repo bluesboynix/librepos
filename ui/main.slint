@@ -8,8 +8,6 @@ import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportIte
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
-import { ReportSummary, ReportItem, ReportPayment, ReportDay } from "db-types.slint";
-
 
 export component MainWindow inherits Window {
     preferred-width: 100%;
@@ -17,15 +15,6 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
-    in property <BillDetail> current-bill-detail;
-    in-out property <bool> bills-detail-open: false;
-    callback load-bill-detail(string);
-    callback clear-bill-detail();
-    
-    in-out property <float> report-max-daily-sale: 0.0;
-    in-out property <string> report-max-daily-sale-text: "0.00";
-    in-out property <[string]> report-y-labels;
-    in-out property <int> report-active-tab: 0;
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
     in-out property <int> current-view: 0;
@@ -36,7 +25,6 @@ export component MainWindow inherits Window {
     in property <[OrderLine]> order-lines;
     in property <MenuItem> current-menu-item;
     in property <[IngredientRow]> current-ingredients;
-    in property <[ReportBill]> report-bills;
     in-out property <string> current-price-text: "0";
     in-out property <string> name-text: "";
     in-out property <string> code-text: "";
@@ -58,21 +46,31 @@ export component MainWindow inherits Window {
     in-out property <string> split-upi-text: "";
     in-out property <string> split-card-text: "";
     in-out property <string> menu-search-text: "";
-
     in-out property <string> customer-name: "";
     in-out property <string> customer-phone: "";
     in-out property <string> customer-address: "";
 
+    // Note dialog
+    in-out property <bool> note-dialog-open: false;
+    in-out property <int> note-dialog-line-index: -1;
+    in-out property <string> note-dialog-text: "";
+    in-out property <string> note-dialog-item-name: "";
+
+    // Reports
     in-out property <string> report-from-date: "";
     in-out property <string> report-to-date: "";
+    in-out property <int> report-active-tab: 0;
     in property <ReportSummary> report-summary;
     in property <[ReportItem]> report-top-items;
     in property <[ReportPayment]> report-payment-breakdown;
     in property <[ReportDay]> report-daily-sales;
+    in property <[ReportBill]> report-bills;
+    in-out property <float> report-max-daily-sale: 0.0;
+    in-out property <string> report-max-daily-sale-text: "0.00";
+    in-out property <[string]> report-y-labels;
+    in property <BillDetail> current-bill-detail;
+    in-out property <bool> bills-detail-open: false;
 
-    callback load-reports(string, string);
-    callback reports-quick-range(int);
-    
     callback quit();
     callback home();
     callback add-area();
@@ -92,6 +90,7 @@ export component MainWindow inherits Window {
     callback update-ingredient-cost(int, string);
     callback add-order-line(string, float);
     callback update-order-line-quantity(int, int);
+    callback update-order-line-note(int, string);
     callback remove-order-line(int);
     callback recalculate-bill();
     callback recalculate-gst();
@@ -102,6 +101,10 @@ export component MainWindow inherits Window {
     callback save-and-close-order();
     callback close-bill();
     callback move-table(string);
+    callback load-reports(string, string);
+    callback reports-quick-range(int);
+    callback load-bill-detail(string);
+    callback clear-bill-detail();
 
     VerticalLayout {
         spacing: 0px;
@@ -143,23 +146,24 @@ export component MainWindow inherits Window {
 
             // Reports
             if root.current-view == 1 : ReportsView {
-                current-bill-detail: root.current-bill-detail;
-                bills-detail-open <=> root.bills-detail-open;
-                load-bill-detail(bill-no) => { root.load-bill-detail(bill-no); }
-                clear-bill-detail => { root.clear-bill-detail(); }
-                y-labels: root.report-y-labels;
-                max-daily-sale: root.report-max-daily-sale;
-                daily-sales: root.report-daily-sales;
                 from-date <=> root.report-from-date;
                 to-date <=> root.report-to-date;
                 active-tab <=> root.report-active-tab;
                 summary: root.report-summary;
                 top-items: root.report-top-items;
                 payment-breakdown: root.report-payment-breakdown;
+                daily-sales: root.report-daily-sales;
                 bills: root.report-bills;
+                max-daily-sale: root.report-max-daily-sale;
+                max-daily-sale-text: root.report-max-daily-sale-text;
+                y-labels: root.report-y-labels;
                 currency: root.currency;
+                current-bill-detail: root.current-bill-detail;
+                bills-detail-open <=> root.bills-detail-open;
                 refresh(from, to) => { root.load-reports(from, to); }
                 quick-range(kind) => { root.reports-quick-range(kind); }
+                load-bill-detail(bill-no) => { root.load-bill-detail(bill-no); }
+                clear-bill-detail => { root.clear-bill-detail(); }
             }
 
             // Menu
@@ -205,16 +209,23 @@ export component MainWindow inherits Window {
                 split-cash-text <=> root.split-cash-text;
                 split-upi-text <=> root.split-upi-text;
                 split-card-text <=> root.split-card-text;
-                search-text <=> root.menu-search-text;
                 customer-name <=> root.customer-name;
                 customer-phone <=> root.customer-phone;
                 customer-address <=> root.customer-address;
+                search-text <=> root.menu-search-text;
+                note-dialog-open <=> root.note-dialog-open;
+                note-dialog-line-index <=> root.note-dialog-line-index;
+                note-dialog-text <=> root.note-dialog-text;
+                note-dialog-item-name <=> root.note-dialog-item-name;
                 search-changed(text) => { root.filter-menu-items(text); }
                 add-order-line(name, price) => {
                     root.add-order-line(name, price);
                 }
                 update-order-line-quantity(index, qty) => {
                     root.update-order-line-quantity(index, qty);
+                }
+                update-order-line-note(index, note) => {
+                    root.update-order-line-note(index, note);
                 }
                 remove-order-line(index) => {
                     root.remove-order-line(index);
@@ -257,7 +268,6 @@ export component MainWindow inherits Window {
                 }
             }
 
-            // Sidebar overlay
             SideBar {
                 x: 0px;
                 y: 0px;
@@ -290,7 +300,7 @@ export component MainWindow inherits Window {
                 }
                 Rectangle { horizontal-stretch: 1; }
                 Text {
-                    text: "v0.3.1";
+                    text: "v0.3.6";
                     color: white;
                     font-size: 12px;
                 }
