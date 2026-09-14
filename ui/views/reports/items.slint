@@ -1,4 +1,6 @@
 import { ReportItem } from "../../db-types.slint";
+import { ScrollView } from "std-widgets.slint";
+
 
 export component ReportItemsView inherits Rectangle {
     width: 100%;
@@ -11,14 +13,6 @@ export component ReportItemsView inherits Rectangle {
         padding: 15px;
         spacing: 8px;
 
-        Text {
-            text: "Top Items";
-            color: #00ffff;
-            font-size: 18px;
-            horizontal-alignment: center;
-        }
-
-        // Header row
         HorizontalLayout {
             padding-left: 8px;
             padding-right: 8px;
@@ -30,14 +24,11 @@ export component ReportItemsView inherits Rectangle {
         }
         Rectangle { height: 1px; background: #808080; }
 
-        Flickable {
-            viewport-width: self.width;
-            viewport-height: inner.preferred-height;
-            interactive: true;
+        ScrollView {
             horizontal-stretch: 1;
             vertical-stretch: 1;
 
-            inner := VerticalLayout {
+            items-inner := VerticalLayout {
                 spacing: 4px;
                 for item[i] in root.items : Rectangle {
                     height: 36px;

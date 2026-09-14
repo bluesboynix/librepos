@@ -105,12 +105,12 @@ pub fn get_daily_sales(
     to: &str,
 ) -> Result<Vec<DailySale>> {
     let mut stmt = conn.prepare(
-        "SELECT date(closed_at), SUM(total), COUNT(*)
+        "SELECT strftime('%m-%d', closed_at), SUM(total), COUNT(*)
          FROM orders
          WHERE status='closed'
            AND date(closed_at) BETWEEN ?1 AND ?2
          GROUP BY date(closed_at)
-         ORDER BY date(closed_at) DESC",
+         ORDER BY date(closed_at) ASC",
     )?;
     let rows = stmt
         .query_map([from, to], |row| {

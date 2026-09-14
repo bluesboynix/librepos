@@ -17,6 +17,9 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
+    in-out property <float> report-max-daily-sale: 0.0;
+    in-out property <string> report-max-daily-sale-text: "0.00";
+    in-out property <[string]> report-y-labels;
     in-out property <int> report-active-tab: 0;
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
@@ -135,13 +138,15 @@ export component MainWindow inherits Window {
 
             // Reports
             if root.current-view == 1 : ReportsView {
+                y-labels: root.report-y-labels;
+                max-daily-sale: root.report-max-daily-sale;
+                daily-sales: root.report-daily-sales;
                 from-date <=> root.report-from-date;
                 to-date <=> root.report-to-date;
                 active-tab <=> root.report-active-tab;
                 summary: root.report-summary;
                 top-items: root.report-top-items;
                 payment-breakdown: root.report-payment-breakdown;
-                daily-sales: root.report-daily-sales;
                 bills: root.report-bills;
                 currency: root.currency;
                 refresh(from, to) => { root.load-reports(from, to); }

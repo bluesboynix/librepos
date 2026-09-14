@@ -14,7 +14,7 @@ pub fn setup_menu_callbacks(
 ) {
     let conn = conn.clone();
 
-    // Add menu item → create new row and immediately open details
+    // ==================== ADD MENU ITEM ====================
     let conn_add = conn.clone();
     let weak_menu_items_add = Rc::downgrade(&menu_items);
     let weak_filtered_add = Rc::downgrade(&filtered_menu_items);
@@ -29,7 +29,6 @@ pub fn setup_menu_callbacks(
             return;
         };
 
-        // Create a new empty menu item
         let new_id = db::menu::add_menu_item(
             &conn_add,
             "New Item",
@@ -39,10 +38,8 @@ pub fn setup_menu_callbacks(
         )
         .unwrap();
 
-        // Reload menu list
         reload_menu_items(&conn_add, &model, &filtered);
 
-        // Find the new item in the model
         let mut new_item: Option<MenuItem> = None;
         for i in 0..model.row_count() {
             let item = model.row_data(i).unwrap();
@@ -54,7 +51,6 @@ pub fn setup_menu_callbacks(
 
         let Some(item) = new_item else { return; };
 
-        // Fresh empty ingredient list for this new item
         let empty_ing = Rc::new(VecModel::<IngredientRow>::default());
         window.set_current_menu_item(item.clone());
         window.set_name_text(item.name.clone());
@@ -67,7 +63,22 @@ pub fn setup_menu_callbacks(
         window.set_current_view(5);
     });
 
-    // Open menu item details (by id)
+    // ==================== REMOVE MENU ITEM ====================
+    let conn_remove = conn.clone();
+    let weak_menu_items_remove = Rc::downgrade(&menu_items);
+    let weak_filtered_remove = Rc::downgrade(&filtered_menu_items);
+    window.on_remove_menu_item(move |id| {
+        if let (Some(model), Some(filtered)) =
+            (weak_menu_items_remove.upgrade(), weak_filtered_remove.upgrade())
+        {
+            if let Err(e) = db::menu::delete_menu_item(&conn_remove, id as i64) {
+                eprintln!("Delete failed: {}", e);
+            }
+            reload_menu_items(&conn_remove, &model, &filtered);
+        }
+    });
+
+    // ==================== OPEN MENU ITEM DETAILS ====================
     let conn_open = conn.clone();
     let weak_menu_items_open = Rc::downgrade(&menu_items);
     let weak_window_open = window.as_weak();
@@ -80,7 +91,6 @@ pub fn setup_menu_callbacks(
             return;
         };
 
-        // Find item by id
         let mut found: Option<MenuItem> = None;
         for i in 0..model.row_count() {
             let item = model.row_data(i).unwrap();
@@ -122,7 +132,7 @@ pub fn setup_menu_callbacks(
         window.set_current_view(5);
     });
 
-    // Save menu item
+    // ==================== SAVE MENU ITEM ====================
     let conn_save = conn.clone();
     let weak_menu_items_save = Rc::downgrade(&menu_items);
     let weak_filtered_save = Rc::downgrade(&filtered_menu_items);
@@ -144,7 +154,6 @@ pub fn setup_menu_callbacks(
         let price = price_text.parse::<f64>().unwrap_or(0.0);
         let category = window.get_category_text();
 
-        // Convert empty code to NULL to avoid UNIQUE constraint
         let code_opt: Option<&str> =
             if code.is_empty() { None } else { Some(&code) };
 
@@ -161,7 +170,7 @@ pub fn setup_menu_callbacks(
         window.set_current_view(2);
     });
 
-    // Cancel menu item
+    // ==================== CANCEL MENU ITEM ====================
     let weak_window_cancel = window.as_weak();
     window.on_cancel_menu_item(move || {
         if let Some(window) = weak_window_cancel.upgrade() {
@@ -169,7 +178,7 @@ pub fn setup_menu_callbacks(
         }
     });
 
-    // Add ingredient
+    // ==================== ADD INGREDIENT ====================
     let conn_add_ing = conn.clone();
     let weak_window_add_ing = window.as_weak();
     let current_ingredients_add_ing = current_ingredients.clone();
@@ -207,7 +216,7 @@ pub fn setup_menu_callbacks(
         }
     });
 
-    // Remove ingredient
+    // ==================== REMOVE INGREDIENT ====================
     let conn_remove_ing = conn.clone();
     let weak_window_remove_ing = window.as_weak();
     let current_ingredients_remove = current_ingredients.clone();
@@ -227,7 +236,7 @@ pub fn setup_menu_callbacks(
         }
     });
 
-    // Update ingredient quantity
+    // ==================== UPDATE INGREDIENT QUANTITY ====================
     let conn_update_qty = conn.clone();
     let current_ingredients_qty = current_ingredients.clone();
     let weak_window_qty = window.as_weak();
@@ -253,7 +262,7 @@ pub fn setup_menu_callbacks(
         }
     });
 
-    // Update ingredient unit
+    // ==================== UPDATE INGREDIENT UNIT ====================
     let conn_update_unit = conn.clone();
     let current_ingredients_unit = current_ingredients.clone();
     let weak_window_unit = window.as_weak();
@@ -279,7 +288,7 @@ pub fn setup_menu_callbacks(
         }
     });
 
-    // Update ingredient cost
+    // ==================== UPDATE INGREDIENT COST ====================
     let conn_update_cost = conn.clone();
     let current_ingredients_cost = current_ingredients.clone();
     let weak_window_cost = window.as_weak();
@@ -305,7 +314,7 @@ pub fn setup_menu_callbacks(
         }
     });
 
-    // Update ingredient name
+    // ==================== UPDATE INGREDIENT NAME ====================
     let conn_update_name = conn.clone();
     let current_ingredients_name = current_ingredients.clone();
     let weak_window_name = window.as_weak();

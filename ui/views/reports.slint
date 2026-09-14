@@ -9,6 +9,8 @@ export component ReportsView inherits Rectangle {
     width: 100%;
     height: 100%;
 
+    in property <float> max-daily-sale: 0.0;
+    in property <[string]> y-labels;
     in-out property <string> from-date: "";
     in-out property <string> to-date: "";
     in-out property <int> active-tab: 0;
@@ -18,6 +20,7 @@ export component ReportsView inherits Rectangle {
     in property <[ReportDay]> daily-sales;
     in property <[ReportBill]> bills;
     in property <string> currency: "₹";
+    in property <string> max-daily-sale-text: "0.00";
 
     callback refresh(string, string);
     callback quick-range(int);
@@ -33,11 +36,16 @@ export component ReportsView inherits Rectangle {
             horizontal-alignment: center;
         }
 
-        // Date range bar
+        // Date range bar (tight)
         HorizontalLayout {
+            alignment: start;
             spacing: 8px;
 
-            Text { text: "From:"; color: white; vertical-alignment: center; }
+            Text {
+                text: "From:";
+                color: white;
+                vertical-alignment: center;
+            }
             Rectangle {
                 width: 130px;
                 height: 30px;
@@ -52,7 +60,11 @@ export component ReportsView inherits Rectangle {
                     text <=> root.from-date;
                 }
             }
-            Text { text: "To:"; color: white; vertical-alignment: center; }
+            Text {
+                text: "To:";
+                color: white;
+                vertical-alignment: center;
+            }
             Rectangle {
                 width: 130px;
                 height: 30px;
@@ -68,21 +80,26 @@ export component ReportsView inherits Rectangle {
                 }
             }
             Rectangle {
-                width: 80px;
+                width: 70px;
                 height: 30px;
-                background: refresh-hover.has-hover ? #005500 : #004400;
+                background: show-hover.has-hover ? #005500 : #004400;
                 border-radius: 4px;
-                refresh-hover := TouchArea {
+                show-hover := TouchArea {
                     clicked => { root.refresh(root.from-date, root.to-date); }
                 }
                 Text {
-                    text: "Refresh";
+                    text: "Show";
                     color: white;
                     font-size: 12px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
             }
+
+            // Spacer pushes quick-range buttons right (optional)
+            Rectangle { horizontal-stretch: 1; }
+
+            // Quick range buttons
             Rectangle {
                 width: 70px;
                 height: 30px;
@@ -108,7 +125,7 @@ export component ReportsView inherits Rectangle {
                 Text { text: "Month"; color: white; font-size: 12px; horizontal-alignment: center; vertical-alignment: center; }
             }
         }
-
+        
         // Tab buttons
         HorizontalLayout {
             spacing: 4px;
@@ -165,6 +182,10 @@ export component ReportsView inherits Rectangle {
             if root.active-tab == 0 : ReportSummaryView {
                 summary: root.summary;
                 currency: root.currency;
+                days: root.daily-sales;
+                max-daily-sale: root.max-daily-sale;
+                max-daily-sale-text: root.max-daily-sale-text;
+                y-labels: root.y-labels;
             }
             if root.active-tab == 1 : ReportItemsView {
                 items: root.top-items;

@@ -1,36 +1,32 @@
-import { ReportSummary } from "../../db-types.slint";
+import { ReportSummary, ReportDay } from "../../db-types.slint";
 
 export component ReportSummaryView inherits Rectangle {
     width: 100%;
     height: 100%;
 
     in property <ReportSummary> summary;
+    in property <[ReportDay]> days;
+    in property <float> max-daily-sale: 0.0;
+    in property <string> max-daily-sale-text: "0.00";
+    in property <[string]> y-labels;
     in property <string> currency: "₹";
 
     VerticalLayout {
-        padding: 30px;
-        spacing: 20px;
-        alignment: center;
+        padding: 20px;
+        spacing: 16px;
 
-        Text {
-            text: "Summary";
-            color: #00ffff;
-            font-size: 20px;
-            horizontal-alignment: center;
-        }
-
+        // ---- Summary cards ----
         HorizontalLayout {
-            spacing: 20px;
-            alignment: center;
+            spacing: 16px;
 
             Rectangle {
-                width: 220px;
-                height: 120px;
+                horizontal-stretch: 1;
+                height: 100px;
                 background: #404040;
                 border-radius: 10px;
                 VerticalLayout {
                     alignment: center;
-                    spacing: 8px;
+                    spacing: 6px;
                     Text {
                         text: "Total Sales";
                         color: #00ffff;
@@ -40,20 +36,19 @@ export component ReportSummaryView inherits Rectangle {
                     Text {
                         text: root.currency + root.summary.total-sales;
                         color: white;
-                        font-size: 28px;
+                        font-size: 24px;
                         horizontal-alignment: center;
                     }
                 }
             }
-
             Rectangle {
-                width: 220px;
-                height: 120px;
+                horizontal-stretch: 1;
+                height: 100px;
                 background: #404040;
                 border-radius: 10px;
                 VerticalLayout {
                     alignment: center;
-                    spacing: 8px;
+                    spacing: 6px;
                     Text {
                         text: "Orders";
                         color: #00ffff;
@@ -63,20 +58,19 @@ export component ReportSummaryView inherits Rectangle {
                     Text {
                         text: root.summary.order-count;
                         color: white;
-                        font-size: 28px;
+                        font-size: 24px;
                         horizontal-alignment: center;
                     }
                 }
             }
-
             Rectangle {
-                width: 220px;
-                height: 120px;
+                horizontal-stretch: 1;
+                height: 100px;
                 background: #404040;
                 border-radius: 10px;
                 VerticalLayout {
                     alignment: center;
-                    spacing: 8px;
+                    spacing: 6px;
                     Text {
                         text: "Avg Order";
                         color: #00ffff;
@@ -86,8 +80,115 @@ export component ReportSummaryView inherits Rectangle {
                     Text {
                         text: root.currency + root.summary.avg-order;
                         color: white;
-                        font-size: 28px;
+                        font-size: 24px;
                         horizontal-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // ---- Bar chart (no header) ----
+        Rectangle {
+            vertical-stretch: 1;
+            background: #303030;
+            border-radius: 10px;
+
+            VerticalLayout {
+                padding: 12px;
+                spacing: 6px;
+
+                // Empty state
+                if root.days.length == 0 : Text {
+                    text: "No sales in this period";
+                    color: #888888;
+                    font-size: 14px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                    vertical-stretch: 1;
+                }
+
+                // Chart
+                if root.days.length > 0 : HorizontalLayout {
+                    spacing: 6px;
+                    height: 200px;
+
+                    // Y-axis labels
+                    Rectangle {
+                        width: 50px;
+                        height: 200px;
+                        background: transparent;
+
+                        for l in [0, 1, 2, 3, 4] : Text {
+                            x: 0px;
+                            y: (l * 40px) - 8px;
+                            width: 46px;
+                            height: 16px;
+                            text: l < root.y-labels.length
+                                ? root.y-labels[l]
+                                : "";
+                            color: #888888;
+                            font-size: 10px;
+                            horizontal-alignment: right;
+                            vertical-alignment: center;
+                        }
+                    }
+
+                    // Chart area
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        height: 200px;
+                        background: transparent;
+                        clip: true;
+
+                        Flickable {
+                            x: 0px;
+                            y: 0px;
+                            width: parent.width;
+                            height: parent.height;
+                            viewport-width: chart-content.width;
+                            viewport-height: 200px;
+                            interactive: true;
+
+                            chart-content := Rectangle {
+                                width: (root.days.length * 40px) + 20px;
+                                height: 200px;
+                                background: transparent;
+
+                                // Grid lines
+                                for l in [0, 1, 2, 3, 4] : Rectangle {
+                                    x: 0px;
+                                    y: (l * 40px);
+                                    width: parent.width;
+                                    height: 1px;
+                                    background: l == 4 ? #606060 : #3a3a3a;
+                                }
+
+                                // Bars
+                                for d[i] in root.days : Rectangle {
+                                    x: (i * 40px) + 10px;
+                                    y: 160px - (root.max-daily-sale > 0.0
+                                        ? (d.sales / root.max-daily-sale) * 160px
+                                        : 0px);
+                                    width: 30px;
+                                    height: (root.max-daily-sale > 0.0
+                                        ? (d.sales / root.max-daily-sale) * 160px
+                                        : 0px);
+                                    background: #00aa00;
+                                    border-radius: 3px;
+                                }
+
+                                // Date labels
+                                for d[i] in root.days : Text {
+                                    x: (i * 40px) + 10px;
+                                    y: 164px;
+                                    width: 30px;
+                                    text: d.date;
+                                    color: #cccccc;
+                                    font-size: 9px;
+                                    horizontal-alignment: center;
+                                }
+                            }
+                        }
                     }
                 }
             }

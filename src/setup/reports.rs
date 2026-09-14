@@ -6,6 +6,19 @@ use crate::db;
 use slint::{ComponentHandle, VecModel};
 use std::rc::Rc;
 
+fn nice_label(v: f64) -> String {
+    if v <= 0.0 {
+        return "0".to_string();
+    }
+    if v < 1000.0 {
+        return format!("{:.0}", v);
+    }
+    if v < 1_000_000.0 {
+        return format!("{:.1}K", v / 1000.0);
+    }
+    format!("{:.1}M", v / 1_000_000.0)
+}
+
 fn run_report(
     conn: &rusqlite::Connection,
     window: &MainWindow,
@@ -18,9 +31,9 @@ fn run_report(
 ) {
     if let Ok(s) = db::reports::get_summary(conn, from, to) {
         window.set_report_summary(ReportSummary {
-            total_sales: s.total_sales as f32,
+            total_sales: format!("{:.2}", s.total_sales).into(),
             order_count: s.order_count as i32,
-            avg_order: s.avg_order as f32,
+            avg_order: format!("{:.2}", s.avg_order).into(),
         });
     }
 
@@ -30,7 +43,7 @@ fn run_report(
             .map(|i| ReportItem {
                 name: i.name.into(),
                 quantity: i.quantity as i32,
-                revenue: i.revenue as f32,
+                revenue: format!("{:.2}", i.revenue).into(),
             })
             .collect();
         top_items.set_vec(rows);
@@ -41,25 +54,50 @@ fn run_report(
             .into_iter()
             .map(|x| ReportPayment {
                 method: x.method.into(),
-                amount: x.amount as f32,
+                amount: format!("{:.2}", x.amount).into(),
                 count: x.count as i32,
             })
             .collect();
         payments.set_vec(rows);
     }
 
-    if let Ok(d) = db::reports::get_daily_sales(conn, from, to) {
+        if let Ok(d) = db::reports::get_daily_sales(conn, from, to) {
         let rows: Vec<ReportDay> = d
             .into_iter()
             .map(|x| ReportDay {
                 date: x.date.into(),
                 sales: x.sales as f32,
+                sales_display: format!("{:.2}", x.sales).into(),
                 orders: x.orders as i32,
             })
             .collect();
+
+        // Compute max for chart scaling
+        let max_sale = rows
+            .iter()
+            .map(|d| d.sales)
+            .fold(0.0f32, f32::max);
+        window.set_report_max_daily_sale(max_sale);
+        window.set_report_max_daily_sale_text(
+            format!("{:.2}", max_sale).into(),
+        );
+
+        // Build y-axis labels
+        let max_f = max_sale as f64;
+        let ticks: Vec<slint::SharedString> = vec![
+            nice_label(max_f).into(),
+            nice_label(max_f * 0.75).into(),
+            nice_label(max_f * 0.5).into(),
+            nice_label(max_f * 0.25).into(),
+            nice_label(0.0).into(),
+        ];
+        window.set_report_y_labels(
+            Rc::new(VecModel::from(ticks)).into(),
+        );
+
         days.set_vec(rows);
     }
-
+    
     if let Ok(b) = db::reports::get_bills(conn, from, to, 100) {
         let rows: Vec<ReportBill> = b
             .into_iter()
@@ -67,7 +105,7 @@ fn run_report(
                 bill_no: x.bill_no.into(),
                 table_name: x.table_name.into(),
                 area_name: x.area_name.into(),
-                total: x.total as f32,
+                total: format!("{:.2}", x.total).into(),
                 closed_at: x.closed_at.into(),
                 payment_status: x.payment_status.into(),
             })

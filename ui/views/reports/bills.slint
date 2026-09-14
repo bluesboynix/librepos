@@ -1,4 +1,5 @@
 import { ReportBill } from "../../db-types.slint";
+import { ScrollView } from "std-widgets.slint";
 
 export component ReportBillsView inherits Rectangle {
     width: 100%;
@@ -10,13 +11,6 @@ export component ReportBillsView inherits Rectangle {
     VerticalLayout {
         padding: 15px;
         spacing: 8px;
-
-        Text {
-            text: "Bills";
-            color: #00ffff;
-            font-size: 18px;
-            horizontal-alignment: center;
-        }
 
         HorizontalLayout {
             padding-left: 8px;
@@ -31,14 +25,11 @@ export component ReportBillsView inherits Rectangle {
         }
         Rectangle { height: 1px; background: #808080; }
 
-        Flickable {
-            viewport-width: self.width;
-            viewport-height: inner.preferred-height;
-            interactive: true;
+        ScrollView {
             horizontal-stretch: 1;
             vertical-stretch: 1;
 
-            inner := VerticalLayout {
+            bills-inner := VerticalLayout {
                 spacing: 4px;
                 for b[i] in root.bills : Rectangle {
                     height: 36px;
