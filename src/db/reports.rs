@@ -1,4 +1,134 @@
 use rusqlite::{Connection, Result};
+use rusqlite::OptionalExtension;
+
+pub struct BillDetail {
+    pub bill_no: String,
+    pub table_name: String,
+    pub area_name: String,
+    pub closed_at: String,
+    pub payment_status: String,
+    pub subtotal: f64,
+    pub cgst: f64,
+    pub sgst: f64,
+    pub gst: f64,
+    pub packaging: f64,
+    pub delivery: f64,
+    pub discount: f64,
+    pub total: f64,
+    pub customer_name: String,
+    pub customer_phone: String,
+    pub customer_address: String,
+    pub items: Vec<BillLineRow>,
+    pub payments: Vec<BillPaymentRow>,
+}
+
+pub struct BillLineRow {
+    pub name: String,
+    pub category: String,
+    pub quantity: i32,
+    pub unit_price: f64,
+    pub line_total: f64,
+}
+
+pub struct BillPaymentRow {
+    pub method: String,
+    pub amount: f64,
+}
+
+pub fn get_bill_detail(conn: &Connection, bill_no: &str) -> Result<Option<BillDetail>> {
+    let order = conn
+        .query_row(
+            "SELECT id, bill_no, table_name, COALESCE(area_name, ''),
+                    COALESCE(closed_at, ''), COALESCE(payment_status, ''),
+                    subtotal, cgst, sgst, gst, packaging, delivery, discount, total,
+                    customer_name, customer_phone, customer_address
+             FROM orders
+             WHERE bill_no = ?1 AND status = 'closed'
+             LIMIT 1",
+            [bill_no],
+            |row| {
+                Ok((
+                    row.get::<_, i64>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                    row.get::<_, String>(3)?,
+                    row.get::<_, String>(4)?,
+                    row.get::<_, String>(5)?,
+                    row.get::<_, f64>(6)?,
+                    row.get::<_, f64>(7)?,
+                    row.get::<_, f64>(8)?,
+                    row.get::<_, f64>(9)?,
+                    row.get::<_, f64>(10)?,
+                    row.get::<_, f64>(11)?,
+                    row.get::<_, f64>(12)?,
+                    row.get::<_, f64>(13)?,
+                    row.get::<_, String>(14)?,
+                    row.get::<_, String>(15)?,
+                    row.get::<_, String>(16)?,
+                ))
+            },
+        )
+        .optional()?;
+
+    let Some((
+        order_id, bill_no, table_name, area_name, closed_at, payment_status,
+        subtotal, cgst, sgst, gst, packaging, delivery, discount, total,
+        customer_name, customer_phone, customer_address,
+    )) = order
+    else {
+        return Ok(None);
+    };
+
+    let mut stmt = conn.prepare(
+        "SELECT name, COALESCE(category, ''), quantity, unit_price, line_total
+         FROM order_items WHERE order_id = ?1",
+    )?;
+    let items = stmt
+        .query_map([order_id], |row| {
+            Ok(BillLineRow {
+                name: row.get(0)?,
+                category: row.get(1)?,
+                quantity: row.get(2)?,
+                unit_price: row.get(3)?,
+                line_total: row.get(4)?,
+            })
+        })?
+        .collect::<Result<Vec<_>>>()?;
+
+    let mut stmt = conn.prepare(
+        "SELECT method, amount FROM payments WHERE order_id = ?1",
+    )?;
+    let payments = stmt
+        .query_map([order_id], |row| {
+            Ok(BillPaymentRow {
+                method: row.get(0)?,
+                amount: row.get(1)?,
+            })
+        })?
+        .collect::<Result<Vec<_>>>()?;
+
+    Ok(Some(BillDetail {
+        bill_no,
+        table_name,
+        area_name,
+        closed_at,
+        payment_status,
+        subtotal,
+        cgst,
+        sgst,
+        gst,
+        packaging,
+        delivery,
+        discount,
+        total,
+        customer_name,
+        customer_phone,
+        customer_address,
+        items,
+        payments,
+    }))
+}
+
 
 pub struct Summary {
     pub total_sales: f64,

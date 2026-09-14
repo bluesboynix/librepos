@@ -1,4 +1,4 @@
-import { ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill } from "../db-types.slint";
+import { ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill, BillDetail } from "../db-types.slint";
 import { ReportSummaryView } from "reports/summary.slint";
 import { ReportItemsView } from "reports/items.slint";
 import { ReportPaymentsView } from "reports/payments.slint";
@@ -22,6 +22,11 @@ export component ReportsView inherits Rectangle {
     in property <string> currency: "₹";
     in property <string> max-daily-sale-text: "0.00";
 
+    in property <BillDetail> current-bill-detail;
+    in-out property <bool> bills-detail-open: false;
+    callback load-bill-detail(string);
+    callback clear-bill-detail();
+    
     callback refresh(string, string);
     callback quick-range(int);
 
@@ -202,6 +207,10 @@ export component ReportsView inherits Rectangle {
             if root.active-tab == 4 : ReportBillsView {
                 bills: root.bills;
                 currency: root.currency;
+                detail: root.current-bill-detail;
+                detail-open <=> root.bills-detail-open;
+                bill-selected(bill-no) => { root.load-bill-detail(bill-no); }
+                back-to-list => { root.clear-bill-detail(); }
             }
         }
     }

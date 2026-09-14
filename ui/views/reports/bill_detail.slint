@@ -1,0 +1,173 @@
+import { ScrollView } from "std-widgets.slint";
+import { BillDetail } from "../../db-types.slint";
+
+export component BillDetailView inherits Rectangle {
+    width: 100%;
+    height: 100%;
+
+    in property <BillDetail> detail;
+    in property <string> currency: "₹";
+    callback back();
+
+    VerticalLayout {
+        padding: 15px;
+        spacing: 10px;
+
+        // Header row
+        HorizontalLayout {
+            spacing: 10px;
+            Rectangle {
+                width: 80px;
+                height: 32px;
+                background: back-hover.has-hover ? #555555 : #444444;
+                border-radius: 4px;
+                back-hover := TouchArea { clicked => { root.back(); } }
+                Text {
+                    text: "← Back";
+                    color: white;
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+            Text {
+                text: "Bill: " + root.detail.bill-no;
+                color: #00ffff;
+                font-size: 18px;
+                vertical-alignment: center;
+                horizontal-stretch: 1;
+            }
+            Text {
+                text: root.detail.payment-status;
+                color: root.detail.payment-status == "paid" ? #00ff00 : #ffaa00;
+                font-size: 14px;
+                vertical-alignment: center;
+            }
+        }
+
+        ScrollView {
+            horizontal-stretch: 1;
+            vertical-stretch: 1;
+
+            VerticalLayout {
+                spacing: 8px;
+
+                // Meta block
+                Rectangle {
+                    background: #303030;
+                    border-radius: 8px;
+                    VerticalLayout {
+                        padding: 10px;
+                        spacing: 4px;
+                        HorizontalLayout {
+                            spacing: 20px;
+                            Text { text: "Table: " + root.detail.table-name; color: white; font-size: 13px; }
+                            Text { text: "Area: " + root.detail.area-name; color: white; font-size: 13px; }
+                            Text { text: "Closed: " + root.detail.closed-at; color: #cccccc; font-size: 13px; }
+                        }
+                        if root.detail.customer-name != "" : Text {
+                            text: "Customer: " + root.detail.customer-name;
+                            color: white;
+                            font-size: 13px;
+                        }
+                        if root.detail.customer-phone != "" : Text {
+                            text: "Phone: " + root.detail.customer-phone;
+                            color: white;
+                            font-size: 13px;
+                        }
+                        if root.detail.customer-address != "" : Text {
+                            text: "Address: " + root.detail.customer-address;
+                            color: white;
+                            font-size: 13px;
+                        }
+                    }
+                }
+
+                // Items block
+                Rectangle {
+                    background: #303030;
+                    border-radius: 8px;
+                    VerticalLayout {
+                        padding: 10px;
+                        spacing: 4px;
+                        Text { text: "Items"; color: #00ffff; font-size: 14px; }
+                        HorizontalLayout {
+                            spacing: 8px;
+                            Text { text: "Item"; color: #00ffff; font-weight: 700; horizontal-stretch: 1; }
+                            Text { text: "Category"; color: #00ffff; font-weight: 700; width: 100px; }
+                            Text { text: "Qty"; color: #00ffff; font-weight: 700; width: 50px; horizontal-alignment: center; }
+                            Text { text: "Unit"; color: #00ffff; font-weight: 700; width: 80px; horizontal-alignment: right; }
+                            Text { text: "Total"; color: #00ffff; font-weight: 700; width: 90px; horizontal-alignment: right; }
+                        }
+                        Rectangle { height: 1px; background: #606060; }
+
+                        for item[i] in root.detail.items : HorizontalLayout {
+                            spacing: 8px;
+                            Text { text: item.name; color: white; horizontal-stretch: 1; font-size: 13px; }
+                            Text { text: item.category; color: #cccccc; width: 100px; font-size: 13px; }
+                            Text { text: item.quantity; color: white; width: 50px; horizontal-alignment: center; font-size: 13px; }
+                            Text { text: root.currency + item.unit-price; color: white; width: 80px; horizontal-alignment: right; font-size: 13px; }
+                            Text { text: root.currency + item.line-total; color: #00ff00; width: 90px; horizontal-alignment: right; font-size: 13px; }
+                        }
+                    }
+                }
+
+                // Summary block
+                Rectangle {
+                    background: #303030;
+                    border-radius: 8px;
+                    VerticalLayout {
+                        padding: 10px;
+                        spacing: 4px;
+                        Text { text: "Summary"; color: #00ffff; font-size: 14px; }
+                        HorizontalLayout {
+                            Text { text: "Subtotal:"; color: white; horizontal-stretch: 1; font-size: 13px; }
+                            Text { text: root.currency + root.detail.subtotal; color: white; font-size: 13px; }
+                        }
+                        if root.detail.cgst != "0.00" : HorizontalLayout {
+                            Text { text: "CGST:"; color: white; horizontal-stretch: 1; font-size: 13px; }
+                            Text { text: root.currency + root.detail.cgst; color: white; font-size: 13px; }
+                        }
+                        if root.detail.sgst != "0.00" : HorizontalLayout {
+                            Text { text: "SGST:"; color: white; horizontal-stretch: 1; font-size: 13px; }
+                            Text { text: root.currency + root.detail.sgst; color: white; font-size: 13px; }
+                        }
+                        if root.detail.packaging != "0.00" : HorizontalLayout {
+                            Text { text: "Packaging:"; color: white; horizontal-stretch: 1; font-size: 13px; }
+                            Text { text: root.currency + root.detail.packaging; color: white; font-size: 13px; }
+                        }
+                        if root.detail.delivery != "0.00" : HorizontalLayout {
+                            Text { text: "Delivery:"; color: white; horizontal-stretch: 1; font-size: 13px; }
+                            Text { text: root.currency + root.detail.delivery; color: white; font-size: 13px; }
+                        }
+                        if root.detail.discount != "0.00" : HorizontalLayout {
+                            Text { text: "Discount:"; color: white; horizontal-stretch: 1; font-size: 13px; }
+                            Text { text: "-" + root.currency + root.detail.discount; color: white; font-size: 13px; }
+                        }
+                        Rectangle { height: 1px; background: #606060; }
+                        HorizontalLayout {
+                            Text { text: "Total:"; color: #00ff00; font-weight: 700; horizontal-stretch: 1; font-size: 15px; }
+                            Text { text: root.currency + root.detail.total; color: #00ff00; font-weight: 700; font-size: 15px; }
+                        }
+                    }
+                }
+
+                // Payments block
+                if root.detail.payments.length > 0 : Rectangle {
+                    background: #303030;
+                    border-radius: 8px;
+                    VerticalLayout {
+                        padding: 10px;
+                        spacing: 4px;
+                        Text { text: "Payments"; color: #00ffff; font-size: 14px; }
+                        for p[i] in root.detail.payments : HorizontalLayout {
+                            spacing: 8px;
+                            Text { text: p.method; color: white; horizontal-stretch: 1; font-size: 13px; }
+                            Text { text: root.currency + p.amount; color: #00ff00; font-size: 13px; }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

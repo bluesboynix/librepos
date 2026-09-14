@@ -1,7 +1,5 @@
 use crate::{
-    MainWindow, ReportBill, ReportDay, ReportItem, ReportPayment,
-    ReportSummary,
-};
+    BillDetail, BillLine, BillPayment, MainWindow, ReportBill, ReportDay, ReportItem, ReportPayment, ReportSummary};
 use crate::db;
 use slint::{ComponentHandle, VecModel};
 use std::rc::Rc;
@@ -233,5 +231,69 @@ pub fn setup_reports_callbacks(
             &days_qr,
             &bills_qr,
         );
+    });
+
+        // ==================== LOAD BILL DETAIL ====================
+    let weak_window_bill = window.as_weak();
+    let conn_bill = conn.clone();
+    window.on_load_bill_detail(move |bill_no| {
+        let Some(window) = weak_window_bill.upgrade() else {
+            return;
+        };
+        let Some(detail) =
+            db::reports::get_bill_detail(&conn_bill, &bill_no).ok().flatten()
+        else {
+            return;
+        };
+
+        let items: Vec<BillLine> = detail
+            .items
+            .into_iter()
+            .map(|i| BillLine {
+                name: i.name.into(),
+                category: i.category.into(),
+                quantity: i.quantity,
+                unit_price: format!("{:.2}", i.unit_price).into(),
+                line_total: format!("{:.2}", i.line_total).into(),
+            })
+            .collect();
+
+        let payments: Vec<BillPayment> = detail
+            .payments
+            .into_iter()
+            .map(|p| BillPayment {
+                method: p.method.into(),
+                amount: format!("{:.2}", p.amount).into(),
+            })
+            .collect();
+
+        window.set_current_bill_detail(BillDetail {
+            bill_no: detail.bill_no.into(),
+            table_name: detail.table_name.into(),
+            area_name: detail.area_name.into(),
+            closed_at: detail.closed_at.into(),
+            payment_status: detail.payment_status.into(),
+            subtotal: format!("{:.2}", detail.subtotal).into(),
+            cgst: format!("{:.2}", detail.cgst).into(),
+            sgst: format!("{:.2}", detail.sgst).into(),
+            gst: format!("{:.2}", detail.gst).into(),
+            packaging: format!("{:.2}", detail.packaging).into(),
+            delivery: format!("{:.2}", detail.delivery).into(),
+            discount: format!("{:.2}", detail.discount).into(),
+            total: format!("{:.2}", detail.total).into(),
+            customer_name: detail.customer_name.into(),
+            customer_phone: detail.customer_phone.into(),
+            customer_address: detail.customer_address.into(),
+            items: Rc::new(VecModel::from(items)).into(),
+            payments: Rc::new(VecModel::from(payments)).into(),
+        });
+        window.set_bills_detail_open(true);
+    });
+
+    let weak_window_clear = window.as_weak();
+    window.on_clear_bill_detail(move || {
+        if let Some(window) = weak_window_clear.upgrade() {
+            window.set_bills_detail_open(false);
+        }
     });
 }

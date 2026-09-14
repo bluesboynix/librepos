@@ -67,3 +67,37 @@ export struct ReportBill {
     closed_at: string,
     payment_status: string,
 }
+
+export struct BillLine {
+    name: string,
+    category: string,
+    quantity: int,
+    unit_price: string,
+    line_total: string,
+}
+
+export struct BillPayment {
+    method: string,
+    amount: string,
+}
+
+export struct BillDetail {
+    bill_no: string,
+    table_name: string,
+    area_name: string,
+    closed_at: string,
+    payment_status: string,
+    subtotal: string,
+    cgst: string,
+    sgst: string,
+    gst: string,
+    packaging: string,
+    delivery: string,
+    discount: string,
+    total: string,
+    customer_name: string,
+    customer_phone: string,
+    customer_address: string,
+    items: [BillLine],
+    payments: [BillPayment],
+}

@@ -1,5 +1,6 @@
-import { ReportBill } from "../../db-types.slint";
 import { ScrollView } from "std-widgets.slint";
+import { ReportBill, BillDetail } from "../../db-types.slint";
+import { BillDetailView } from "bill_detail.slint";
 
 export component ReportBillsView inherits Rectangle {
     width: 100%;
@@ -7,8 +8,19 @@ export component ReportBillsView inherits Rectangle {
 
     in property <[ReportBill]> bills;
     in property <string> currency: "₹";
+    in property <BillDetail> detail;
+    in-out property <bool> detail-open: false;
 
-    VerticalLayout {
+    callback bill-selected(string);
+    callback back-to-list();
+
+    if root.detail-open : BillDetailView {
+        detail: root.detail;
+        currency: root.currency;
+        back => { root.back-to-list(); }
+    }
+
+    if !root.detail-open : VerticalLayout {
         padding: 15px;
         spacing: 8px;
 
@@ -29,54 +41,29 @@ export component ReportBillsView inherits Rectangle {
             horizontal-stretch: 1;
             vertical-stretch: 1;
 
-            bills-inner := VerticalLayout {
+            VerticalLayout {
                 spacing: 4px;
                 for b[i] in root.bills : Rectangle {
                     height: 36px;
-                    background: Math.mod(i, 2) == 0 ? #383838 : #404040;
+                    background: row-hover.has-hover
+                        ? #505050
+                        : (Math.mod(i, 2) == 0 ? #383838 : #404040);
                     border-radius: 4px;
+
+                    row-hover := TouchArea {
+                        clicked => { root.bill-selected(b.bill-no); }
+                    }
+
                     HorizontalLayout {
                         padding-left: 8px;
                         padding-right: 8px;
                         spacing: 8px;
-                        Text {
-                            text: b.bill-no;
-                            color: white;
-                            width: 140px;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            text: b.table-name;
-                            color: white;
-                            width: 130px;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            text: b.area-name;
-                            color: white;
-                            width: 90px;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            text: root.currency + b.total;
-                            color: #00ff00;
-                            width: 100px;
-                            horizontal-alignment: right;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            text: b.closed-at;
-                            color: #cccccc;
-                            width: 160px;
-                            font-size: 12px;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            text: b.payment-status;
-                            color: b.payment-status == "paid" ? #00ff00 : #ffaa00;
-                            horizontal-stretch: 1;
-                            vertical-alignment: center;
-                        }
+                        Text { text: b.bill-no; color: white; width: 140px; vertical-alignment: center; }
+                        Text { text: b.table-name; color: white; width: 130px; vertical-alignment: center; }
+                        Text { text: b.area-name; color: white; width: 90px; vertical-alignment: center; }
+                        Text { text: root.currency + b.total; color: #00ff00; width: 100px; horizontal-alignment: right; vertical-alignment: center; }
+                        Text { text: b.closed-at; color: #cccccc; width: 160px; font-size: 12px; vertical-alignment: center; }
+                        Text { text: b.payment-status; color: b.payment-status == "paid" ? #00ff00 : #ffaa00; horizontal-stretch: 1; vertical-alignment: center; }
                     }
                 }
             }

@@ -4,7 +4,7 @@ import { MenuView } from "views/menu.slint";
 import { SettingsView } from "views/settings.slint";
 import { BillView } from "views/bill.slint";
 import { ItemDetailsView } from "views/item_details.slint";
-import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill } from "db-types.slint";
+import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill, BillDetail } from "db-types.slint";
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
@@ -17,6 +17,11 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
+    in property <BillDetail> current-bill-detail;
+    in-out property <bool> bills-detail-open: false;
+    callback load-bill-detail(string);
+    callback clear-bill-detail();
+    
     in-out property <float> report-max-daily-sale: 0.0;
     in-out property <string> report-max-daily-sale-text: "0.00";
     in-out property <[string]> report-y-labels;
@@ -138,6 +143,10 @@ export component MainWindow inherits Window {
 
             // Reports
             if root.current-view == 1 : ReportsView {
+                current-bill-detail: root.current-bill-detail;
+                bills-detail-open <=> root.bills-detail-open;
+                load-bill-detail(bill-no) => { root.load-bill-detail(bill-no); }
+                clear-bill-detail => { root.clear-bill-detail(); }
                 y-labels: root.report-y-labels;
                 max-daily-sale: root.report-max-daily-sale;
                 daily-sales: root.report-daily-sales;
