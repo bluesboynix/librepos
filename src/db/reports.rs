@@ -2,11 +2,15 @@ use rusqlite::{Connection, Result};
 use rusqlite::OptionalExtension;
 
 pub struct BillDetail {
+    pub id: i64,
     pub bill_no: String,
     pub table_name: String,
     pub area_name: String,
     pub closed_at: String,
     pub payment_status: String,
+    pub status: String,
+    pub void_reason: String,
+    pub voided_at: String,
     pub subtotal: f64,
     pub cgst: f64,
     pub sgst: f64,
@@ -39,40 +43,48 @@ pub struct BillPaymentRow {
 pub fn get_bill_detail(conn: &Connection, order_id: i64) -> Result<Option<BillDetail>> {
     let order = conn
         .query_row(
-            "SELECT id, COALESCE(bill_no, ''), table_name,
+                "SELECT id, COALESCE(bill_no, ''), table_name,
                     COALESCE(area_name, ''), COALESCE(closed_at, ''),
                     COALESCE(payment_status, ''),
+                    COALESCE(status, 'closed'),
+                    COALESCE(void_reason, ''),
+                    COALESCE(voided_at, ''),
                     subtotal, cgst, sgst, gst, packaging, delivery, discount, total,
                     customer_name, customer_phone, customer_address
              FROM orders
-             WHERE id = ?1 AND status = 'closed'
+             WHERE id = ?1
              LIMIT 1",
             [order_id],
             |row| {
                 Ok((
-                    row.get::<_, String>(1)?,
-                    row.get::<_, String>(2)?,
-                    row.get::<_, String>(3)?,
-                    row.get::<_, String>(4)?,
-                    row.get::<_, String>(5)?,
-                    row.get::<_, f64>(6)?,
-                    row.get::<_, f64>(7)?,
-                    row.get::<_, f64>(8)?,
-                    row.get::<_, f64>(9)?,
-                    row.get::<_, f64>(10)?,
-                    row.get::<_, f64>(11)?,
-                    row.get::<_, f64>(12)?,
-                    row.get::<_, f64>(13)?,
-                    row.get::<_, String>(14)?,
-                    row.get::<_, String>(15)?,
-                    row.get::<_, String>(16)?,
+                    row.get::<_, i64>(0)?,     // id
+                    row.get::<_, String>(1)?,  // bill_no
+                    row.get::<_, String>(2)?,  // table_name
+                    row.get::<_, String>(3)?,  // area_name
+                    row.get::<_, String>(4)?,  // closed_at
+                    row.get::<_, String>(5)?,  // payment_status
+                    row.get::<_, String>(6)?,  // status
+                    row.get::<_, String>(7)?,  // void_reason
+                    row.get::<_, String>(8)?,  // voided_at
+                    row.get::<_, f64>(9)?,     // subtotal
+                    row.get::<_, f64>(10)?,    // cgst
+                    row.get::<_, f64>(11)?,    // sgst
+                    row.get::<_, f64>(12)?,    // gst
+                    row.get::<_, f64>(13)?,    // packaging
+                    row.get::<_, f64>(14)?,    // delivery
+                    row.get::<_, f64>(15)?,    // discount
+                    row.get::<_, f64>(16)?,    // total
+                    row.get::<_, String>(17)?, // customer_name
+                    row.get::<_, String>(18)?, // customer_phone
+                    row.get::<_, String>(19)?, // customer_address
                 ))
             },
         )
         .optional()?;
 
-    let Some((
-        bill_no, table_name, area_name, closed_at, payment_status,
+        let Some((
+        id, bill_no, table_name, area_name, closed_at, payment_status,
+        status, void_reason, voided_at,
         subtotal, cgst, sgst, gst, packaging, delivery, discount, total,
         customer_name, customer_phone, customer_address,
     )) = order
@@ -111,15 +123,29 @@ pub fn get_bill_detail(conn: &Connection, order_id: i64) -> Result<Option<BillDe
         })?
         .collect::<Result<Vec<_>>>()?;
 
-    Ok(Some(BillDetail {
+        Ok(Some(BillDetail {
+        id,
         bill_no,
         table_name,
         area_name,
         closed_at,
         payment_status,
-        subtotal, cgst, sgst, gst, packaging, delivery, discount, total,
-        customer_name, customer_phone, customer_address,
-        items, payments,
+        status,
+        void_reason,
+        voided_at,
+        subtotal,
+        cgst,
+        sgst,
+        gst,
+        packaging,
+        delivery,
+        discount,
+        total,
+        customer_name,
+        customer_phone,
+        customer_address,
+        items,
+        payments,
     }))
 }
 
@@ -256,6 +282,8 @@ pub struct BillRow {
     pub total: f64,
     pub closed_at: String,
     pub payment_status: String,
+    pub status: String,
+    pub void_reason: String,
 }
 
 pub fn get_bills(
@@ -263,17 +291,31 @@ pub fn get_bills(
     from: &str,
     to: &str,
     limit: i64,
+    include_voided: bool,
 ) -> Result<Vec<BillRow>> {
-    let mut stmt = conn.prepare(
+    let sql = if include_voided {
         "SELECT id, COALESCE(bill_no, ''), table_name,
                 COALESCE(area_name, ''), total,
-                COALESCE(closed_at, ''), COALESCE(payment_status, '')
+                COALESCE(closed_at, ''), COALESCE(payment_status, ''),
+                status, COALESCE(void_reason, '')
          FROM orders
-         WHERE status='closed'
+         WHERE status IN ('closed', 'void')
            AND date(closed_at) BETWEEN ?1 AND ?2
          ORDER BY closed_at DESC
-         LIMIT ?3",
-    )?;
+         LIMIT ?3"
+    } else {
+        "SELECT id, COALESCE(bill_no, ''), table_name,
+                COALESCE(area_name, ''), total,
+                COALESCE(closed_at, ''), COALESCE(payment_status, ''),
+                status, COALESCE(void_reason, '')
+         FROM orders
+         WHERE status = 'closed'
+           AND date(closed_at) BETWEEN ?1 AND ?2
+         ORDER BY closed_at DESC
+         LIMIT ?3"
+    };
+
+    let mut stmt = conn.prepare(sql)?;
     let rows = stmt
         .query_map(rusqlite::params![from, to, limit], |row| {
             Ok(BillRow {
@@ -284,6 +326,8 @@ pub fn get_bills(
                 total: row.get(4)?,
                 closed_at: row.get(5)?,
                 payment_status: row.get(6)?,
+                status: row.get(7)?,
+                void_reason: row.get(8)?,
             })
         })?
         .collect::<Result<Vec<_>>>()?;

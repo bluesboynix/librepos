@@ -142,6 +142,8 @@ pub fn init_db(db_path: &str) -> rusqlite::Result<Connection> {
         "ALTER TABLE ingredients ADD COLUMN stock REAL DEFAULT 0",
         "ALTER TABLE ingredients ADD COLUMN low_stock_threshold REAL DEFAULT 0",
         "ALTER TABLE order_items ADD COLUMN note TEXT DEFAULT ''",
+        "ALTER TABLE orders ADD COLUMN void_reason TEXT DEFAULT ''",
+        "ALTER TABLE orders ADD COLUMN voided_at TEXT",
     ];
     for sql in migrations.iter() {
         let _ = conn.execute(sql, []);

@@ -10,33 +10,71 @@ export component ReportBillsView inherits Rectangle {
     in property <string> currency: "₹";
     in property <BillDetail> detail;
     in-out property <bool> detail-open: false;
+    in-out property <bool> show-voided: false;
 
     callback bill-selected(int);
     callback back-to-list();
+    callback void-bill();
+    callback revive();
+    callback toggle-voided();
 
+    // ---- Detail view (when a bill is selected) ----
     if root.detail-open : BillDetailView {
         detail: root.detail;
         currency: root.currency;
         back => { root.back-to-list(); }
+        void-bill => { root.void-bill(); }
+        revive => { root.revive(); }
     }
 
+    // ---- List view ----
     if !root.detail-open : VerticalLayout {
         padding: 15px;
         spacing: 8px;
 
+        // Toggle row
+        HorizontalLayout {
+            spacing: 8px;
+            Rectangle {
+                width: 22px;
+                height: 22px;
+                background: root.show-voided ? #0066aa : #444444;
+                border-radius: 4px;
+                TouchArea {
+                    clicked => { root.toggle-voided(); }
+                }
+                Text {
+                    text: root.show-voided ? "✓" : "";
+                    color: white;
+                    font-size: 14px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+            Text {
+                text: "Show voided bills";
+                color: white;
+                font-size: 13px;
+                vertical-alignment: center;
+            }
+            Rectangle { horizontal-stretch: 1; }
+        }
+
+        // Column headers
         HorizontalLayout {
             padding-left: 8px;
             padding-right: 8px;
             spacing: 8px;
             Text { text: "Bill No"; color: #00ffff; font-weight: 700; width: 140px; }
-            Text { text: "Table"; color: #00ffff; font-weight: 700; width: 130px; }
-            Text { text: "Area"; color: #00ffff; font-weight: 700; width: 90px; }
+            Text { text: "Table"; color: #00ffff; font-weight: 700; width: 120px; }
+            Text { text: "Area"; color: #00ffff; font-weight: 700; width: 80px; }
             Text { text: "Total"; color: #00ffff; font-weight: 700; width: 100px; horizontal-alignment: right; }
             Text { text: "Closed At"; color: #00ffff; font-weight: 700; width: 160px; }
             Text { text: "Status"; color: #00ffff; font-weight: 700; horizontal-stretch: 1; }
         }
         Rectangle { height: 1px; background: #808080; }
 
+        // Scrollable list
         ScrollView {
             horizontal-stretch: 1;
             vertical-stretch: 1;
@@ -47,7 +85,9 @@ export component ReportBillsView inherits Rectangle {
                     height: 36px;
                     background: row-hover.has-hover
                         ? #505050
-                        : (Math.mod(i, 2) == 0 ? #383838 : #404040);
+                        : (b.status == "void"
+                            ? #4a1010
+                            : (Math.mod(i, 2) == 0 ? #383838 : #404040));
                     border-radius: 4px;
 
                     row-hover := TouchArea {
@@ -59,11 +99,16 @@ export component ReportBillsView inherits Rectangle {
                         padding-right: 8px;
                         spacing: 8px;
                         Text { text: b.bill-no; color: white; width: 140px; vertical-alignment: center; }
-                        Text { text: b.table-name; color: white; width: 130px; vertical-alignment: center; }
-                        Text { text: b.area-name; color: white; width: 90px; vertical-alignment: center; }
+                        Text { text: b.table-name; color: white; width: 120px; vertical-alignment: center; }
+                        Text { text: b.area-name; color: white; width: 80px; vertical-alignment: center; }
                         Text { text: root.currency + b.total; color: #00ff00; width: 100px; horizontal-alignment: right; vertical-alignment: center; }
                         Text { text: b.closed-at; color: #cccccc; width: 160px; font-size: 12px; vertical-alignment: center; }
-                        Text { text: b.payment-status; color: b.payment-status == "paid" ? #00ff00 : #ffaa00; horizontal-stretch: 1; vertical-alignment: center; }
+                        Text {
+                            text: b.status == "void" ? "voided" : b.payment-status;
+                            color: b.status == "void" ? #ff6666 : (b.payment-status == "paid" ? #00ff00 : #ffaa00);
+                            horizontal-stretch: 1;
+                            vertical-alignment: center;
+                        }
                     }
                 }
             }

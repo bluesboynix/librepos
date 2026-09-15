@@ -27,11 +27,15 @@ export component ReportsView inherits Rectangle {
     in property <string> currency: "₹";
     in property <BillDetail> current-bill-detail;
     in-out property <bool> bills-detail-open: false;
+    in-out property <bool> bills-show-voided: false;
 
     callback refresh(string, string);
     callback quick-range(int);
     callback load-bill-detail(int);
     callback clear-bill-detail();
+    callback void-bill();
+    callback revive();
+    callback toggle-voided();
 
     VerticalLayout {
         padding: 15px;
@@ -56,7 +60,6 @@ export component ReportsView inherits Rectangle {
             active-tab <=> root.active-tab;
         }
 
-        // Tab content
         Rectangle {
             vertical-stretch: 1;
             background: Theme.bg-panel-alt;
@@ -88,8 +91,12 @@ export component ReportsView inherits Rectangle {
                 currency: root.currency;
                 detail: root.current-bill-detail;
                 detail-open <=> root.bills-detail-open;
+                show-voided <=> root.bills-show-voided;
                 bill-selected(order-id) => { root.load-bill-detail(order-id); }
                 back-to-list => { root.clear-bill-detail(); }
+                void-bill => { root.void-bill(); }
+                revive => { root.revive(); }
+                toggle-voided => { root.toggle-voided(); }
             }
         }
     }

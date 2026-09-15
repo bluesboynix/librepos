@@ -256,3 +256,35 @@ pub fn get_menu_item_meta(
         |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
     )
 }
+
+/// Mark an order as void with a reason.
+pub fn void_order(
+    conn: &Connection,
+    order_id: i64,
+    reason: &str,
+) -> Result<()> {
+    conn.execute(
+        "UPDATE orders SET
+            status = 'void',
+            void_reason = ?1,
+            voided_at = datetime('now','localtime'),
+            updated_at = datetime('now','localtime')
+         WHERE id = ?2",
+        params![reason, order_id],
+    )?;
+    Ok(())
+}
+
+/// Revive a voided order back to 'closed'.
+pub fn revive_order(conn: &Connection, order_id: i64) -> Result<()> {
+    conn.execute(
+        "UPDATE orders SET
+            status = 'closed',
+            void_reason = '',
+            voided_at = NULL,
+            updated_at = datetime('now','localtime')
+         WHERE id = ?1",
+        [order_id],
+    )?;
+    Ok(())
+}

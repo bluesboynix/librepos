@@ -8,6 +8,8 @@ import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportIte
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
+import { VoidDialog } from "components/void_dialog.slint";
+
 
 export component MainWindow inherits Window {
     preferred-width: 100%;
@@ -49,6 +51,9 @@ export component MainWindow inherits Window {
     in-out property <string> customer-name: "";
     in-out property <string> customer-phone: "";
     in-out property <string> customer-address: "";
+    in-out property <string> void-reason: "";
+    in-out property <bool> void-dialog-open: false;
+    in-out property <bool> bills-show-voided: false;
 
     // Note dialog
     in-out property <bool> note-dialog-open: false;
@@ -72,6 +77,10 @@ export component MainWindow inherits Window {
     in property <BillDetail> current-bill-detail;
     in-out property <bool> bills-detail-open: false;
 
+    callback perform-void();
+    callback toggle-voided();
+    callback void-bill();
+    callback revive();
     callback quit();
     callback home();
     callback add-area();
@@ -166,6 +175,10 @@ export component MainWindow inherits Window {
                 quick-range(kind) => { root.reports-quick-range(kind); }
                 load-bill-detail(order-id) => { root.load-bill-detail(order-id); }
                 clear-bill-detail => { root.clear-bill-detail(); }
+                void-bill => { root.void-dialog-open = true; }
+                bills-show-voided <=> root.bills-show-voided;
+                revive => { root.revive(); }
+                toggle-voided => { root.toggle-voided(); }
             }
 
             // Menu
@@ -318,6 +331,21 @@ export component MainWindow inherits Window {
         open: true;
         confirmed => {
             root.quit();
+        }
+    }
+
+    if root.void-dialog-open : VoidDialog {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        reason-text <=> root.void-reason;
+        confirm => {
+            root.void-dialog-open = false;
+            root.perform-void();
+        }
+        cancel => {
+            root.void-dialog-open = false;
         }
     }
 }

@@ -68,6 +68,8 @@ export struct ReportBill {
     total: string,
     closed_at: string,
     payment_status: string,
+    status: string,
+    void_reason: string,
 }
 
 export struct BillLine {
@@ -85,11 +87,15 @@ export struct BillPayment {
 }
 
 export struct BillDetail {
+    id: int,
     bill_no: string,
     table_name: string,
     area_name: string,
     closed_at: string,
     payment_status: string,
+    status: string,
+    void_reason: string,
+    voided_at: string,
     subtotal: string,
     cgst: string,
     sgst: string,

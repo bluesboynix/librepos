@@ -96,7 +96,13 @@ fn run_report(
         days.set_vec(rows);
     }
     
-        if let Ok(b) = db::reports::get_bills(conn, from, to, 100) {
+        if let Ok(b) = db::reports::get_bills(
+        conn,
+        from,
+        to,
+        100,
+        window.get_bills_show_voided(),
+    ) {
         let rows: Vec<ReportBill> = b
             .into_iter()
             .map(|x| ReportBill {
@@ -107,6 +113,8 @@ fn run_report(
                 total: format!("{:.2}", x.total).into(),
                 closed_at: x.closed_at.into(),
                 payment_status: x.payment_status.into(),
+                status: x.status.into(),
+                void_reason: x.void_reason.into(),
             })
             .collect();
         bills.set_vec(rows);
@@ -269,12 +277,16 @@ pub fn setup_reports_callbacks(
             })
             .collect();
 
-        window.set_current_bill_detail(BillDetail {
+                window.set_current_bill_detail(BillDetail {
+            id: detail.id as i32,
             bill_no: detail.bill_no.into(),
             table_name: detail.table_name.into(),
             area_name: detail.area_name.into(),
             closed_at: detail.closed_at.into(),
             payment_status: detail.payment_status.into(),
+            status: detail.status.into(),
+            void_reason: detail.void_reason.into(),
+            voided_at: detail.voided_at.into(),
             subtotal: format!("{:.2}", detail.subtotal).into(),
             cgst: format!("{:.2}", detail.cgst).into(),
             sgst: format!("{:.2}", detail.sgst).into(),
@@ -296,6 +308,48 @@ pub fn setup_reports_callbacks(
     window.on_clear_bill_detail(move || {
         if let Some(window) = weak_window_clear.upgrade() {
             window.set_bills_detail_open(false);
+        }
+    });
+
+           // ==================== VOID BILL ====================
+        // Perform void (after dialog confirmed)
+    let weak_window_v = window.as_weak();
+    let conn_v = conn.clone();
+    window.on_perform_void(move || {
+        let Some(window) = weak_window_v.upgrade() else { return; };
+        let detail = window.get_current_bill_detail();
+        let reason = window.get_void_reason().to_string();
+        let _ = db::orders::void_order(&conn_v, detail.id as i64, &reason);
+        window.set_void_reason("".into());
+        window.set_bills_detail_open(false);
+        // Reload bills list
+        let from = window.get_report_from_date().to_string();
+        let to = window.get_report_to_date().to_string();
+        window.invoke_load_reports(from.into(), to.into());
+    });
+
+    // Revive
+    let weak_window_rv = window.as_weak();
+    let conn_rv = conn.clone();
+    window.on_revive(move || {
+        let Some(window) = weak_window_rv.upgrade() else { return; };
+        let detail = window.get_current_bill_detail();
+        let _ = db::orders::revive_order(&conn_rv, detail.id as i64);
+        window.set_bills_detail_open(false);
+        let from = window.get_report_from_date().to_string();
+        let to = window.get_report_to_date().to_string();
+        window.invoke_load_reports(from.into(), to.into());
+    });
+
+    // Toggle voided view
+    let weak_window_t = window.as_weak();
+    window.on_toggle_voided(move || {
+        if let Some(window) = weak_window_t.upgrade() {
+            let current = window.get_bills_show_voided();
+            window.set_bills_show_voided(!current);
+            let from = window.get_report_from_date().to_string();
+            let to = window.get_report_to_date().to_string();
+            window.invoke_load_reports(from.into(), to.into());
         }
     });
 }
