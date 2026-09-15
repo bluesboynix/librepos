@@ -1,5 +1,6 @@
-import { TableCard } from "../components/table_card.slint";
 import { TableArea } from "../db-types.slint";
+import { AreaSection } from "../components/area_section.slint";
+import { Theme } from "../theme.slint";
 
 export component DashboardView inherits Rectangle {
     width: 100%;
@@ -12,8 +13,8 @@ export component DashboardView inherits Rectangle {
     callback set-tables(int, int);
 
     VerticalLayout {
-        padding: 20px;
-        spacing: 20px;
+        padding: Theme.pad-xl;
+        spacing: Theme.pad-xl;
 
         Text {
             text: "Dashboard";
@@ -22,56 +23,14 @@ export component DashboardView inherits Rectangle {
             horizontal-alignment: center;
         }
 
-        for area[i] in root.areas : VerticalLayout {
-            spacing: 10px;
-
-            Text {
-                text: area.name;
-                font-size: 18px;
-                color: #00ffff;
-                horizontal-alignment: left;
-            }
-
-            HorizontalLayout {
-                spacing: 15px;
-
-                for card in area.cards : TableCard {
-                    label: card.label;
-                    selected: root.selected-table == card.label;
-                    occupied: card.occupied;
-                    total: card.total;
-                    currency: root.currency;
-                    clicked => {
-                        root.selected-table = self.label;
-                        root.table-selected(self.label);
-                    }
-                }
-
-                Rectangle {
-                    width: 40px;
-                    height: 40px;
-                    background: plus-hover.has-hover ? #555555 : #444444;
-                    border-radius: 6px;
-                    border-width: 1px;
-                    border-color: #00ffff;
-                    plus-hover := TouchArea {
-                        clicked => { root.set-tables(i, area.tables + 1); }
-                    }
-                    Text { text: "+"; color: white; font-size: 18px; horizontal-alignment: center; vertical-alignment: center; }
-                }
-
-                Rectangle {
-                    width: 40px;
-                    height: 40px;
-                    background: minus-hover.has-hover ? #555555 : #444444;
-                    border-radius: 6px;
-                    border-width: 1px;
-                    border-color: #00ffff;
-                    minus-hover := TouchArea {
-                        clicked => { root.set-tables(i, area.tables - 1); }
-                    }
-                    Text { text: "-"; color: white; font-size: 18px; horizontal-alignment: center; vertical-alignment: center; }
-                }
+        for area[i] in root.areas : AreaSection {
+            area: area;
+            area-index: i;
+            selected-table <=> root.selected-table;
+            currency: root.currency;
+            table-selected(table) => { root.table-selected(table); }
+            set-tables(area-index, new-count) => {
+                root.set-tables(area-index, new-count);
             }
         }
 

@@ -18,7 +18,7 @@ export component MenuView inherits Rectangle {
 
         Text {
             text: "Menu";
-            font-size: 24px;
+            font-size: 28px;
             color: #fafafa;
             horizontal-alignment: center;
         }
@@ -26,7 +26,7 @@ export component MenuView inherits Rectangle {
         // Search box
         Rectangle {
             horizontal-stretch: 1;
-            height: 30px;
+            height: 36px;
             background: #d0d0d0;
             border-radius: 4px;
             clip: true;
@@ -38,6 +38,7 @@ export component MenuView inherits Rectangle {
                     height: 100%;
                     color: black;
                     single-line: true;
+                    font-size: 15px;
                     text <=> root.search-text;
                     edited => { root.search-changed(self.text); }
                 }
@@ -93,11 +94,11 @@ export component MenuView inherits Rectangle {
             items-layout := VerticalLayout {
                 spacing: 4px;
                 for item[i] in root.items : Rectangle {
-                    height: 40px;
+                    height: 48px;
                     background: Math.mod(i, 2) == 0 ? #404040 : #505050;
                     border-radius: 6px;
                     HorizontalLayout {
-                        padding: 10px;
+                        padding: 12px;
                         spacing: 10px;
 
                         Rectangle {
@@ -113,6 +114,7 @@ export component MenuView inherits Rectangle {
                                 height: 100%;
                                 text: item.name;
                                 color: white;
+                                font-size: 16px;
                                 vertical-alignment: center;
                                 horizontal-alignment: left;
                             }
@@ -121,18 +123,20 @@ export component MenuView inherits Rectangle {
                         Text {
                             text: root.currency + item.price;
                             color: white;
+                            font-size: 16px;
                             width: 80px;
                             vertical-alignment: center;
                         }
                         Text {
                             text: item.category;
                             color: white;
+                            font-size: 14px;
                             width: 100px;
                             vertical-alignment: center;
                         }
                         Rectangle {
-                            width: 60px;
-                            height: 24px;
+                            width: 70px;
+                            height: 28px;
                             background: delete-hover.has-hover ? #aa3333 : #883333;
                             border-radius: 4px;
                             delete-hover := TouchArea {
@@ -141,7 +145,7 @@ export component MenuView inherits Rectangle {
                             Text {
                                 text: "Remove";
                                 color: white;
-                                font-size: 12px;
+                                font-size: 13px;
                                 horizontal-alignment: center;
                                 vertical-alignment: center;
                             }

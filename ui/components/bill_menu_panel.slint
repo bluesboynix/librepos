@@ -1,0 +1,145 @@
+import { MenuItem } from "../db-types.slint";
+import { Theme } from "../theme.slint";
+
+export component BillMenuPanel inherits Rectangle {
+    width: 100%;
+    height: 100%;
+    background: Theme.bg-panel;
+    border-radius: Theme.radius-md;
+
+    in property <[MenuItem]> menu-items;
+    in property <string> currency: "₹";
+    in-out property <string> search-text: "";
+
+    callback search-changed(string);
+    callback add-order-line(string, float);
+
+    VerticalLayout {
+        alignment: start;
+        padding: Theme.pad-lg;
+        spacing: Theme.pad-md;
+
+        Text {
+            text: "Menu";
+            color: Theme.accent;
+            font-size: 20px;
+            horizontal-alignment: center;
+        }
+
+        // Search box
+        Rectangle {
+            horizontal-stretch: 1;
+            height: 34px;
+            background: Theme.bg-input;
+            border-radius: Theme.radius-sm;
+            clip: true;
+            HorizontalLayout {
+                padding-left: Theme.pad-md;
+                padding-right: Theme.pad-sm;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    font-size: 15px;
+                    single-line: true;
+                    vertical-alignment: center;
+                    text <=> root.search-text;
+                    edited => { root.search-changed(self.text); }
+                }
+                Rectangle {
+                    width: 22px;
+                    height: 22px;
+                    background: clear-search-hover.has-hover ? #aaaaaa : #cccccc;
+                    border-radius: 11px;
+                    clear-search-hover := TouchArea {
+                        clicked => {
+                            root.search-text = "";
+                            root.search-changed("");
+                        }
+                    }
+                    Text {
+                        text: "×";
+                        color: black;
+                        font-size: 15px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+
+        // Scrollable menu items
+        Flickable {
+            viewport-width: self.width;
+            viewport-height: menu-layout.preferred-height;
+            interactive: true;
+            horizontal-stretch: 1;
+            vertical-stretch: 1;
+
+            menu-layout := VerticalLayout {
+                spacing: Theme.pad-sm;
+                for item[i] in root.menu-items : Rectangle {
+                    height: 42px;
+                    background: #505050;
+                    border-radius: Theme.radius-sm;
+
+                    TouchArea {
+                        width: parent.width;
+                        height: parent.height;
+                        clicked => {
+                            root.add-order-line(item.name, item.price);
+                        }
+                    }
+
+                    HorizontalLayout {
+                        padding: Theme.pad-md;
+                        spacing: Theme.pad-md;
+
+                        Text {
+                            text: item.name;
+                            color: Theme.text-primary;
+                            font-size: 15px;
+                            horizontal-stretch: 1;
+                            height: 100%;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: item.category;
+                            color: Theme.text-secondary;
+                            font-size: 13px;
+                            height: 100%;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: root.currency + item.price;
+                            color: Theme.text-primary;
+                            font-size: 15px;
+                            height: 100%;
+                            vertical-alignment: center;
+                        }
+                        Rectangle {
+                            width: 28px;
+                            height: 28px;
+                            background: add-hover.has-hover
+                                ? #888888
+                                : #666666;
+                            border-radius: Theme.radius-sm;
+                            add-hover := TouchArea {
+                                clicked => {
+                                    root.add-order-line(item.name, item.price);
+                                }
+                            }
+                            Text {
+                                text: "+";
+                                color: Theme.text-primary;
+                                font-size: 16px;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

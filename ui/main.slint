@@ -15,7 +15,6 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
-    in-out property <int> report-active-range: 0;
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
     in-out property <int> current-view: 0;
@@ -61,6 +60,7 @@ export component MainWindow inherits Window {
     in-out property <string> report-from-date: "";
     in-out property <string> report-to-date: "";
     in-out property <int> report-active-tab: 0;
+    in-out property <int> report-active-range: 0;
     in property <ReportSummary> report-summary;
     in property <[ReportItem]> report-top-items;
     in property <[ReportPayment]> report-payment-breakdown;
@@ -150,6 +150,7 @@ export component MainWindow inherits Window {
                 from-date <=> root.report-from-date;
                 to-date <=> root.report-to-date;
                 active-tab <=> root.report-active-tab;
+                active-range <=> root.report-active-range;
                 summary: root.report-summary;
                 top-items: root.report-top-items;
                 payment-breakdown: root.report-payment-breakdown;
@@ -165,7 +166,6 @@ export component MainWindow inherits Window {
                 quick-range(kind) => { root.reports-quick-range(kind); }
                 load-bill-detail(order-id) => { root.load-bill-detail(order-id); }
                 clear-bill-detail => { root.clear-bill-detail(); }
-                active-range <=> root.report-active-range;
             }
 
             // Menu
@@ -302,7 +302,7 @@ export component MainWindow inherits Window {
                 }
                 Rectangle { horizontal-stretch: 1; }
                 Text {
-                    text: "v0.3.6";
+                    text: "v0.3.6a";
                     color: white;
                     font-size: 12px;
                 }

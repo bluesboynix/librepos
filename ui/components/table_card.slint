@@ -1,10 +1,12 @@
+import { Theme } from "../theme.slint";
+
 export component TableCard inherits Rectangle {
     width: 120px;
     height: 90px;
-    background: selected ? #00aa00 : (card-area.has-hover ? #606060 : #404040);
-    border-radius: 10px;
+    background: selected ? Theme.accent-selected : (card-area.has-hover ? #606060 : Theme.bg-panel);
+    border-radius: Theme.radius-lg;
     border-width: 2px;
-    border-color: occupied ? #aa00aa : #00ffff;
+    border-color: occupied ? #aa00aa : Theme.accent;
 
     in property <string> label: "Table";
     in property <bool> selected: false;
@@ -13,27 +15,25 @@ export component TableCard inherits Rectangle {
     in property <string> currency: "₹";
     callback clicked();
 
-    // Layout with label and total
     VerticalLayout {
         alignment: center;
-        spacing: 4px;
+        spacing: Theme.pad-sm;
 
         Text {
             text: root.label;
-            color: root.selected ? black : white;
+            color: root.selected ? black : Theme.text-primary;
             font-size: 16px;
             horizontal-alignment: center;
         }
 
         if root.occupied : Text {
             text: root.currency + (Math.round(root.total * 100) / 100);
-            color: root.selected ? black : #ffcc00;
+            color: root.selected ? black : Theme.text-note;
             font-size: 12px;
             horizontal-alignment: center;
         }
     }
 
-    // Click area on top
     card-area := TouchArea {
         clicked => { root.clicked(); }
     }

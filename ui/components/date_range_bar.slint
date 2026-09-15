@@ -1,0 +1,149 @@
+import { Theme } from "../theme.slint";
+
+export component DateRangeBar inherits Rectangle {
+    width: 100%;
+    height: 40px;
+    background: transparent;
+
+    in-out property <string> from-date: "";
+    in-out property <string> to-date: "";
+    in-out property <int> active-range: 0;
+
+    callback show(string, string);
+    callback quick-range(int);
+
+    HorizontalLayout {
+        alignment: start;
+        spacing: Theme.pad-md;
+
+        Text {
+            text: "From:";
+            color: Theme.text-primary;
+            vertical-alignment: center;
+        }
+        Rectangle {
+            width: 130px;
+            height: 30px;
+            background: Theme.bg-input;
+            border-radius: Theme.radius-sm;
+            clip: true;
+            TextInput {
+                width: 100%;
+                height: 100%;
+                color: black;
+                single-line: true;
+                text <=> root.from-date;
+                vertical-alignment: center;
+            }
+        }
+        Text {
+            text: "To:";
+            color: Theme.text-primary;
+            vertical-alignment: center;
+        }
+        Rectangle {
+            width: 130px;
+            height: 30px;
+            background: Theme.bg-input;
+            border-radius: Theme.radius-sm;
+            clip: true;
+            TextInput {
+                width: 100%;
+                height: 100%;
+                color: black;
+                single-line: true;
+                text <=> root.to-date;
+                vertical-alignment: center;
+            }
+        }
+        Rectangle {
+            width: 70px;
+            height: 30px;
+            background: show-hover.has-hover
+                ? Theme.btn-save-hover
+                : Theme.btn-save;
+            border-radius: Theme.radius-sm;
+            show-hover := TouchArea {
+                clicked => {
+                    root.active-range = -1;
+                    root.show(root.from-date, root.to-date);
+                }
+            }
+            Text {
+                text: "Show";
+                color: Theme.text-primary;
+                font-size: 12px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        // Spacer
+        Rectangle { horizontal-stretch: 1; }
+
+        // Quick range buttons
+        Rectangle {
+            width: 70px;
+            height: 30px;
+            background: root.active-range == 0
+                ? Theme.accent-row-active
+                : (q1.has-hover ? Theme.btn-neutral-hover : Theme.btn-neutral);
+            border-radius: Theme.radius-sm;
+            q1 := TouchArea {
+                clicked => {
+                    root.active-range = 0;
+                    root.quick-range(0);
+                }
+            }
+            Text {
+                text: "Today";
+                color: Theme.text-primary;
+                font-size: 12px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+        Rectangle {
+            width: 80px;
+            height: 30px;
+            background: root.active-range == 1
+                ? Theme.accent-row-active
+                : (q2.has-hover ? Theme.btn-neutral-hover : Theme.btn-neutral);
+            border-radius: Theme.radius-sm;
+            q2 := TouchArea {
+                clicked => {
+                    root.active-range = 1;
+                    root.quick-range(1);
+                }
+            }
+            Text {
+                text: "Week";
+                color: Theme.text-primary;
+                font-size: 12px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+        Rectangle {
+            width: 80px;
+            height: 30px;
+            background: root.active-range == 2
+                ? Theme.accent-row-active
+                : (q3.has-hover ? Theme.btn-neutral-hover : Theme.btn-neutral);
+            border-radius: Theme.radius-sm;
+            q3 := TouchArea {
+                clicked => {
+                    root.active-range = 2;
+                    root.quick-range(2);
+                }
+            }
+            Text {
+                text: "Month";
+                color: Theme.text-primary;
+                font-size: 12px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+    }
+}

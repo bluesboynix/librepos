@@ -1,0 +1,84 @@
+import { Theme } from "../theme.slint";
+
+export component ReportsTabs inherits Rectangle {
+    width: 100%;
+    height: 32px;
+    background: transparent;
+
+    in-out property <int> active-tab: 0;
+
+    HorizontalLayout {
+        spacing: Theme.pad-sm;
+
+        Rectangle {
+            horizontal-stretch: 1;
+            height: 32px;
+            background: root.active-tab == 0 ? Theme.accent-row-active : #333333;
+            border-radius: Theme.radius-sm;
+            TouchArea { clicked => { root.active-tab = 0; } }
+            Text {
+                text: "Summary";
+                color: Theme.text-primary;
+                font-size: 13px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+        Rectangle {
+            horizontal-stretch: 1;
+            height: 32px;
+            background: root.active-tab == 1 ? Theme.accent-row-active : #333333;
+            border-radius: Theme.radius-sm;
+            TouchArea { clicked => { root.active-tab = 1; } }
+            Text {
+                text: "Top Items";
+                color: Theme.text-primary;
+                font-size: 13px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+        Rectangle {
+            horizontal-stretch: 1;
+            height: 32px;
+            background: root.active-tab == 2 ? Theme.accent-row-active : #333333;
+            border-radius: Theme.radius-sm;
+            TouchArea { clicked => { root.active-tab = 2; } }
+            Text {
+                text: "Payments";
+                color: Theme.text-primary;
+                font-size: 13px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+        Rectangle {
+            horizontal-stretch: 1;
+            height: 32px;
+            background: root.active-tab == 3 ? Theme.accent-row-active : #333333;
+            border-radius: Theme.radius-sm;
+            TouchArea { clicked => { root.active-tab = 3; } }
+            Text {
+                text: "Daily Sales";
+                color: Theme.text-primary;
+                font-size: 13px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+        Rectangle {
+            horizontal-stretch: 1;
+            height: 32px;
+            background: root.active-tab == 4 ? Theme.accent-row-active : #333333;
+            border-radius: Theme.radius-sm;
+            TouchArea { clicked => { root.active-tab = 4; } }
+            Text {
+                text: "Bills";
+                color: Theme.text-primary;
+                font-size: 13px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+    }
+}

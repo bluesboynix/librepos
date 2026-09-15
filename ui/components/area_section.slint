@@ -1,0 +1,91 @@
+import { TableArea } from "../db-types.slint";
+import { TableCard } from "table_card.slint";
+import { Theme } from "../theme.slint";
+
+export component AreaSection inherits Rectangle {
+    width: 100%;
+    background: transparent;
+
+    in property <TableArea> area;
+    in property <int> area-index: 0;
+    in-out property <string> selected-table: "";
+    in property <string> currency: "₹";
+
+    callback table-selected(string);
+    callback set-tables(int, int);
+
+    VerticalLayout {
+        spacing: Theme.pad-md;
+
+        Text {
+            text: root.area.name;
+            font-size: 18px;
+            color: Theme.accent;
+            horizontal-alignment: left;
+        }
+
+        HorizontalLayout {
+            spacing: 15px;
+
+            for card in root.area.cards : TableCard {
+                label: card.label;
+                selected: root.selected-table == card.label;
+                occupied: card.occupied;
+                total: card.total;
+                currency: root.currency;
+                clicked => {
+                    root.selected-table = self.label;
+                    root.table-selected(self.label);
+                }
+            }
+
+            // Plus button
+            Rectangle {
+                width: 40px;
+                height: 40px;
+                background: plus-hover.has-hover
+                    ? Theme.btn-neutral-hover
+                    : Theme.btn-neutral;
+                border-radius: Theme.radius-sm;
+                border-width: 1px;
+                border-color: Theme.accent;
+                plus-hover := TouchArea {
+                    clicked => {
+                        root.set-tables(root.area-index, root.area.tables + 1);
+                    }
+                }
+                Text {
+                    text: "+";
+                    color: Theme.text-primary;
+                    font-size: 18px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Minus button
+            Rectangle {
+                width: 40px;
+                height: 40px;
+                background: minus-hover.has-hover
+                    ? Theme.btn-neutral-hover
+                    : Theme.btn-neutral;
+                border-radius: Theme.radius-sm;
+                border-width: 1px;
+                border-color: Theme.accent;
+                minus-hover := TouchArea {
+                    clicked => {
+                        root.set-tables(root.area-index, root.area.tables - 1);
+                    }
+                }
+                Text {
+                    text: "-";
+                    color: Theme.text-primary;
+                    font-size: 18px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}

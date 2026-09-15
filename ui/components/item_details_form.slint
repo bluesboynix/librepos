@@ -1,0 +1,111 @@
+import { Theme } from "../theme.slint";
+
+export component ItemDetailsForm inherits Rectangle {
+    width: 100%;
+    background: transparent;
+
+    in-out property <string> name-text: "";
+    in-out property <string> code-text: "";
+    in-out property <string> price-text: "0";
+    in-out property <string> category-text: "";
+
+    VerticalLayout {
+        spacing: Theme.pad-sm;
+
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: "Name *:";
+                color: Theme.text-primary;
+                width: 100px;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text <=> root.name-text;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: "Code:";
+                color: Theme.text-primary;
+                width: 100px;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text <=> root.code-text;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: "Price *:";
+                color: Theme.text-primary;
+                width: 100px;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text <=> root.price-text;
+                }
+            }
+        }
+
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: "Category *:";
+                color: Theme.text-primary;
+                width: 100px;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text <=> root.category-text;
+                }
+            }
+        }
+    }
+}

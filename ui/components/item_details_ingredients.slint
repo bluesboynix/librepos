@@ -1,0 +1,123 @@
+import { IngredientRow } from "../db-types.slint";
+import { Theme } from "../theme.slint";
+
+export component ItemDetailsIngredients inherits Rectangle {
+    width: 100%;
+    background: transparent;
+
+    in property <[IngredientRow]> ingredients;
+    in-out property <string> total-cost-text: "0";
+    in-out property <string> profit-text: "0";
+
+    callback add-ingredient();
+    callback remove-ingredient(int);
+    callback update-ingredient-name(int, string);
+    callback update-ingredient-quantity(int, string);
+    callback update-ingredient-unit(int, string);
+    callback update-ingredient-cost(int, string);
+
+    VerticalLayout {
+        spacing: Theme.pad-xs;
+
+        Text {
+            text: "Ingredients";
+            color: Theme.accent;
+            font-size: 18px;
+        }
+
+        // Column headers
+        HorizontalLayout {
+            padding: 0px;
+            spacing: 5px;
+            Text { text: "Ingredient"; color: Theme.accent; font-weight: 700; width: 250px; }
+            Text { text: "Qty"; color: Theme.accent; font-weight: 700; width: 80px; horizontal-alignment: center; }
+            Text { text: "Unit"; color: Theme.accent; font-weight: 700; width: 70px; horizontal-alignment: center; }
+            Text { text: "Price"; color: Theme.accent; font-weight: 700; width: 120px; horizontal-alignment: center; }
+            Text { text: ""; color: white; width: 70px; }
+        }
+
+        Rectangle { height: 1px; background: Theme.border-line; }
+
+        // Ingredient rows
+        for ing[i] in root.ingredients : HorizontalLayout {
+            padding: 0px;
+            spacing: 5px;
+
+            Rectangle { width: 250px; height: 26px; background: Theme.bg-input; border-radius: Theme.radius-sm; clip: true;
+                TextInput {
+                    width: 100%;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text: ing.name;
+                    edited => { root.update-ingredient-name(i, self.text); }
+                }
+            }
+
+            Rectangle { width: 80px; height: 26px; background: Theme.bg-input; border-radius: Theme.radius-sm; clip: true;
+                TextInput {
+                    width: 100%;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text: ing.quantity;
+                    edited => { root.update-ingredient-quantity(i, self.text); }
+                }
+            }
+
+            Rectangle { width: 70px; height: 26px; background: Theme.bg-input; border-radius: Theme.radius-sm; clip: true;
+                TextInput {
+                    width: 100%;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text: ing.unit;
+                    edited => { root.update-ingredient-unit(i, self.text); }
+                }
+            }
+
+            Rectangle { width: 120px; height: 26px; background: Theme.bg-input; border-radius: Theme.radius-sm; clip: true;
+                TextInput {
+                    width: 100%;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text: ing.estimated-cost;
+                    edited => { root.update-ingredient-cost(i, self.text); }
+                }
+            }
+
+            Rectangle { width: 70px; height: 26px; background: remove-hover.has-hover ? Theme.btn-danger-hover : Theme.btn-danger; border-radius: Theme.radius-sm;
+                remove-hover := TouchArea { clicked => { root.remove-ingredient(i); } }
+                Text {
+                    text: "Remove";
+                    color: Theme.text-primary;
+                    font-size: 12px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+
+        // Add ingredient button
+        Rectangle { height: 30px; width: 120px; background: add-ing-hover.has-hover ? Theme.btn-neutral-hover : #333333; border-radius: Theme.radius-sm;
+            add-ing-hover := TouchArea { clicked => { root.add-ingredient(); } }
+            Text {
+                text: "+ Add Ingredient";
+                color: Theme.text-primary;
+                font-size: 14px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        Rectangle { height: 6px; }
+
+        // Summary
+        VerticalLayout {
+            spacing: Theme.pad-xs;
+            Text { text: "Cost  : " + root.total-cost-text; color: Theme.text-primary; }
+            Text { text: "Profit: " + root.profit-text; color: Theme.text-total; }
+        }
+    }
+}

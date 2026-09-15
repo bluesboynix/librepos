@@ -1,0 +1,104 @@
+import { TableArea } from "../../db-types.slint";
+import { Theme } from "../../theme.slint";
+
+export component AreaConfigSection inherits Rectangle {
+    width: 100%;
+    background: transparent;
+
+    in property <[TableArea]> areas;
+
+    callback add-area();
+    callback remove-area(int);
+    callback update-area-name(int, string);
+
+    VerticalLayout {
+        spacing: Theme.pad-md;
+
+        Text {
+            text: "Table Area Configuration";
+            color: Theme.accent;
+            font-size: 18px;
+            horizontal-alignment: left;
+        }
+
+        // Add new area button
+        Rectangle {
+            height: 30px;
+            width: 150px;
+            background: add-area-hover.has-hover
+                ? Theme.btn-neutral-hover
+                : #333333;
+            border-radius: Theme.radius-sm;
+            add-area-hover := TouchArea {
+                clicked => { root.add-area(); }
+            }
+            Text {
+                text: "+ Add new Area";
+                color: Theme.text-primary;
+                font-size: 14px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+
+        // Dynamic area rows
+        for area[i] in root.areas : HorizontalLayout {
+            spacing: Theme.pad-md;
+
+            Rectangle {
+                width: 24px;
+                height: 24px;
+                background: del-hover.has-hover
+                    ? Theme.btn-danger-hover
+                    : Theme.btn-danger;
+                border-radius: Theme.radius-sm;
+                del-hover := TouchArea {
+                    clicked => { root.remove-area(i); }
+                }
+                Text {
+                    text: "x";
+                    color: Theme.text-primary;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text: area.name;
+                    edited => { root.update-area-name(i, self.text); }
+                }
+            }
+
+            Text {
+                text: "Table";
+                color: Theme.text-primary;
+                vertical-alignment: center;
+            }
+
+            Rectangle {
+                width: 60px;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    width: 100%;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    text: area.tables + "";
+                }
+            }
+        }
+    }
+}

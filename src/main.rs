@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let areas: Rc<VecModel<TableArea>> = Rc::new(VecModel::default());
     window.set_areas(areas.clone().into());
     setup::areas::rebuild_areas(&conn, &areas);
-
+    
     // Shared current ingredient model
     let current_ingredients: Rc<
         RefCell<Option<Rc<VecModel<IngredientRow>>>>,
@@ -66,11 +66,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         menu_items.clone(),
         filtered_menu_items.clone(),
     );
-    setup::order::setup_order_callbacks(&window, order_lines.clone());
+    setup::order_lines::setup_order_callbacks(&window, order_lines.clone());
     setup::areas::setup_area_callbacks(&window, conn.clone(), areas.clone());
     setup::settings::load_settings(&window, &conn);
     setup::settings::setup_settings_persistence(&window, conn.clone());
-    setup::orders::setup_order_persistence(
+    setup::order_persistence::setup_order_persistence(
         &window,
         conn.clone(),
         order_lines.clone(),
