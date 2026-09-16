@@ -135,6 +135,7 @@ pub struct BillRow {
     pub status: String,
     pub void_reason: String,
     pub edit_count: i32,
+    pub payment_methods: String,   // new
 }
 
 pub fn get_bills(
@@ -143,16 +144,25 @@ pub fn get_bills(
     to: &str,
     limit: i64,
     include_voided: bool,
+    query: &str,
 ) -> Result<Vec<BillRow>> {
     let sql = if include_voided {
         "SELECT o.id, COALESCE(o.bill_no, ''), o.table_name,
                 COALESCE(o.area_name, ''), o.total,
                 COALESCE(o.closed_at, ''), COALESCE(o.payment_status, ''),
                 o.status, COALESCE(o.void_reason, ''),
-                (SELECT COUNT(*) FROM order_edits WHERE order_id = o.id)
+                (SELECT COUNT(*) FROM order_edits WHERE order_id = o.id),
+                COALESCE((SELECT GROUP_CONCAT(DISTINCT method)
+                          FROM payments WHERE order_id = o.id), '')
          FROM orders o
          WHERE o.status IN ('closed', 'void')
            AND date(o.closed_at) BETWEEN ?1 AND ?2
+           AND (?4 = ''
+                OR o.bill_no LIKE '%' || ?4 || '%'
+                OR o.table_name LIKE '%' || ?4 || '%'
+                OR o.area_name LIKE '%' || ?4 || '%'
+                OR o.customer_name LIKE '%' || ?4 || '%'
+                OR o.customer_phone LIKE '%' || ?4 || '%')
          ORDER BY o.closed_at DESC
          LIMIT ?3"
     } else {
@@ -160,17 +170,25 @@ pub fn get_bills(
                 COALESCE(o.area_name, ''), o.total,
                 COALESCE(o.closed_at, ''), COALESCE(o.payment_status, ''),
                 o.status, COALESCE(o.void_reason, ''),
-                (SELECT COUNT(*) FROM order_edits WHERE order_id = o.id)
+                (SELECT COUNT(*) FROM order_edits WHERE order_id = o.id),
+                COALESCE((SELECT GROUP_CONCAT(DISTINCT method)
+                          FROM payments WHERE order_id = o.id), '')
          FROM orders o
          WHERE o.status = 'closed'
            AND date(o.closed_at) BETWEEN ?1 AND ?2
+           AND (?4 = ''
+                OR o.bill_no LIKE '%' || ?4 || '%'
+                OR o.table_name LIKE '%' || ?4 || '%'
+                OR o.area_name LIKE '%' || ?4 || '%'
+                OR o.customer_name LIKE '%' || ?4 || '%'
+                OR o.customer_phone LIKE '%' || ?4 || '%')
          ORDER BY o.closed_at DESC
          LIMIT ?3"
     };
 
     let mut stmt = conn.prepare(sql)?;
     let rows = stmt
-        .query_map(rusqlite::params![from, to, limit], |row| {
+        .query_map(rusqlite::params![from, to, limit, query], |row| {
             Ok(BillRow {
                 id: row.get(0)?,
                 bill_no: row.get(1)?,
@@ -182,6 +200,7 @@ pub fn get_bills(
                 status: row.get(7)?,
                 void_reason: row.get(8)?,
                 edit_count: row.get(9)?,
+                payment_methods: row.get(10)?,
             })
         })?
         .collect::<Result<Vec<_>>>()?;

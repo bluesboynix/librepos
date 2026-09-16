@@ -35,6 +35,13 @@ pub fn setup_order_persistence(
 
         order_model.set_vec(Vec::<OrderLine>::new());
 
+        // Reset payment-related fields for a fresh bill view
+        window.set_payment_mode(0);
+        window.set_split_cash_text("".into());
+        window.set_split_upi_text("".into());
+        window.set_split_card_text("".into());
+        
+
         let order_id = if let Some(id) = open_orders_open.borrow().get(&table) {
             Some(*id)
         } else {

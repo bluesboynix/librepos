@@ -11,12 +11,14 @@ export component ReportBillsView inherits Rectangle {
     in property <BillDetail> detail;
     in-out property <bool> detail-open: false;
     in-out property <bool> show-voided: false;
+    in-out property <string> search-text: "";
 
     callback bill-selected(int);
     callback back-to-list();
     callback void-bill();
     callback revive();
     callback toggle-voided();
+    callback search-changed(string);
     callback edit-bill();
 
     // ---- Detail view (when a bill is selected) ----
@@ -34,9 +36,52 @@ export component ReportBillsView inherits Rectangle {
         padding: 15px;
         spacing: 8px;
 
-        // Toggle row
+        // Search box + toggle row
         HorizontalLayout {
             spacing: 8px;
+
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 32px;
+                background: #d0d0d0;
+                border-radius: 4px;
+                clip: true;
+                HorizontalLayout {
+                    padding-left: 10px;
+                    padding-right: 6px;
+                    TextInput {
+                        horizontal-stretch: 1;
+                        height: 100%;
+                        color: black;
+                        single-line: true;
+                        font-size: 14px;
+                        vertical-alignment: center;
+                        text <=> root.search-text;
+                        edited => { root.search-changed(self.text); }
+                    }
+                    Rectangle {
+                        width: 22px;
+                        height: 22px;
+                        background: clear-hover.has-hover ? #aaaaaa : #cccccc;
+                        border-radius: 11px;
+                        clear-hover := TouchArea {
+                            clicked => {
+                                root.search-text = "";
+                                root.search-changed("");
+                            }
+                        }
+                        Text {
+                            text: "×";
+                            color: black;
+                            font-size: 15px;
+                            horizontal-alignment: center;
+                            vertical-alignment: center;
+                        }
+                    }
+                }
+            }
+
+            // Show voided toggle
             Rectangle {
                 width: 22px;
                 height: 22px;
@@ -54,12 +99,11 @@ export component ReportBillsView inherits Rectangle {
                 }
             }
             Text {
-                text: "Show voided bills";
+                text: "Show voided";
                 color: white;
                 font-size: 13px;
                 vertical-alignment: center;
             }
-            Rectangle { horizontal-stretch: 1; }
         }
 
         // Column headers
@@ -72,11 +116,11 @@ export component ReportBillsView inherits Rectangle {
             Text { text: "Area"; color: #00ffff; font-weight: 700; width: 80px; }
             Text { text: "Total"; color: #00ffff; font-weight: 700; width: 100px; horizontal-alignment: right; }
             Text { text: "Closed At"; color: #00ffff; font-weight: 700; width: 160px; }
-            Text { text: "Status"; color: #00ffff; font-weight: 700; horizontal-stretch: 1; }
+            Text { text: "Status"; color: #00ffff; font-weight: 700; width: 100px; }
+            Text { text: "Mode"; color: #00ffff; font-weight: 700; horizontal-stretch: 1; }
         }
         Rectangle { height: 1px; background: #808080; }
 
-        // Scrollable list
         ScrollView {
             horizontal-stretch: 1;
             vertical-stretch: 1;
@@ -108,13 +152,13 @@ export component ReportBillsView inherits Rectangle {
                         Text {
                             text: b.status == "void" ? "voided" : b.payment-status;
                             color: b.status == "void" ? #ff6666 : (b.payment-status == "paid" ? #00ff00 : #ffaa00);
-                            width: 80px;
+                            width: 100px;
                             vertical-alignment: center;
                         }
                         Text {
-                            text: b.edit-count > 0 ? "edit " + b.edit-count + "x" : "";
-                            color: #ffaa00;
-                            font-size: 11px;
+                            text: b.payment-methods;
+                            color: #aaaaaa;
+                            font-size: 12px;
                             horizontal-stretch: 1;
                             vertical-alignment: center;
                         }

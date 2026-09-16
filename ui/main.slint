@@ -18,6 +18,7 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
+    in-out property <string> bills-search-text: "";
     in-out property <bool> unpaid-dialog-open: false;
     in property <[string]> menu-categories;
     in-out property <string> menu-active-category: "";
@@ -81,6 +82,7 @@ export component MainWindow inherits Window {
     in property <BillDetail> current-bill-detail;
     in-out property <bool> bills-detail-open: false;
 
+    callback filter-bills(string);
     callback perform-void();
     callback toggle-voided();
     callback void-bill();
@@ -186,6 +188,8 @@ export component MainWindow inherits Window {
                 revive => { root.revive(); }
                 toggle-voided => { root.toggle-voided(); }
                 edit-bill => { root.edit-bill(); }
+                bills-search-text <=> root.bills-search-text;
+                filter-bills(query) => { root.filter-bills(query); }
             }
 
             // Menu

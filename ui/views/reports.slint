@@ -12,6 +12,8 @@ export component ReportsView inherits Rectangle {
     width: 100%;
     height: 100%;
 
+    in-out property <string> bills-search-text: "";
+    callback filter-bills(string);
     in-out property <string> from-date: "";
     in-out property <string> to-date: "";
     in-out property <int> active-tab: 0;
@@ -99,6 +101,8 @@ export component ReportsView inherits Rectangle {
                 revive => { root.revive(); }
                 toggle-voided => { root.toggle-voided(); }
                 edit-bill => { root.edit-bill(); }
+                search-text <=> root.bills-search-text;
+                search-changed(query) => { root.filter-bills(query); }
             }
         }
     }

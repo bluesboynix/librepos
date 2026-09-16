@@ -59,7 +59,7 @@ fn run_report(
         payments.set_vec(rows);
     }
 
-        if let Ok(d) = db::reports::get_daily_sales(conn, from, to) {
+    if let Ok(d) = db::reports::get_daily_sales(conn, from, to) {
         let rows: Vec<ReportDay> = d
             .into_iter()
             .map(|x| ReportDay {
@@ -96,12 +96,14 @@ fn run_report(
         days.set_vec(rows);
     }
     
-        if let Ok(b) = db::reports::get_bills(
+        
+    if let Ok(b) = db::reports::get_bills(
         conn,
         from,
         to,
         100,
         window.get_bills_show_voided(),
+        "",
     ) {
         let rows: Vec<ReportBill> = b
             .into_iter()
@@ -116,6 +118,7 @@ fn run_report(
                 status: x.status.into(),
                 void_reason: x.void_reason.into(),
                 edit_count: x.edit_count,
+                payment_methods: x.payment_methods.into(),
             })
             .collect();
         bills.set_vec(rows);
@@ -243,7 +246,7 @@ pub fn setup_reports_callbacks(
         );
     });
 
-        // ==================== LOAD BILL DETAIL ====================
+    // ==================== LOAD BILL DETAIL ====================
     let weak_window_bill = window.as_weak();
     let conn_bill = conn.clone();
     window.on_load_bill_detail(move |order_id| {
@@ -301,7 +304,7 @@ pub fn setup_reports_callbacks(
             customer_address: detail.customer_address.into(),
             items: Rc::new(VecModel::from(items)).into(),
             payments: Rc::new(VecModel::from(payments)).into(),
-                        edit_history: Rc::new(VecModel::from(
+            edit_history: Rc::new(VecModel::from(
                 detail.edit_history
                     .into_iter()
                     .map(slint::SharedString::from)
@@ -318,8 +321,8 @@ pub fn setup_reports_callbacks(
         }
     });
 
-           // ==================== VOID BILL ====================
-        // Perform void (after dialog confirmed)
+    // ==================== VOID BILL ====================
+    // Perform void (after dialog confirmed)
     let weak_window_v = window.as_weak();
     let conn_v = conn.clone();
     window.on_perform_void(move || {
@@ -350,17 +353,79 @@ pub fn setup_reports_callbacks(
 
     // Toggle voided view
     let weak_window_t = window.as_weak();
+    let conn_t = conn.clone();
+    let bills_t = bills.clone();
     window.on_toggle_voided(move || {
         if let Some(window) = weak_window_t.upgrade() {
             let current = window.get_bills_show_voided();
             window.set_bills_show_voided(!current);
             let from = window.get_report_from_date().to_string();
             let to = window.get_report_to_date().to_string();
-            window.invoke_load_reports(from.into(), to.into());
+            let query = window.get_bills_search_text().to_string();
+            let include_voided = !current;
+
+            if let Ok(b) = db::reports::get_bills(
+                &conn_t, &from, &to, 100, include_voided, &query,
+            ) {
+                let rows: Vec<ReportBill> = b
+                    .into_iter()
+                    .map(|x| ReportBill {
+                        id: x.id as i32,
+                        bill_no: x.bill_no.into(),
+                        table_name: x.table_name.into(),
+                        area_name: x.area_name.into(),
+                        total: format!("{:.2}", x.total).into(),
+                        closed_at: x.closed_at.into(),
+                        payment_status: x.payment_status.into(),
+                        status: x.status.into(),
+                        void_reason: x.void_reason.into(),
+                        edit_count: x.edit_count,
+                        payment_methods: x.payment_methods.into(),
+                    })
+                    .collect();
+                bills_t.set_vec(rows);
+            }
         }
     });
 
-        // ==================== EDIT CLOSED BILL ====================
+    // ==================== FILTER BILLS ====================
+    let weak_window_filt = window.as_weak();
+    let conn_filt = conn.clone();
+    let bills_filt = bills.clone();
+    window.on_filter_bills(move |query| {
+        let Some(window) = weak_window_filt.upgrade() else {
+            return;
+        };
+        let from = window.get_report_from_date().to_string();
+        let to = window.get_report_to_date().to_string();
+        let include_voided = window.get_bills_show_voided();
+        let q = query.to_string();
+
+        if let Ok(b) =
+            db::reports::get_bills(&conn_filt, &from, &to, 100, include_voided, &q)
+        {
+            let rows: Vec<ReportBill> = b
+                .into_iter()
+                .map(|x| ReportBill {
+                    id: x.id as i32,
+                    bill_no: x.bill_no.into(),
+                    table_name: x.table_name.into(),
+                    area_name: x.area_name.into(),
+                    total: format!("{:.2}", x.total).into(),
+                    closed_at: x.closed_at.into(),
+                    payment_status: x.payment_status.into(),
+                    status: x.status.into(),
+                    void_reason: x.void_reason.into(),
+                    edit_count: x.edit_count,
+                    payment_methods: x.payment_methods.into(),
+                })
+                .collect();
+            bills_filt.set_vec(rows);
+        }
+    });
+
+    
+    // ==================== EDIT CLOSED BILL ====================
     let weak_window_edit = window.as_weak();
     let conn_edit = conn.clone();
     window.on_edit_bill(move || {
