@@ -144,10 +144,25 @@ pub fn init_db(db_path: &str) -> rusqlite::Result<Connection> {
         "ALTER TABLE order_items ADD COLUMN note TEXT DEFAULT ''",
         "ALTER TABLE orders ADD COLUMN void_reason TEXT DEFAULT ''",
         "ALTER TABLE orders ADD COLUMN voided_at TEXT",
+        "ALTER TABLE areas ADD COLUMN sort_order INTEGER DEFAULT 0",
     ];
     for sql in migrations.iter() {
         let _ = conn.execute(sql, []);
     }
+
+    // Assign initial sort_order to areas if all are 0 (first-time migration)
+    let needs_init: bool = conn
+        .query_row(
+            "SELECT (SELECT COUNT(*) FROM areas) > 0
+                AND (SELECT COUNT(*) FROM areas WHERE sort_order != 0) = 0",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap_or(false);
+    if needs_init {
+        let _ = conn.execute("UPDATE areas SET sort_order = id", []);
+    }
+    
 
     // 3. Create indexes (after migrations so columns exist)
     conn.execute_batch(

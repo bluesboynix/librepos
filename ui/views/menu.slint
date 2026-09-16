@@ -1,13 +1,18 @@
 import { MenuItem } from "../db-types.slint";
+import { Theme } from "../theme.slint";
+import { CategoryTabs } from "../components/category_tabs.slint";
 
 export component MenuView inherits Rectangle {
     width: 100%;
     height: 100%;
 
     in property <[MenuItem]> items;
+    in property <[string]> categories;
     in property <string> currency: "₹";
     in-out property <string> search-text: "";
-    callback search-changed(string);
+    in-out property <string> active-category: "";
+
+    callback filter-changed(string, string);
     callback add-item();
     callback remove-item(int);
     callback open-item(int);
@@ -23,6 +28,15 @@ export component MenuView inherits Rectangle {
             horizontal-alignment: center;
         }
 
+        // Category tabs
+        CategoryTabs {
+            categories: root.categories;
+            active <=> root.active-category;
+            changed(cat) => {
+                root.filter-changed(root.search-text, cat);
+            }
+        }
+
         // Search box
         Rectangle {
             horizontal-stretch: 1;
@@ -31,32 +45,35 @@ export component MenuView inherits Rectangle {
             border-radius: 4px;
             clip: true;
             HorizontalLayout {
-                padding-left: 8px;
-                padding-right: 4px;
+                padding-left: 10px;
+                padding-right: 6px;
                 TextInput {
                     horizontal-stretch: 1;
                     height: 100%;
                     color: black;
                     single-line: true;
                     font-size: 15px;
+                    vertical-alignment: center;
                     text <=> root.search-text;
-                    edited => { root.search-changed(self.text); }
+                    edited => {
+                        root.filter-changed(self.text, root.active-category);
+                    }
                 }
                 Rectangle {
-                    width: 20px;
-                    height: 20px;
+                    width: 22px;
+                    height: 22px;
                     background: clear-hover.has-hover ? #aaaaaa : #cccccc;
-                    border-radius: 10px;
+                    border-radius: 11px;
                     clear-hover := TouchArea {
                         clicked => {
                             root.search-text = "";
-                            root.search-changed("");
+                            root.filter-changed("", root.active-category);
                         }
                     }
                     Text {
                         text: "×";
                         color: black;
-                        font-size: 14px;
+                        font-size: 15px;
                         horizontal-alignment: center;
                         vertical-alignment: center;
                     }
@@ -66,8 +83,8 @@ export component MenuView inherits Rectangle {
 
         // Add Item button
         Rectangle {
-            height: 30px;
-            width: 120px;
+            height: 34px;
+            width: 140px;
             background: add-button-hover.has-hover ? #444444 : #333333;
             border-radius: 4px;
             add-button-hover := TouchArea {
@@ -83,73 +100,61 @@ export component MenuView inherits Rectangle {
         }
 
         // Items list
-                // Scrollable items list
-        Flickable {
-            viewport-width: self.width;
-            viewport-height: items-layout.preferred-height;
-            interactive: true;
-            horizontal-stretch: 1;
-            vertical-stretch: 1;
+        for item[i] in root.items : Rectangle {
+            height: 48px;
+            background: Math.mod(i, 2) == 0 ? #404040 : #505050;
+            border-radius: 6px;
+            HorizontalLayout {
+                padding: 12px;
+                spacing: 10px;
 
-            items-layout := VerticalLayout {
-                spacing: 4px;
-                for item[i] in root.items : Rectangle {
-                    height: 48px;
-                    background: Math.mod(i, 2) == 0 ? #404040 : #505050;
-                    border-radius: 6px;
-                    HorizontalLayout {
-                        padding: 12px;
-                        spacing: 10px;
+                Rectangle {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    background: name-area.has-hover ? #606060 : transparent;
+                    border-radius: 4px;
+                    name-area := TouchArea {
+                        clicked => { root.open-item(item.id); }
+                    }
+                    Text {
+                        width: 100%;
+                        height: 100%;
+                        text: item.name;
+                        color: white;
+                        font-size: 16px;
+                        vertical-alignment: center;
+                        horizontal-alignment: left;
+                    }
+                }
 
-                        Rectangle {
-                            horizontal-stretch: 1;
-                            height: 100%;
-                            background: name-area.has-hover ? #606060 : transparent;
-                            border-radius: 4px;
-                            name-area := TouchArea {
-                                clicked => { root.open-item(item.id); }
-                            }
-                            Text {
-                                width: 100%;
-                                height: 100%;
-                                text: item.name;
-                                color: white;
-                                font-size: 16px;
-                                vertical-alignment: center;
-                                horizontal-alignment: left;
-                            }
-                        }
-
-                        Text {
-                            text: root.currency + item.price;
-                            color: white;
-                            font-size: 16px;
-                            width: 80px;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            text: item.category;
-                            color: white;
-                            font-size: 14px;
-                            width: 100px;
-                            vertical-alignment: center;
-                        }
-                        Rectangle {
-                            width: 70px;
-                            height: 28px;
-                            background: delete-hover.has-hover ? #aa3333 : #883333;
-                            border-radius: 4px;
-                            delete-hover := TouchArea {
-                                clicked => { root.remove-item(item.id); }
-                            }
-                            Text {
-                                text: "Remove";
-                                color: white;
-                                font-size: 13px;
-                                horizontal-alignment: center;
-                                vertical-alignment: center;
-                            }
-                        }
+                Text {
+                    text: root.currency + item.price;
+                    color: white;
+                    font-size: 16px;
+                    width: 100px;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: item.category;
+                    color: white;
+                    font-size: 14px;
+                    width: 120px;
+                    vertical-alignment: center;
+                }
+                Rectangle {
+                    width: 70px;
+                    height: 28px;
+                    background: delete-hover.has-hover ? #aa3333 : #883333;
+                    border-radius: 4px;
+                    delete-hover := TouchArea {
+                        clicked => { root.remove-item(item.id); }
+                    }
+                    Text {
+                        text: "Remove";
+                        color: white;
+                        font-size: 13px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
                     }
                 }
             }

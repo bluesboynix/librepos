@@ -1,0 +1,71 @@
+import { Theme } from "../theme.slint";
+
+export component CategoryTabs inherits Rectangle {
+    height: 36px;
+    background: transparent;
+
+    in property <[string]> categories;
+    in-out property <string> active: "";
+
+    callback changed(string);
+
+    Flickable {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        viewport-width: tab-row.preferred-width;
+        viewport-height: parent.height;
+        interactive: true;
+
+        tab-row := HorizontalLayout {
+            spacing: 4px;
+
+            // "All" tab
+            Rectangle {
+                width: 80px;
+                height: 36px;
+                background: root.active == ""
+                    ? Theme.accent-row-active
+                    : Theme.btn-neutral;
+                border-radius: Theme.radius-sm;
+                TouchArea {
+                    clicked => {
+                        root.active = "";
+                        root.changed("");
+                    }
+                }
+                Text {
+                    text: "All";
+                    color: white;
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            // One tab per category
+            for cat in root.categories : Rectangle {
+                width: 110px;
+                height: 36px;
+                background: root.active == cat
+                    ? Theme.accent-row-active
+                    : Theme.btn-neutral;
+                border-radius: Theme.radius-sm;
+                TouchArea {
+                    clicked => {
+                        root.active = cat;
+                        root.changed(cat);
+                    }
+                }
+                Text {
+                    text: cat;
+                    color: white;
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}

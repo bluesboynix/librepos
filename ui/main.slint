@@ -9,6 +9,7 @@ import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
 import { VoidDialog } from "components/void_dialog.slint";
+import { UnpaidDialog } from "components/unpaid_dialog.slint";
 
 
 export component MainWindow inherits Window {
@@ -17,6 +18,9 @@ export component MainWindow inherits Window {
     title: "LibrePOS";
     background: #505050;
 
+    in-out property <bool> unpaid-dialog-open: false;
+    in property <[string]> menu-categories;
+    in-out property <string> menu-active-category: "";
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
     in-out property <int> current-view: 0;
@@ -105,7 +109,7 @@ export component MainWindow inherits Window {
     callback recalculate-bill();
     callback recalculate-gst();
     callback currency-changed();
-    callback filter-menu-items(string);
+    callback filter-menu-items(string, string);
     callback open-table(string);
     callback save-order();
     callback save-and-close-order();
@@ -116,7 +120,8 @@ export component MainWindow inherits Window {
     callback load-bill-detail(int);
     callback clear-bill-detail();
     callback edit-bill();
-
+    callback reorder-area(int, int);
+    
     VerticalLayout {
         spacing: 0px;
 
@@ -186,9 +191,13 @@ export component MainWindow inherits Window {
             // Menu
             if root.current-view == 2 : MenuView {
                 items: root.filtered-menu-items;
+                categories: root.menu-categories;
                 currency: root.currency;
                 search-text <=> root.menu-search-text;
-                search-changed(text) => { root.filter-menu-items(text); }
+                active-category <=> root.menu-active-category;
+                filter-changed(query, cat) => {
+                    root.filter-menu-items(query, cat);
+                }
                 add-item => { root.add-menu-item(); }
                 remove-item(id) => { root.remove-menu-item(id); }
                 open-item(id) => { root.open-menu-item(id); }
@@ -207,6 +216,7 @@ export component MainWindow inherits Window {
                 }
                 gst-changed => { root.recalculate-gst(); }
                 currency-changed => { root.currency-changed(); }
+                reorder-area(from, to) => { root.reorder-area(from, to); }
             }
 
             // Bill
@@ -234,7 +244,10 @@ export component MainWindow inherits Window {
                 note-dialog-line-index <=> root.note-dialog-line-index;
                 note-dialog-text <=> root.note-dialog-text;
                 note-dialog-item-name <=> root.note-dialog-item-name;
-                search-changed(text) => { root.filter-menu-items(text); }
+                search-changed(text) => {
+                    root.menu-active-category = "";
+                    root.filter-menu-items(text, "");
+                }
                 add-order-line(name, price) => {
                     root.add-order-line(name, price);
                 }
@@ -250,7 +263,13 @@ export component MainWindow inherits Window {
                 recalculate => { root.recalculate-bill(); }
                 move-table(new-table) => { root.move-table(new-table); }
                 go-back => { root.close-bill(); }
-                save => { root.save-and-close-order(); }
+                save => {
+                    if root.payment-mode == 0 {
+                        root.unpaid-dialog-open = true;
+                    } else {
+                        root.save-and-close-order();
+                    }
+                }
                 print-order => { root.save-order(); }
             }
 
@@ -333,6 +352,21 @@ export component MainWindow inherits Window {
         open: true;
         confirmed => {
             root.quit();
+        }
+    }
+
+    if root.unpaid-dialog-open : UnpaidDialog {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        confirm => {
+            root.unpaid-dialog-open = false;
+            root.payment-mode = 5;   // Due / unpaid
+            root.save-and-close-order();
+        }
+        cancel => {
+            root.unpaid-dialog-open = false;
         }
     }
 

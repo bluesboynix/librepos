@@ -9,6 +9,8 @@ export component SettingsView inherits Rectangle {
     height: 100%;
 
     in property <[TableArea]> areas;
+
+    callback reorder-area(int, int);
     callback add-area();
     callback remove-area(int);
     callback update-area-name(int, string);
@@ -33,6 +35,7 @@ export component SettingsView inherits Rectangle {
         AreaConfigSection {
             areas: root.areas;
             add-area => { root.add-area(); }
+            reorder-area(from, to) => { root.reorder-area(from, to); }
             remove-area(index) => { root.remove-area(index); }
             update-area-name(index, name) => {
                 root.update-area-name(index, name);

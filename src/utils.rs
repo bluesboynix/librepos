@@ -77,3 +77,23 @@ pub fn update_bill_totals(window: &MainWindow) {
     window.set_bill_total(total as f32);
     window.set_bill_gst_rate(gst_rate as f32);
 }
+
+pub fn refresh_menu_categories(
+    full: &Rc<VecModel<MenuItem>>,
+    categories: &Rc<VecModel<slint::SharedString>>,
+) {
+    let mut unique: std::collections::BTreeSet<String> =
+        std::collections::BTreeSet::new();
+    for i in 0..full.row_count() {
+        let item = full.row_data(i).unwrap();
+        if !item.category.is_empty() {
+            unique.insert(item.category.to_string());
+        }
+    }
+    categories.set_vec(
+        unique
+            .into_iter()
+            .map(slint::SharedString::from)
+            .collect::<Vec<_>>(),
+    );
+}

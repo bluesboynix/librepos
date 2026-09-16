@@ -1,6 +1,6 @@
 use crate::{IngredientRow, MainWindow, MenuItem};
 use crate::db;
-use crate::utils::{reload_menu_items, update_totals};
+use crate::utils::{refresh_menu_categories, reload_menu_items, update_totals};
 use slint::{ComponentHandle, Model, VecModel};
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -10,6 +10,7 @@ pub fn setup_menu_callbacks(
     conn: Rc<rusqlite::Connection>,
     menu_items: Rc<VecModel<MenuItem>>,
     filtered_menu_items: Rc<VecModel<MenuItem>>,
+    menu_categories: Rc<VecModel<slint::SharedString>>,
     current_ingredients: Rc<RefCell<Option<Rc<VecModel<IngredientRow>>>>>,
 ) {
     let conn = conn.clone();
@@ -20,6 +21,7 @@ pub fn setup_menu_callbacks(
     let weak_filtered_add = Rc::downgrade(&filtered_menu_items);
     let weak_window_add = window.as_weak();
     let current_ingredients_add = current_ingredients.clone();
+    let cats_add = menu_categories.clone();
     window.on_add_menu_item(move || {
         let (Some(window), Some(model), Some(filtered)) = (
             weak_window_add.upgrade(),
@@ -39,7 +41,9 @@ pub fn setup_menu_callbacks(
         .unwrap();
 
         reload_menu_items(&conn_add, &model, &filtered);
+        refresh_menu_categories(&model, &cats_add);
 
+        // Find the new item and open details
         let mut new_item: Option<MenuItem> = None;
         for i in 0..model.row_count() {
             let item = model.row_data(i).unwrap();
@@ -67,6 +71,7 @@ pub fn setup_menu_callbacks(
     let conn_remove = conn.clone();
     let weak_menu_items_remove = Rc::downgrade(&menu_items);
     let weak_filtered_remove = Rc::downgrade(&filtered_menu_items);
+    let cats_remove = menu_categories.clone();
     window.on_remove_menu_item(move |id| {
         if let (Some(model), Some(filtered)) =
             (weak_menu_items_remove.upgrade(), weak_filtered_remove.upgrade())
@@ -75,6 +80,7 @@ pub fn setup_menu_callbacks(
                 eprintln!("Delete failed: {}", e);
             }
             reload_menu_items(&conn_remove, &model, &filtered);
+            refresh_menu_categories(&model, &cats_remove);
         }
     });
 
@@ -137,6 +143,7 @@ pub fn setup_menu_callbacks(
     let weak_menu_items_save = Rc::downgrade(&menu_items);
     let weak_filtered_save = Rc::downgrade(&filtered_menu_items);
     let weak_window_save = window.as_weak();
+    let cats_save = menu_categories.clone();
     window.on_save_menu_item(move || {
         let (Some(window), Some(model), Some(filtered)) = (
             weak_window_save.upgrade(),
@@ -167,6 +174,7 @@ pub fn setup_menu_callbacks(
         );
 
         reload_menu_items(&conn_save, &model, &filtered);
+        refresh_menu_categories(&model, &cats_save);
         window.set_current_view(2);
     });
 
@@ -345,22 +353,37 @@ pub fn setup_menu_search(
 ) {
     let weak_full = Rc::downgrade(&full);
     let weak_filtered = Rc::downgrade(&filtered);
-    window.on_filter_menu_items(move |query| {
+    window.on_filter_menu_items(move |query, category| {
         let (Some(full), Some(filtered)) =
             (weak_full.upgrade(), weak_filtered.upgrade())
         else {
             return;
         };
+
         let q = query.to_string().to_lowercase();
+        let cat = category.to_string();
+
         let mut list: Vec<MenuItem> = Vec::new();
         for i in 0..full.row_count() {
             let item = full.row_data(i).unwrap();
-            let name = item.name.to_lowercase();
-            let category = item.category.to_lowercase();
-            if q.is_empty() || name.contains(&q) || category.contains(&q) {
-                list.push(item);
+
+            // Category filter (empty category = show all)
+            if !cat.is_empty() && item.category.as_str() != cat {
+                continue;
             }
+
+            // Search filter (empty query = show all in current category)
+            if !q.is_empty() {
+                let name = item.name.to_lowercase();
+                let item_cat = item.category.to_lowercase();
+                if !name.contains(&q) && !item_cat.contains(&q) {
+                    continue;
+                }
+            }
+
+            list.push(item);
         }
+
         filtered.set_vec(list);
     });
 }

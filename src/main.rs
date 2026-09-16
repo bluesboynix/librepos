@@ -30,6 +30,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ));
     window.set_menu_items(menu_items.clone().into());
 
+        // Menu categories (derived from items)
+    let menu_categories: Rc<VecModel<slint::SharedString>> =
+        Rc::new(VecModel::default());
+    window.set_menu_categories(menu_categories.clone().into());
+    utils::refresh_menu_categories(&menu_items, &menu_categories);
+    
     // Filtered model (initially identical to full list)
     let filtered_menu_items: Rc<VecModel<MenuItem>> = Rc::new(VecModel::from(
         (0..menu_items.row_count())
@@ -53,12 +59,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Rc::new(VecModel::default());
     window.set_order_lines(order_lines.clone().into());
 
-        // Setup callbacks
+    // Setup callbacks
     setup::menu::setup_menu_callbacks(
         &window,
         conn.clone(),
         menu_items.clone(),
         filtered_menu_items.clone(),
+        menu_categories.clone(),
         current_ingredients,
     );
     setup::menu::setup_menu_search(

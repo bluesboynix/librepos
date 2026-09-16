@@ -147,4 +147,26 @@ pub fn setup_area_callbacks(
             }
         }
     });
+
+    // Reorder area: swap from_index and to_index
+    let conn_reorder = conn.clone();
+    let weak_areas_reorder = Rc::downgrade(&areas);
+    window.on_reorder_area(move |from, to| {
+        if let Some(model) = weak_areas_reorder.upgrade() {
+            let from_u = from as usize;
+            let to_u = to as usize;
+            if from_u >= model.row_count() || to_u >= model.row_count() {
+                return;
+            }
+            let a = model.row_data(from_u).unwrap();
+            let b = model.row_data(to_u).unwrap();
+            let _ = db::areas::swap_area_order(
+                &conn_reorder,
+                a.id as i64,
+                b.id as i64,
+            );
+            // Refresh from DB to reflect new order
+            rebuild_areas(&conn_reorder, &model);
+        }
+    });
 }

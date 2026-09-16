@@ -1,0 +1,87 @@
+import { Theme } from "../theme.slint";
+
+export component UnpaidDialog inherits Rectangle {
+    width: 100%;
+    height: 100%;
+    background: #000000aa;
+
+    callback confirm();
+    callback cancel();
+
+    // Absorb background clicks
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+    }
+
+    Rectangle {
+        x: (parent.width - 420px) / 2;
+        y: (parent.height - 220px) / 2;
+        width: 420px;
+        height: 220px;
+        background: Theme.bg-panel-alt;
+        border-radius: Theme.radius-md;
+        border-width: 2px;
+        border-color: #ffaa00;
+
+        VerticalLayout {
+            padding: 20px;
+            spacing: 12px;
+
+            Text {
+                text: "No payment mode selected";
+                color: #ffaa00;
+                font-size: 18px;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "Do you want to mark this bill as unpaid?";
+                color: Theme.text-primary;
+                font-size: 14px;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+            }
+
+            Rectangle { vertical-stretch: 1; }
+
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: center;
+
+                Rectangle {
+                    width: 110px;
+                    height: 40px;
+                    background: yes-hover.has-hover
+                        ? Theme.btn-save-hover
+                        : Theme.btn-save;
+                    border-radius: Theme.radius-md;
+                    yes-hover := TouchArea { clicked => { root.confirm(); } }
+                    Text {
+                        text: "Yes";
+                        color: white;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+                Rectangle {
+                    width: 110px;
+                    height: 40px;
+                    background: no-hover.has-hover
+                        ? Theme.btn-neutral-hover
+                        : Theme.btn-neutral;
+                    border-radius: Theme.radius-md;
+                    no-hover := TouchArea { clicked => { root.cancel(); } }
+                    Text {
+                        text: "No";
+                        color: white;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}

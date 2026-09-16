@@ -10,6 +10,7 @@ export component AreaConfigSection inherits Rectangle {
     callback add-area();
     callback remove-area(int);
     callback update-area-name(int, string);
+    callback reorder-area(int, int);
 
     VerticalLayout {
         spacing: Theme.pad-md;
@@ -45,6 +46,55 @@ export component AreaConfigSection inherits Rectangle {
         for area[i] in root.areas : HorizontalLayout {
             spacing: Theme.pad-md;
 
+            // Up arrow
+            Rectangle {
+                width: 24px;
+                height: 24px;
+                background: up-hover.has-hover
+                    ? Theme.btn-neutral-hover
+                    : Theme.btn-neutral;
+                border-radius: Theme.radius-sm;
+                up-hover := TouchArea {
+                    clicked => {
+                        if i > 0 {
+                            root.reorder-area(i, i - 1);
+                        }
+                    }
+                }
+                Text {
+                    text: "↑";
+                    color: white;
+                    font-size: 14px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Down arrow
+            Rectangle {
+                width: 24px;
+                height: 24px;
+                background: down-hover.has-hover
+                    ? Theme.btn-neutral-hover
+                    : Theme.btn-neutral;
+                border-radius: Theme.radius-sm;
+                down-hover := TouchArea {
+                    clicked => {
+                        if i < root.areas.length - 1 {
+                            root.reorder-area(i, i + 1);
+                        }
+                    }
+                }
+                Text {
+                    text: "↓";
+                    color: white;
+                    font-size: 14px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Delete button
             Rectangle {
                 width: 24px;
                 height: 24px;
@@ -63,6 +113,7 @@ export component AreaConfigSection inherits Rectangle {
                 }
             }
 
+            // Area name input
             Rectangle {
                 horizontal-stretch: 1;
                 height: 30px;
@@ -85,6 +136,7 @@ export component AreaConfigSection inherits Rectangle {
                 vertical-alignment: center;
             }
 
+            // Table count input
             Rectangle {
                 width: 60px;
                 height: 30px;
