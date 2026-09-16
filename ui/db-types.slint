@@ -70,6 +70,7 @@ export struct ReportBill {
     payment_status: string,
     status: string,
     void_reason: string,
+    edit_count: int,
 }
 
 export struct BillLine {
@@ -109,4 +110,5 @@ export struct BillDetail {
     customer_address: string,
     items: [BillLine],
     payments: [BillPayment],
+    edit_history: [string],
 }

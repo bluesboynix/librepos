@@ -3,9 +3,7 @@ mod helpers;
 use crate::{MainWindow, MenuItem, OrderLine, TableArea};
 use crate::db;
 use crate::setup::areas::rebuild_areas;
-use helpers::{
-    get_or_create_order_id, payment_status_for_mode, save_bill_to_order,
-};
+use helpers::{get_or_create_order_id, save_bill_to_order};
 use slint::{ComponentHandle, Model, VecModel};
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -157,11 +155,26 @@ pub fn setup_order_persistence(
             &window,
         );
 
-        let bill_no = db::sequences::next_bill_number(&conn_save_close)
-            .unwrap_or_default();
+        // Reuse existing bill_no if present (e.g. when editing a closed bill),
+        // otherwise generate a fresh one.
+        let existing_bill_no: Option<String> = conn_save_close
+            .query_row(
+                "SELECT bill_no FROM orders WHERE id = ?1",
+                [order_id],
+                |row| row.get::<_, Option<String>>(0),
+            )
+            .ok()
+            .flatten();
+
+        let bill_no = match existing_bill_no {
+            Some(existing) if !existing.is_empty() => existing,
+            _ => db::sequences::next_bill_number(&conn_save_close)
+                .unwrap_or_default(),
+        };
+
         let area_name = table.split(' ').next().unwrap_or("").to_string();
         let payment_status =
-            payment_status_for_mode(window.get_payment_mode());
+            helpers::payment_status_for_mode(window.get_payment_mode());
 
         let _ = db::orders::close_order(
             &conn_save_close,

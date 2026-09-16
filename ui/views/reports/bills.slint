@@ -17,6 +17,7 @@ export component ReportBillsView inherits Rectangle {
     callback void-bill();
     callback revive();
     callback toggle-voided();
+    callback edit-bill();
 
     // ---- Detail view (when a bill is selected) ----
     if root.detail-open : BillDetailView {
@@ -25,6 +26,7 @@ export component ReportBillsView inherits Rectangle {
         back => { root.back-to-list(); }
         void-bill => { root.void-bill(); }
         revive => { root.revive(); }
+        edit-bill => { root.edit-bill(); }
     }
 
     // ---- List view ----
@@ -106,6 +108,13 @@ export component ReportBillsView inherits Rectangle {
                         Text {
                             text: b.status == "void" ? "voided" : b.payment-status;
                             color: b.status == "void" ? #ff6666 : (b.payment-status == "paid" ? #00ff00 : #ffaa00);
+                            width: 80px;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: b.edit-count > 0 ? "edit " + b.edit-count + "x" : "";
+                            color: #ffaa00;
+                            font-size: 11px;
                             horizontal-stretch: 1;
                             vertical-alignment: center;
                         }

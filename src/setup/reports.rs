@@ -115,6 +115,7 @@ fn run_report(
                 payment_status: x.payment_status.into(),
                 status: x.status.into(),
                 void_reason: x.void_reason.into(),
+                edit_count: x.edit_count,
             })
             .collect();
         bills.set_vec(rows);
@@ -277,7 +278,7 @@ pub fn setup_reports_callbacks(
             })
             .collect();
 
-                window.set_current_bill_detail(BillDetail {
+        window.set_current_bill_detail(BillDetail {
             id: detail.id as i32,
             bill_no: detail.bill_no.into(),
             table_name: detail.table_name.into(),
@@ -300,6 +301,12 @@ pub fn setup_reports_callbacks(
             customer_address: detail.customer_address.into(),
             items: Rc::new(VecModel::from(items)).into(),
             payments: Rc::new(VecModel::from(payments)).into(),
+                        edit_history: Rc::new(VecModel::from(
+                detail.edit_history
+                    .into_iter()
+                    .map(slint::SharedString::from)
+                    .collect::<Vec<_>>(),
+            )).into(),
         });
         window.set_bills_detail_open(true);
     });
@@ -351,5 +358,36 @@ pub fn setup_reports_callbacks(
             let to = window.get_report_to_date().to_string();
             window.invoke_load_reports(from.into(), to.into());
         }
+    });
+
+        // ==================== EDIT CLOSED BILL ====================
+    let weak_window_edit = window.as_weak();
+    let conn_edit = conn.clone();
+    window.on_edit_bill(move || {
+        let Some(window) = weak_window_edit.upgrade() else {
+            return;
+        };
+        let detail = window.get_current_bill_detail();
+        let order_id = detail.id as i64;
+        let table_name = detail.table_name.to_string();
+
+        // Safety: don't reopen if the table already has a different open order
+        if let Ok(Some(existing)) =
+            db::orders::get_open_order_by_table(&conn_edit, &table_name)
+        {
+            if existing.id != order_id {
+                eprintln!(
+                    "[edit] table {} already has open order id={}",
+                    table_name, existing.id
+                );
+                return;
+            }
+        }
+
+        let _ = db::orders::reopen_order(&conn_edit, order_id);
+
+        // Close detail view and hand off to BillView
+        window.set_bills_detail_open(false);
+        window.invoke_open_table(table_name.into());
     });
 }

@@ -163,6 +163,13 @@ pub fn init_db(db_path: &str) -> rusqlite::Result<Connection> {
         CREATE INDEX IF NOT EXISTS idx_payments_created     ON payments(created_at);
         CREATE INDEX IF NOT EXISTS idx_stock_mov_ing        ON stock_movements(ingredient_id);
         CREATE INDEX IF NOT EXISTS idx_stock_mov_created    ON stock_movements(created_at);
+        CREATE TABLE IF NOT EXISTS order_edits (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            order_id INTEGER NOT NULL,
+            edited_at TEXT DEFAULT (datetime('now','localtime')),
+            FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_order_edits_order ON order_edits(order_id);
         ",
     )?;
 

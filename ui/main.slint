@@ -115,6 +115,7 @@ export component MainWindow inherits Window {
     callback reports-quick-range(int);
     callback load-bill-detail(int);
     callback clear-bill-detail();
+    callback edit-bill();
 
     VerticalLayout {
         spacing: 0px;
@@ -179,6 +180,7 @@ export component MainWindow inherits Window {
                 bills-show-voided <=> root.bills-show-voided;
                 revive => { root.revive(); }
                 toggle-voided => { root.toggle-voided(); }
+                edit-bill => { root.edit-bill(); }
             }
 
             // Menu

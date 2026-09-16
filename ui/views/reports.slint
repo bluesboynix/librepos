@@ -36,6 +36,7 @@ export component ReportsView inherits Rectangle {
     callback void-bill();
     callback revive();
     callback toggle-voided();
+    callback edit-bill();
 
     VerticalLayout {
         padding: 15px;
@@ -97,6 +98,7 @@ export component ReportsView inherits Rectangle {
                 void-bill => { root.void-bill(); }
                 revive => { root.revive(); }
                 toggle-voided => { root.toggle-voided(); }
+                edit-bill => { root.edit-bill(); }
             }
         }
     }

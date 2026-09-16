@@ -288,3 +288,37 @@ pub fn revive_order(conn: &Connection, order_id: i64) -> Result<()> {
     )?;
     Ok(())
 }
+
+
+/// Reopen a closed order for editing and record the edit timestamp.
+pub fn reopen_order(conn: &Connection, order_id: i64) -> Result<()> {
+    conn.execute(
+        "UPDATE orders SET
+            status = 'open',
+            closed_at = NULL,
+            payment_status = 'unpaid',
+            updated_at = datetime('now','localtime')
+         WHERE id = ?1",
+        [order_id],
+    )?;
+    conn.execute(
+        "INSERT INTO order_edits (order_id) VALUES (?1)",
+        [order_id],
+    )?;
+    Ok(())
+}
+
+/// Get the list of edit timestamps for an order, oldest first.
+pub fn get_order_edit_history(
+    conn: &Connection,
+    order_id: i64,
+) -> Result<Vec<String>> {
+    let mut stmt = conn.prepare(
+        "SELECT edited_at FROM order_edits
+         WHERE order_id = ?1 ORDER BY id",
+    )?;
+    let rows = stmt
+        .query_map([order_id], |row| row.get::<_, String>(0))?
+        .collect::<Result<Vec<_>>>()?;
+    Ok(rows)
+}

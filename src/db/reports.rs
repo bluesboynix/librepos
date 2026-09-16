@@ -1,154 +1,6 @@
-use rusqlite::{Connection, Result};
-use rusqlite::OptionalExtension;
+use rusqlite::{Connection, OptionalExtension, Result};
 
-pub struct BillDetail {
-    pub id: i64,
-    pub bill_no: String,
-    pub table_name: String,
-    pub area_name: String,
-    pub closed_at: String,
-    pub payment_status: String,
-    pub status: String,
-    pub void_reason: String,
-    pub voided_at: String,
-    pub subtotal: f64,
-    pub cgst: f64,
-    pub sgst: f64,
-    pub gst: f64,
-    pub packaging: f64,
-    pub delivery: f64,
-    pub discount: f64,
-    pub total: f64,
-    pub customer_name: String,
-    pub customer_phone: String,
-    pub customer_address: String,
-    pub items: Vec<BillLineRow>,
-    pub payments: Vec<BillPaymentRow>,
-}
-
-pub struct BillLineRow {
-    pub name: String,
-    pub category: String,
-    pub quantity: i32,
-    pub unit_price: f64,
-    pub line_total: f64,
-    pub note: String,
-}
-
-pub struct BillPaymentRow {
-    pub method: String,
-    pub amount: f64,
-}
-
-pub fn get_bill_detail(conn: &Connection, order_id: i64) -> Result<Option<BillDetail>> {
-    let order = conn
-        .query_row(
-                "SELECT id, COALESCE(bill_no, ''), table_name,
-                    COALESCE(area_name, ''), COALESCE(closed_at, ''),
-                    COALESCE(payment_status, ''),
-                    COALESCE(status, 'closed'),
-                    COALESCE(void_reason, ''),
-                    COALESCE(voided_at, ''),
-                    subtotal, cgst, sgst, gst, packaging, delivery, discount, total,
-                    customer_name, customer_phone, customer_address
-             FROM orders
-             WHERE id = ?1
-             LIMIT 1",
-            [order_id],
-            |row| {
-                Ok((
-                    row.get::<_, i64>(0)?,     // id
-                    row.get::<_, String>(1)?,  // bill_no
-                    row.get::<_, String>(2)?,  // table_name
-                    row.get::<_, String>(3)?,  // area_name
-                    row.get::<_, String>(4)?,  // closed_at
-                    row.get::<_, String>(5)?,  // payment_status
-                    row.get::<_, String>(6)?,  // status
-                    row.get::<_, String>(7)?,  // void_reason
-                    row.get::<_, String>(8)?,  // voided_at
-                    row.get::<_, f64>(9)?,     // subtotal
-                    row.get::<_, f64>(10)?,    // cgst
-                    row.get::<_, f64>(11)?,    // sgst
-                    row.get::<_, f64>(12)?,    // gst
-                    row.get::<_, f64>(13)?,    // packaging
-                    row.get::<_, f64>(14)?,    // delivery
-                    row.get::<_, f64>(15)?,    // discount
-                    row.get::<_, f64>(16)?,    // total
-                    row.get::<_, String>(17)?, // customer_name
-                    row.get::<_, String>(18)?, // customer_phone
-                    row.get::<_, String>(19)?, // customer_address
-                ))
-            },
-        )
-        .optional()?;
-
-        let Some((
-        id, bill_no, table_name, area_name, closed_at, payment_status,
-        status, void_reason, voided_at,
-        subtotal, cgst, sgst, gst, packaging, delivery, discount, total,
-        customer_name, customer_phone, customer_address,
-    )) = order
-    else {
-        return Ok(None);
-    };
-
-    // Items query uses order_id (the parameter) now
-    let mut stmt = conn.prepare(
-        "SELECT name, COALESCE(category, ''), quantity, unit_price, line_total,
-                COALESCE(note, '')
-         FROM order_items WHERE order_id = ?1",
-    )?;
-    let items = stmt
-        .query_map([order_id], |row| {
-            Ok(BillLineRow {
-                name: row.get(0)?,
-                category: row.get(1)?,
-                quantity: row.get(2)?,
-                unit_price: row.get(3)?,
-                line_total: row.get(4)?,
-                note: row.get(5)?,
-            })
-        })?
-        .collect::<Result<Vec<_>>>()?;
-
-    let mut stmt = conn.prepare(
-        "SELECT method, amount FROM payments WHERE order_id = ?1",
-    )?;
-    let payments = stmt
-        .query_map([order_id], |row| {
-            Ok(BillPaymentRow {
-                method: row.get(0)?,
-                amount: row.get(1)?,
-            })
-        })?
-        .collect::<Result<Vec<_>>>()?;
-
-        Ok(Some(BillDetail {
-        id,
-        bill_no,
-        table_name,
-        area_name,
-        closed_at,
-        payment_status,
-        status,
-        void_reason,
-        voided_at,
-        subtotal,
-        cgst,
-        sgst,
-        gst,
-        packaging,
-        delivery,
-        discount,
-        total,
-        customer_name,
-        customer_phone,
-        customer_address,
-        items,
-        payments,
-    }))
-}
-
+// ==================== SUMMARY ====================
 
 pub struct Summary {
     pub total_sales: f64,
@@ -183,11 +35,7 @@ pub fn get_summary(conn: &Connection, from: &str, to: &str) -> Result<Summary> {
         [from, to],
         |row| Ok((row.get(0)?, row.get(1)?)),
     )?;
-    let avg = if count > 0 {
-        total / count as f64
-    } else {
-        0.0
-    };
+    let avg = if count > 0 { total / count as f64 } else { 0.0 };
     Ok(Summary {
         total_sales: total,
         order_count: count,
@@ -274,6 +122,8 @@ pub fn get_daily_sales(
     Ok(rows)
 }
 
+// ==================== BILLS ====================
+
 pub struct BillRow {
     pub id: i64,
     pub bill_no: String,
@@ -284,6 +134,7 @@ pub struct BillRow {
     pub payment_status: String,
     pub status: String,
     pub void_reason: String,
+    pub edit_count: i32,
 }
 
 pub fn get_bills(
@@ -294,24 +145,26 @@ pub fn get_bills(
     include_voided: bool,
 ) -> Result<Vec<BillRow>> {
     let sql = if include_voided {
-        "SELECT id, COALESCE(bill_no, ''), table_name,
-                COALESCE(area_name, ''), total,
-                COALESCE(closed_at, ''), COALESCE(payment_status, ''),
-                status, COALESCE(void_reason, '')
-         FROM orders
-         WHERE status IN ('closed', 'void')
-           AND date(closed_at) BETWEEN ?1 AND ?2
-         ORDER BY closed_at DESC
+        "SELECT o.id, COALESCE(o.bill_no, ''), o.table_name,
+                COALESCE(o.area_name, ''), o.total,
+                COALESCE(o.closed_at, ''), COALESCE(o.payment_status, ''),
+                o.status, COALESCE(o.void_reason, ''),
+                (SELECT COUNT(*) FROM order_edits WHERE order_id = o.id)
+         FROM orders o
+         WHERE o.status IN ('closed', 'void')
+           AND date(o.closed_at) BETWEEN ?1 AND ?2
+         ORDER BY o.closed_at DESC
          LIMIT ?3"
     } else {
-        "SELECT id, COALESCE(bill_no, ''), table_name,
-                COALESCE(area_name, ''), total,
-                COALESCE(closed_at, ''), COALESCE(payment_status, ''),
-                status, COALESCE(void_reason, '')
-         FROM orders
-         WHERE status = 'closed'
-           AND date(closed_at) BETWEEN ?1 AND ?2
-         ORDER BY closed_at DESC
+        "SELECT o.id, COALESCE(o.bill_no, ''), o.table_name,
+                COALESCE(o.area_name, ''), o.total,
+                COALESCE(o.closed_at, ''), COALESCE(o.payment_status, ''),
+                o.status, COALESCE(o.void_reason, ''),
+                (SELECT COUNT(*) FROM order_edits WHERE order_id = o.id)
+         FROM orders o
+         WHERE o.status = 'closed'
+           AND date(o.closed_at) BETWEEN ?1 AND ?2
+         ORDER BY o.closed_at DESC
          LIMIT ?3"
     };
 
@@ -328,8 +181,169 @@ pub fn get_bills(
                 payment_status: row.get(6)?,
                 status: row.get(7)?,
                 void_reason: row.get(8)?,
+                edit_count: row.get(9)?,
             })
         })?
         .collect::<Result<Vec<_>>>()?;
     Ok(rows)
+}
+
+// ==================== BILL DETAIL ====================
+
+pub struct BillLineRow {
+    pub name: String,
+    pub category: String,
+    pub quantity: i32,
+    pub unit_price: f64,
+    pub line_total: f64,
+    pub note: String,
+}
+
+pub struct BillPaymentRow {
+    pub method: String,
+    pub amount: f64,
+}
+
+pub struct BillDetail {
+    pub id: i64,
+    pub bill_no: String,
+    pub table_name: String,
+    pub area_name: String,
+    pub closed_at: String,
+    pub payment_status: String,
+    pub status: String,
+    pub void_reason: String,
+    pub voided_at: String,
+    pub subtotal: f64,
+    pub cgst: f64,
+    pub sgst: f64,
+    pub gst: f64,
+    pub packaging: f64,
+    pub delivery: f64,
+    pub discount: f64,
+    pub total: f64,
+    pub customer_name: String,
+    pub customer_phone: String,
+    pub customer_address: String,
+    pub items: Vec<BillLineRow>,
+    pub payments: Vec<BillPaymentRow>,
+    pub edit_history: Vec<String>,
+}
+
+pub fn get_bill_detail(
+    conn: &Connection,
+    order_id: i64,
+) -> Result<Option<BillDetail>> {
+    let order = conn
+        .query_row(
+            "SELECT id, COALESCE(bill_no, ''), table_name,
+                    COALESCE(area_name, ''), COALESCE(closed_at, ''),
+                    COALESCE(payment_status, ''),
+                    COALESCE(status, 'closed'),
+                    COALESCE(void_reason, ''),
+                    COALESCE(voided_at, ''),
+                    subtotal, cgst, sgst, gst, packaging, delivery, discount, total,
+                    customer_name, customer_phone, customer_address
+             FROM orders
+             WHERE id = ?1
+             LIMIT 1",
+            [order_id],
+            |row| {
+                Ok((
+                    row.get::<_, i64>(0)?,         // id
+                    row.get::<_, String>(1)?,      // bill_no
+                    row.get::<_, String>(2)?,      // table_name
+                    row.get::<_, String>(3)?,      // area_name
+                    row.get::<_, String>(4)?,      // closed_at
+                    row.get::<_, String>(5)?,      // payment_status
+                    row.get::<_, String>(6)?,      // status
+                    row.get::<_, String>(7)?,      // void_reason
+                    row.get::<_, String>(8)?,      // voided_at
+                    row.get::<_, f64>(9)?,         // subtotal
+                    row.get::<_, f64>(10)?,        // cgst
+                    row.get::<_, f64>(11)?,        // sgst
+                    row.get::<_, f64>(12)?,        // gst
+                    row.get::<_, f64>(13)?,        // packaging
+                    row.get::<_, f64>(14)?,        // delivery
+                    row.get::<_, f64>(15)?,        // discount
+                    row.get::<_, f64>(16)?,        // total
+                    row.get::<_, String>(17)?,     // customer_name
+                    row.get::<_, String>(18)?,     // customer_phone
+                    row.get::<_, String>(19)?,     // customer_address
+                ))
+            },
+        )
+        .optional()?;
+
+    let Some((
+        id, bill_no, table_name, area_name, closed_at, payment_status,
+        status, void_reason, voided_at,
+        subtotal, cgst, sgst, gst, packaging, delivery, discount, total,
+        customer_name, customer_phone, customer_address,
+    )) = order
+    else {
+        return Ok(None);
+    };
+
+    // ---- Items ----
+    let mut stmt = conn.prepare(
+        "SELECT name, COALESCE(category, ''), quantity, unit_price, line_total,
+                COALESCE(note, '')
+         FROM order_items WHERE order_id = ?1",
+    )?;
+    let items = stmt
+        .query_map([order_id], |row| {
+            Ok(BillLineRow {
+                name: row.get(0)?,
+                category: row.get(1)?,
+                quantity: row.get(2)?,
+                unit_price: row.get(3)?,
+                line_total: row.get(4)?,
+                note: row.get(5)?,
+            })
+        })?
+        .collect::<Result<Vec<_>>>()?;
+
+    // ---- Payments ----
+    let mut stmt = conn.prepare(
+        "SELECT method, amount FROM payments WHERE order_id = ?1",
+    )?;
+    let payments = stmt
+        .query_map([order_id], |row| {
+            Ok(BillPaymentRow {
+                method: row.get(0)?,
+                amount: row.get(1)?,
+            })
+        })?
+        .collect::<Result<Vec<_>>>()?;
+
+    // ---- Edit history ----
+    let edit_history = crate::db::orders::get_order_edit_history(conn, order_id)
+        .unwrap_or_default();
+
+    Ok(Some(BillDetail {
+        id,
+        bill_no,
+        table_name,
+        area_name,
+        closed_at,
+        payment_status,
+        status,
+        void_reason,
+        voided_at,
+        subtotal,
+        cgst,
+        sgst,
+        gst,
+        packaging,
+        delivery,
+        discount,
+        total,
+        customer_name,
+        customer_phone,
+        customer_address,
+        items,
+        payments,
+        edit_history,
+    }))
 }

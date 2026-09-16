@@ -12,6 +12,7 @@ export component BillDetailView inherits Rectangle {
     callback back();
     callback void-bill();
     callback revive();
+    callback edit-bill();
 
     VerticalLayout {
         padding: 15px;
@@ -51,6 +52,25 @@ export component BillDetailView inherits Rectangle {
                 vertical-alignment: center;
             }
 
+            // Edit (only for closed bills)
+            if root.detail.status == "closed" : Rectangle {
+                width: 70px;
+                height: 32px;
+                background: edit-hover.has-hover
+                ? Theme.btn-neutral-hover
+                : Theme.btn-neutral;
+                border-radius: 4px;
+                edit-hover := TouchArea { clicked => { root.edit-bill(); } }
+                Text {
+                    text: "Edit";
+                    color: white;
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Revive (only for voided bills)
             if root.detail.status == "void" : Rectangle {
                 width: 100px;
                 height: 32px;
@@ -66,6 +86,7 @@ export component BillDetailView inherits Rectangle {
                 }
             }
 
+            // Void (only for closed bills)
             if root.detail.status == "closed" : Rectangle {
                 width: 80px;
                 height: 32px;
@@ -246,6 +267,26 @@ export component BillDetailView inherits Rectangle {
                             Text { text: root.currency + p.amount; color: #00ff00; font-size: 13px; }
                         }
                     }
+                }
+            }
+        }
+
+        // Edit History
+        if root.detail.edit-history.length > 0 : Rectangle {
+            background: #303030;
+            border-radius: 8px;
+            VerticalLayout {
+                padding: 10px;
+                spacing: 4px;
+                Text {
+                    text: "Edit History";
+                    color: #00ffff;
+                    font-size: 14px;
+                }
+                for e in root.detail.edit-history : Text {
+                    text: "• " + e;
+                    color: #cccccc;
+                    font-size: 12px;
                 }
             }
         }
