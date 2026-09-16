@@ -1,6 +1,7 @@
 import { ScrollView } from "std-widgets.slint";
 import { ReportBill, BillDetail } from "../../db-types.slint";
 import { BillDetailView } from "bill_detail.slint";
+import { SearchBox } from "../../components/search_box.slint";
 
 export component ReportBillsView inherits Rectangle {
     width: 100%;
@@ -12,6 +13,7 @@ export component ReportBillsView inherits Rectangle {
     in-out property <bool> detail-open: false;
     in-out property <bool> show-voided: false;
     in-out property <string> search-text: "";
+    in-out property <bool> focus-search-requested: false;
 
     callback bill-selected(int);
     callback back-to-list();
@@ -20,8 +22,8 @@ export component ReportBillsView inherits Rectangle {
     callback toggle-voided();
     callback search-changed(string);
     callback edit-bill();
+    callback key-pressed(string, bool, bool, bool, bool) -> bool;
 
-    // ---- Detail view (when a bill is selected) ----
     if root.detail-open : BillDetailView {
         detail: root.detail;
         currency: root.currency;
@@ -31,12 +33,10 @@ export component ReportBillsView inherits Rectangle {
         edit-bill => { root.edit-bill(); }
     }
 
-    // ---- List view ----
     if !root.detail-open : VerticalLayout {
         padding: 15px;
         spacing: 8px;
 
-        // Search box + toggle row
         HorizontalLayout {
             spacing: 8px;
 
@@ -46,10 +46,25 @@ export component ReportBillsView inherits Rectangle {
                 background: #d0d0d0;
                 border-radius: 4px;
                 clip: true;
+
+                SearchBox {
+                    horizontal-stretch: 1;
+                    height: 32px;
+                    text-size: 14px;
+                    text <=> root.search-text;
+                    focus-requested <=> root.focus-search-requested;
+                    edited(t) => {
+                        root.search-changed(t);
+                    }
+                    key-pressed(text, ctrl, shift, alt, meta) => {
+                        root.key-pressed(text, ctrl, shift, alt, meta)
+                    }
+                }
+                
                 HorizontalLayout {
                     padding-left: 10px;
                     padding-right: 6px;
-                    TextInput {
+                    search-box := TextInput {
                         horizontal-stretch: 1;
                         height: 100%;
                         color: black;
@@ -81,7 +96,6 @@ export component ReportBillsView inherits Rectangle {
                 }
             }
 
-            // Show voided toggle
             Rectangle {
                 width: 22px;
                 height: 22px;
@@ -106,7 +120,6 @@ export component ReportBillsView inherits Rectangle {
             }
         }
 
-        // Column headers
         HorizontalLayout {
             padding-left: 8px;
             padding-right: 8px;

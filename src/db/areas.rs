@@ -5,7 +5,6 @@ pub struct Area {
     pub id: i64,
     pub name: String,
     pub table_count: i64,
-    pub sort_order: i64,
 }
 
 pub fn get_all_areas(conn: &Connection) -> Result<Vec<Area>> {
@@ -20,7 +19,6 @@ pub fn get_all_areas(conn: &Connection) -> Result<Vec<Area>> {
                 id: row.get(0)?,
                 name: row.get(1)?,
                 table_count: row.get(2)?,
-                sort_order: row.get(3)?,
             })
         })?
         .collect::<Result<Vec<_>>>()?;

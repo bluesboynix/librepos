@@ -3,12 +3,16 @@ import { Theme } from "../theme.slint";
 import { AreaConfigSection } from "settings/area_config.slint";
 import { GstConfigSection } from "settings/gst_config.slint";
 import { CurrencyConfigSection } from "settings/currency_config.slint";
+import { ShortcutsConfigSection } from "settings/shortcuts_config.slint";
+import { ShortcutEntry } from "../db-types.slint";
+
 
 export component SettingsView inherits Rectangle {
     width: 100%;
     height: 100%;
 
     in property <[TableArea]> areas;
+    in property <[ShortcutEntry]> shortcuts;
 
     callback reorder-area(int, int);
     callback add-area();
@@ -16,7 +20,8 @@ export component SettingsView inherits Rectangle {
     callback update-area-name(int, string);
     callback gst-changed();
     callback currency-changed();
-
+    callback change-shortcut(string, string, string);
+    
     in-out property <string> cgst-text: "0";
     in-out property <string> sgst-text: "0";
     in-out property <string> currency: "₹";
@@ -51,6 +56,13 @@ export component SettingsView inherits Rectangle {
         CurrencyConfigSection {
             currency <=> root.currency;
             currency-changed => { root.currency-changed(); }
+        }
+
+        ShortcutsConfigSection {
+            shortcuts: root.shortcuts;
+            change-shortcut(action, description, current) => {
+                root.change-shortcut(action, description, current);
+            }
         }
 
         Rectangle { vertical-stretch: 1; }

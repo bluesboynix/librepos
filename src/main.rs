@@ -30,13 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ));
     window.set_menu_items(menu_items.clone().into());
 
-        // Menu categories (derived from items)
-    let menu_categories: Rc<VecModel<slint::SharedString>> =
-        Rc::new(VecModel::default());
-    window.set_menu_categories(menu_categories.clone().into());
-    utils::refresh_menu_categories(&menu_items, &menu_categories);
-    
-    // Filtered model (initially identical to full list)
+    // Filtered model
     let filtered_menu_items: Rc<VecModel<MenuItem>> = Rc::new(VecModel::from(
         (0..menu_items.row_count())
             .map(|i| menu_items.row_data(i).unwrap())
@@ -44,19 +38,24 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ));
     window.set_filtered_menu_items(filtered_menu_items.clone().into());
 
+    // Categories (derived)
+    let menu_categories: Rc<VecModel<slint::SharedString>> =
+        Rc::new(VecModel::default());
+    window.set_menu_categories(menu_categories.clone().into());
+    utils::refresh_menu_categories(&menu_items, &menu_categories);
+
     // Load areas
     let areas: Rc<VecModel<TableArea>> = Rc::new(VecModel::default());
     window.set_areas(areas.clone().into());
     setup::areas::rebuild_areas(&conn, &areas);
-    
+
     // Shared current ingredient model
     let current_ingredients: Rc<
         RefCell<Option<Rc<VecModel<IngredientRow>>>>,
     > = Rc::new(RefCell::new(None));
 
     // Order lines model
-    let order_lines: Rc<VecModel<OrderLine>> =
-        Rc::new(VecModel::default());
+    let order_lines: Rc<VecModel<OrderLine>> = Rc::new(VecModel::default());
     window.set_order_lines(order_lines.clone().into());
 
     // Setup callbacks
@@ -85,16 +84,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         areas.clone(),
     );
 
-        // Report models
+    // Report models
     let report_top_items: Rc<VecModel<ReportItem>> = Rc::new(VecModel::default());
     let report_payments: Rc<VecModel<ReportPayment>> = Rc::new(VecModel::default());
     let report_days: Rc<VecModel<ReportDay>> = Rc::new(VecModel::default());
     let report_bills: Rc<VecModel<ReportBill>> = Rc::new(VecModel::default());
 
-    window.set_report_bills(report_bills.clone().into());
     window.set_report_top_items(report_top_items.clone().into());
     window.set_report_payment_breakdown(report_payments.clone().into());
     window.set_report_daily_sales(report_days.clone().into());
+    window.set_report_bills(report_bills.clone().into());
 
     setup::reports::setup_reports_callbacks(
         &window,
@@ -105,21 +104,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         report_bills.clone(),
     );
 
-    // Initialize with today's date and load once
-    let today: String = conn
-        .query_row(
-            "SELECT date('now', 'localtime')",
-            [],
-            |row| row.get(0),
-        )
-        .unwrap_or_default();
-    window.set_report_from_date(today.clone().into());
-    window.set_report_to_date(today.clone().into());
+    // Shortcuts: load from DB, build display model, wire handler
+    let shortcut_map = setup::shortcuts::load_shortcuts(&conn);
+    setup::shortcuts::refresh_shortcut_entries(&window, &shortcut_map);
+    setup::shortcuts::setup_shortcuts(
+        &window,
+        conn.clone(),
+        shortcut_map.clone(),
+    );
 
-    // Trigger an initial refresh by firing the callback manually
-    window.invoke_load_reports(today.clone().into(), today.into());
-
-    
     window.on_quit(|| {
         std::process::exit(0);
     });

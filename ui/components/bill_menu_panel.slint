@@ -1,5 +1,6 @@
 import { MenuItem } from "../db-types.slint";
 import { Theme } from "../theme.slint";
+import { SearchBox } from "search_box.slint";
 
 export component BillMenuPanel inherits Rectangle {
     width: 100%;
@@ -10,9 +11,11 @@ export component BillMenuPanel inherits Rectangle {
     in property <[MenuItem]> menu-items;
     in property <string> currency: "₹";
     in-out property <string> search-text: "";
+    in-out property <bool> focus-search-requested: false;
 
     callback search-changed(string);
     callback add-order-line(string, float);
+    callback key-pressed(string, bool, bool, bool, bool) -> bool;
 
     VerticalLayout {
         alignment: start;
@@ -26,49 +29,20 @@ export component BillMenuPanel inherits Rectangle {
             horizontal-alignment: center;
         }
 
-        // Search box
-        Rectangle {
-            horizontal-stretch: 1;
+        // Single search box
+        SearchBox {
             height: 34px;
-            background: Theme.bg-input;
-            border-radius: Theme.radius-sm;
-            clip: true;
-            HorizontalLayout {
-                padding-left: Theme.pad-md;
-                padding-right: Theme.pad-sm;
-                TextInput {
-                    horizontal-stretch: 1;
-                    height: 100%;
-                    color: black;
-                    font-size: 15px;
-                    single-line: true;
-                    vertical-alignment: center;
-                    text <=> root.search-text;
-                    edited => { root.search-changed(self.text); }
-                }
-                Rectangle {
-                    width: 22px;
-                    height: 22px;
-                    background: clear-search-hover.has-hover ? #aaaaaa : #cccccc;
-                    border-radius: 11px;
-                    clear-search-hover := TouchArea {
-                        clicked => {
-                            root.search-text = "";
-                            root.search-changed("");
-                        }
-                    }
-                    Text {
-                        text: "×";
-                        color: black;
-                        font-size: 15px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
-                }
+            text-size: 15px;
+            text <=> root.search-text;
+            focus-requested <=> root.focus-search-requested;
+            edited(t) => {
+                root.search-changed(t);
+            }
+            key-pressed(text, ctrl, shift, alt, meta) => {
+                root.key-pressed(text, ctrl, shift, alt, meta)
             }
         }
 
-        // Scrollable menu items
         Flickable {
             viewport-width: self.width;
             viewport-height: menu-layout.preferred-height;

@@ -1,0 +1,159 @@
+import { Theme } from "../theme.slint";
+
+export component ShortcutCaptureDialog inherits Rectangle {
+    width: 100%;
+    height: 100%;
+    background: #000000aa;
+
+    in property <string> action: "";
+    in property <string> description: "";
+    in property <string> current: "";
+    in-out property <string> captured: "";
+
+    callback apply();
+    callback reset();
+    callback cancel();
+
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+    }
+
+    Rectangle {
+        x: (parent.width - 480px) / 2;
+        y: (parent.height - 260px) / 2;
+        width: 480px;
+        height: 260px;
+        background: Theme.bg-panel-alt;
+        border-radius: Theme.radius-md;
+        border-width: 2px;
+        border-color: Theme.accent;
+
+        VerticalLayout {
+            padding: 20px;
+            spacing: 12px;
+
+            Text {
+                text: "Change Shortcut";
+                color: Theme.accent;
+                font-size: 18px;
+                horizontal-alignment: center;
+            }
+            Text {
+                text: root.description;
+                color: Theme.text-primary;
+                font-size: 14px;
+                horizontal-alignment: center;
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+                Text {
+                    text: "Current:";
+                    color: Theme.text-secondary;
+                    width: 80px;
+                    vertical-alignment: center;
+                }
+                Text {
+                    text: root.current;
+                    color: Theme.text-note;
+                    horizontal-stretch: 1;
+                    vertical-alignment: center;
+                }
+            }
+
+            HorizontalLayout {
+                spacing: 10px;
+                Text {
+                    text: "New:";
+                    color: Theme.text-secondary;
+                    width: 80px;
+                    vertical-alignment: center;
+                }
+                Rectangle {
+                    horizontal-stretch: 1;
+                    height: 40px;
+                    background: #202020;
+                    border-radius: Theme.radius-sm;
+                    border-width: 1px;
+                    border-color: Theme.border-subtle;
+                    Text {
+                        text: root.captured == ""
+                            ? "Press any key combination..."
+                            : root.captured;
+                        color: root.captured == "" ? Theme.text-dim : Theme.text-note;
+                        font-size: 15px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            Rectangle { vertical-stretch: 1; }
+
+            HorizontalLayout {
+                spacing: 10px;
+                alignment: center;
+
+                Rectangle {
+                    width: 90px;
+                    height: 38px;
+                    background: (root.captured != "" && apply-hover.has-hover)
+                        ? Theme.btn-save-hover
+                        : (root.captured != "" ? Theme.btn-save : #555555);
+                    border-radius: Theme.radius-md;
+                    apply-hover := TouchArea {
+                        clicked => {
+                            if root.captured != "" {
+                                root.apply();
+                            }
+                        }
+                    }
+                    Text {
+                        text: "Save";
+                        color: root.captured != "" ? white : Theme.text-dim;
+                        font-size: 13px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+                Rectangle {
+                    width: 110px;
+                    height: 38px;
+                    background: reset-hover.has-hover
+                        ? Theme.btn-neutral-hover
+                        : Theme.btn-neutral;
+                    border-radius: Theme.radius-md;
+                    reset-hover := TouchArea {
+                        clicked => { root.reset(); }
+                    }
+                    Text {
+                        text: "Reset";
+                        color: white;
+                        font-size: 13px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+                Rectangle {
+                    width: 90px;
+                    height: 38px;
+                    background: cancel-hover.has-hover
+                        ? Theme.btn-neutral-hover
+                        : Theme.btn-neutral;
+                    border-radius: Theme.radius-md;
+                    cancel-hover := TouchArea {
+                        clicked => { root.cancel(); }
+                    }
+                    Text {
+                        text: "Cancel";
+                        color: white;
+                        font-size: 13px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,6 +1,7 @@
 import { MenuItem } from "../db-types.slint";
 import { Theme } from "../theme.slint";
 import { CategoryTabs } from "../components/category_tabs.slint";
+import { SearchBox } from "../components/search_box.slint";
 
 export component MenuView inherits Rectangle {
     width: 100%;
@@ -11,11 +12,13 @@ export component MenuView inherits Rectangle {
     in property <string> currency: "₹";
     in-out property <string> search-text: "";
     in-out property <string> active-category: "";
+    in-out property <bool> focus-search-requested: false;
 
     callback filter-changed(string, string);
     callback add-item();
     callback remove-item(int);
     callback open-item(int);
+    callback key-pressed(string, bool, bool, bool, bool) -> bool;
 
     VerticalLayout {
         padding: 20px;
@@ -28,7 +31,6 @@ export component MenuView inherits Rectangle {
             horizontal-alignment: center;
         }
 
-        // Category tabs
         CategoryTabs {
             categories: root.categories;
             active <=> root.active-category;
@@ -37,17 +39,30 @@ export component MenuView inherits Rectangle {
             }
         }
 
-        // Search box
         Rectangle {
             horizontal-stretch: 1;
             height: 36px;
             background: #d0d0d0;
             border-radius: 4px;
             clip: true;
+
+            SearchBox {
+                height: 36px;
+                text-size: 15px;
+                text <=> root.search-text;
+                focus-requested <=> root.focus-search-requested;
+                edited(t) => {
+                    root.filter-changed(t, root.active-category);
+                }
+                key-pressed(text, ctrl, shift, alt, meta) => {
+                    root.key-pressed(text, ctrl, shift, alt, meta)
+                }
+            }
+            
             HorizontalLayout {
                 padding-left: 10px;
                 padding-right: 6px;
-                TextInput {
+                search-box := TextInput {
                     horizontal-stretch: 1;
                     height: 100%;
                     color: black;
@@ -81,7 +96,6 @@ export component MenuView inherits Rectangle {
             }
         }
 
-        // Add Item button
         Rectangle {
             height: 34px;
             width: 140px;
@@ -99,7 +113,6 @@ export component MenuView inherits Rectangle {
             }
         }
 
-        // Items list
         for item[i] in root.items : Rectangle {
             height: 48px;
             background: Math.mod(i, 2) == 0 ? #404040 : #505050;

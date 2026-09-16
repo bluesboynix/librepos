@@ -12,6 +12,7 @@ export component ReportsView inherits Rectangle {
     width: 100%;
     height: 100%;
 
+    in-out property <bool> focus-search-requested: false;
     in-out property <string> bills-search-text: "";
     callback filter-bills(string);
     in-out property <string> from-date: "";
@@ -39,6 +40,7 @@ export component ReportsView inherits Rectangle {
     callback revive();
     callback toggle-voided();
     callback edit-bill();
+    callback key-pressed(string, bool, bool, bool, bool) -> bool;
 
     VerticalLayout {
         padding: 15px;
@@ -103,6 +105,10 @@ export component ReportsView inherits Rectangle {
                 edit-bill => { root.edit-bill(); }
                 search-text <=> root.bills-search-text;
                 search-changed(query) => { root.filter-bills(query); }
+                focus-search-requested <=> root.focus-search-requested;
+                key-pressed(text, ctrl, shift, alt, meta) => {
+                    root.key-pressed(text, ctrl, shift, alt, meta)
+                }
             }
         }
     }

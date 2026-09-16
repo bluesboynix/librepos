@@ -1,0 +1,68 @@
+import { ShortcutEntry } from "../../db-types.slint";
+import { Theme } from "../../theme.slint";
+
+export component ShortcutsConfigSection inherits Rectangle {
+    width: 100%;
+    background: transparent;
+
+    in property <[ShortcutEntry]> shortcuts;
+
+    callback change-shortcut(string, string, string);
+
+    VerticalLayout {
+        spacing: Theme.pad-md;
+
+        Text {
+            text: "Keyboard Shortcuts";
+            color: Theme.accent;
+            font-size: 18px;
+            horizontal-alignment: left;
+        }
+
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text { text: "Action"; color: Theme.accent; font-weight: 700; width: 260px; }
+            Text { text: "Shortcut"; color: Theme.accent; font-weight: 700; horizontal-stretch: 1; }
+            Text { text: ""; color: white; width: 90px; }
+        }
+        Rectangle { height: 1px; background: Theme.border-line; }
+
+        for s[i] in root.shortcuts : HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: s.description;
+                color: Theme.text-primary;
+                width: 260px;
+                font-size: 13px;
+                vertical-alignment: center;
+            }
+            Text {
+                text: s.combo;
+                color: Theme.text-note;
+                horizontal-stretch: 1;
+                font-size: 13px;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                width: 90px;
+                height: 28px;
+                background: change-hover.has-hover
+                    ? Theme.btn-neutral-hover
+                    : Theme.btn-neutral;
+                border-radius: Theme.radius-sm;
+                change-hover := TouchArea {
+                    clicked => {
+                        root.change-shortcut(s.action, s.description, s.combo);
+                    }
+                }
+                Text {
+                    text: "Change";
+                    color: white;
+                    font-size: 12px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}
