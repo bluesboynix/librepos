@@ -455,4 +455,32 @@ pub fn setup_reports_callbacks(
         window.set_bills_detail_open(false);
         window.invoke_open_table(table_name.into());
     });
+
+    // ==================== EXPORT REPORTS ====================
+    let weak_window_exp = window.as_weak();
+    let conn_exp = conn.clone();
+    window.on_export_reports(move |from, to| {
+        let Some(window) = weak_window_exp.upgrade() else {
+            return;
+        };
+        let from_s = from.to_string();
+        let to_s = to.to_string();
+        match db::export::export_reports(&conn_exp, &from_s, &to_s) {
+            Ok(dir) => {
+                window.set_export_dialog_message(
+                    format!(
+                        "Saved 3 CSV files to ./{}/\n\nbills_{}_{}.csv\nitems_{}_{}.csv\npayments_{}_{}.csv",
+                        dir, from_s, to_s, from_s, to_s, from_s, to_s
+                    )
+                        .into(),
+                );
+            }
+            Err(e) => {
+                window.set_export_dialog_message(
+                    format!("Export failed:\n{}", e).into(),
+                );
+            }
+        }
+        window.set_export_dialog_open(true);
+    });
 }

@@ -108,7 +108,7 @@ pub fn setup_shortcuts(
             return true;
         }
 
-        // ---- Esc handling (navigation) ----
+        // ---- Esc handling ----
         if text == "\u{1b}" {
             if window.get_quit_dialog_open() {
                 window.set_quit_dialog_open(false);
@@ -118,6 +118,8 @@ pub fn setup_shortcuts(
                 window.set_void_dialog_open(false);
             } else if window.get_unpaid_dialog_open() {
                 window.set_unpaid_dialog_open(false);
+            } else if window.get_export_dialog_open() {
+                window.set_export_dialog_open(false);
             } else if window.get_sidebar_open() {
                 window.set_sidebar_open(false);
             } else if window.get_current_view() != 4
@@ -137,7 +139,7 @@ pub fn setup_shortcuts(
             return true;
         }
 
-        // ---- Look up combo in map ----
+        // ---- Lookup action from map ----
         let matched_action: Option<String> = {
             let borrowed = map_key.borrow();
             borrowed

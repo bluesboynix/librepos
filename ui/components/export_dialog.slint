@@ -1,0 +1,67 @@
+import { Theme } from "../theme.slint";
+
+export component ExportDialog inherits Rectangle {
+    width: 100%;
+    height: 100%;
+    background: #000000aa;
+
+    in property <string> message: "";
+
+    callback close();
+
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+        clicked => { root.close(); }
+    }
+
+    Rectangle {
+        x: (parent.width - 420px) / 2;
+        y: (parent.height - 180px) / 2;
+        width: 420px;
+        height: 180px;
+        background: Theme.bg-panel-alt;
+        border-radius: Theme.radius-md;
+        border-width: 2px;
+        border-color: Theme.btn-save;
+
+        VerticalLayout {
+            padding: 20px;
+            spacing: 12px;
+
+            Text {
+                text: "Export Complete";
+                color: Theme.btn-save;
+                font-size: 18px;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: root.message;
+                color: Theme.text-primary;
+                font-size: 13px;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+                vertical-stretch: 1;
+                vertical-alignment: center;
+            }
+
+            Rectangle {
+                width: 100px;
+                height: 36px;
+                background: close-hover.has-hover
+                    ? Theme.btn-neutral-hover
+                    : Theme.btn-neutral;
+                border-radius: Theme.radius-md;
+                close-hover := TouchArea { clicked => { root.close(); } }
+                Text {
+                    text: "OK";
+                    color: white;
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+        }
+    }
+}

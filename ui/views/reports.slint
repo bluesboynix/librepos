@@ -12,9 +12,6 @@ export component ReportsView inherits Rectangle {
     width: 100%;
     height: 100%;
 
-    in-out property <bool> focus-search-requested: false;
-    in-out property <string> bills-search-text: "";
-    callback filter-bills(string);
     in-out property <string> from-date: "";
     in-out property <string> to-date: "";
     in-out property <int> active-tab: 0;
@@ -31,6 +28,8 @@ export component ReportsView inherits Rectangle {
     in property <BillDetail> current-bill-detail;
     in-out property <bool> bills-detail-open: false;
     in-out property <bool> bills-show-voided: false;
+    in-out property <string> bills-search-text: "";
+    in-out property <bool> focus-search-requested: false;
 
     callback refresh(string, string);
     callback quick-range(int);
@@ -39,18 +38,47 @@ export component ReportsView inherits Rectangle {
     callback void-bill();
     callback revive();
     callback toggle-voided();
+    callback filter-bills(string);
     callback edit-bill();
+    callback export-reports(string, string);
     callback key-pressed(string, bool, bool, bool, bool) -> bool;
 
     VerticalLayout {
         padding: 15px;
         spacing: Theme.pad-md;
 
-        Text {
-            text: "Reports";
-            font-size: 22px;
-            color: #fafafa;
-            horizontal-alignment: center;
+        // Header: title + Export CSV button
+        HorizontalLayout {
+            spacing: 10px;
+
+            Text {
+                text: "Reports";
+                font-size: 22px;
+                color: #fafafa;
+                horizontal-stretch: 1;
+                vertical-alignment: center;
+            }
+
+            Rectangle {
+                width: 120px;
+                height: 32px;
+                background: export-hover.has-hover
+                    ? Theme.btn-save-hover
+                    : Theme.btn-save;
+                border-radius: Theme.radius-sm;
+                export-hover := TouchArea {
+                    clicked => {
+                        root.export-reports(root.from-date, root.to-date);
+                    }
+                }
+                Text {
+                    text: "Export CSV";
+                    color: white;
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
         }
 
         DateRangeBar {
@@ -65,6 +93,7 @@ export component ReportsView inherits Rectangle {
             active-tab <=> root.active-tab;
         }
 
+        // Tab content
         Rectangle {
             vertical-stretch: 1;
             background: Theme.bg-panel-alt;
@@ -97,15 +126,15 @@ export component ReportsView inherits Rectangle {
                 detail: root.current-bill-detail;
                 detail-open <=> root.bills-detail-open;
                 show-voided <=> root.bills-show-voided;
+                search-text <=> root.bills-search-text;
+                focus-search-requested <=> root.focus-search-requested;
                 bill-selected(order-id) => { root.load-bill-detail(order-id); }
                 back-to-list => { root.clear-bill-detail(); }
                 void-bill => { root.void-bill(); }
                 revive => { root.revive(); }
                 toggle-voided => { root.toggle-voided(); }
-                edit-bill => { root.edit-bill(); }
-                search-text <=> root.bills-search-text;
                 search-changed(query) => { root.filter-bills(query); }
-                focus-search-requested <=> root.focus-search-requested;
+                edit-bill => { root.edit-bill(); }
                 key-pressed(text, ctrl, shift, alt, meta) => {
                     root.key-pressed(text, ctrl, shift, alt, meta)
                 }

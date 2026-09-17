@@ -14,6 +14,7 @@ import { VoidDialog } from "components/void_dialog.slint";
 import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill, BillDetail, ShortcutEntry } from "db-types.slint";
 
 import { ShortcutCaptureDialog } from "components/shortcut_capture_dialog.slint";
+import { ExportDialog } from "components/export_dialog.slint";
 
 export component MainWindow inherits Window {
     preferred-width: 100%;
@@ -92,7 +93,11 @@ export component MainWindow inherits Window {
     in-out property <bool> bills-detail-open: false;
     in-out property <bool> bills-show-voided: false;
     in-out property <string> bills-search-text: "";
+    in-out property <bool> export-dialog-open: false;
+    in-out property <string> export-dialog-message: "";
+    
 
+    callback export-reports(string, string);
     callback quit();
     callback home();
     callback add-area();
@@ -220,6 +225,9 @@ export component MainWindow inherits Window {
                     focus-search-requested <=> root.focus-search-requested;
                     key-pressed(text, ctrl, shift, alt, meta) => {
                         root.key-pressed(text, ctrl, shift, alt, meta)
+                    }
+                    export-reports(from, to) => {
+                        root.export-reports(from, to);
                     }
                 }
 
@@ -447,5 +455,14 @@ export component MainWindow inherits Window {
         apply => { root.apply-shortcut-capture(); }
         reset => { root.reset-shortcut-capture(); }
         cancel => { root.cancel-shortcut-capture(); }
+    }
+
+    if root.export-dialog-open : ExportDialog {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        message: root.export-dialog-message;
+        close => { root.export-dialog-open = false; }
     }
 }
