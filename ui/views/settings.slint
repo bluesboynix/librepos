@@ -1,11 +1,12 @@
 import { TableArea } from "../db-types.slint";
+import { ShortcutEntry } from "../db-types.slint";
 import { Theme } from "../theme.slint";
 import { AreaConfigSection } from "settings/area_config.slint";
 import { GstConfigSection } from "settings/gst_config.slint";
 import { CurrencyConfigSection } from "settings/currency_config.slint";
 import { ShortcutsConfigSection } from "settings/shortcuts_config.slint";
-import { ShortcutEntry } from "../db-types.slint";
-
+import { StoreConfigSection } from "settings/store_config.slint";
+import { ScrollView } from "std-widgets.slint";
 
 export component SettingsView inherits Rectangle {
     width: 100%;
@@ -14,57 +15,75 @@ export component SettingsView inherits Rectangle {
     in property <[TableArea]> areas;
     in property <[ShortcutEntry]> shortcuts;
 
-    callback reorder-area(int, int);
-    callback add-area();
-    callback remove-area(int);
-    callback update-area-name(int, string);
-    callback gst-changed();
-    callback currency-changed();
-    callback change-shortcut(string, string, string);
-    
     in-out property <string> cgst-text: "0";
     in-out property <string> sgst-text: "0";
     in-out property <string> currency: "₹";
+    in-out property <string> store-name-text: "";
+    in-out property <string> store-address-text: "";
+    in-out property <string> store-phone-text: "";
+    in-out property <string> store-footer-text: "";
 
-    VerticalLayout {
-        padding: Theme.pad-xl;
-        spacing: Theme.pad-xl;
+    callback add-area();
+    callback remove-area(int);
+    callback update-area-name(int, string);
+    callback reorder-area(int, int);
+    callback gst-changed();
+    callback currency-changed();
+    callback change-shortcut(string, string, string);
+    callback store-info-changed();
 
-        Text {
-            text: "Settings";
-            font-size: 24px;
-            color: #fafafa;
-            horizontal-alignment: center;
-        }
+    ScrollView {
+        width: 100%;
+        height: 100%;
 
-        AreaConfigSection {
-            areas: root.areas;
-            add-area => { root.add-area(); }
-            reorder-area(from, to) => { root.reorder-area(from, to); }
-            remove-area(index) => { root.remove-area(index); }
-            update-area-name(index, name) => {
-                root.update-area-name(index, name);
+        VerticalLayout {
+            padding: Theme.pad-xl;
+            spacing: Theme.pad-xl;
+
+            Text {
+                text: "Settings";
+                font-size: 24px;
+                color: #fafafa;
+                horizontal-alignment: center;
+            }
+
+            StoreConfigSection {
+                store-name-text <=> root.store-name-text;
+                store-address-text <=> root.store-address-text;
+                store-phone-text <=> root.store-phone-text;
+                store-footer-text <=> root.store-footer-text;
+                store-info-changed => { root.store-info-changed(); }
+            }
+
+            AreaConfigSection {
+                areas: root.areas;
+                add-area => { root.add-area(); }
+                remove-area(index) => { root.remove-area(index); }
+                update-area-name(index, name) => {
+                    root.update-area-name(index, name);
+                }
+                reorder-area(from, to) => {
+                    root.reorder-area(from, to);
+                }
+            }
+
+            GstConfigSection {
+                cgst-text <=> root.cgst-text;
+                sgst-text <=> root.sgst-text;
+                gst-changed => { root.gst-changed(); }
+            }
+
+            CurrencyConfigSection {
+                currency <=> root.currency;
+                currency-changed => { root.currency-changed(); }
+            }
+
+            ShortcutsConfigSection {
+                shortcuts: root.shortcuts;
+                change-shortcut(action, description, current) => {
+                    root.change-shortcut(action, description, current);
+                }
             }
         }
-
-        GstConfigSection {
-            cgst-text <=> root.cgst-text;
-            sgst-text <=> root.sgst-text;
-            gst-changed => { root.gst-changed(); }
-        }
-
-        CurrencyConfigSection {
-            currency <=> root.currency;
-            currency-changed => { root.currency-changed(); }
-        }
-
-        ShortcutsConfigSection {
-            shortcuts: root.shortcuts;
-            change-shortcut(action, description, current) => {
-                root.change-shortcut(action, description, current);
-            }
-        }
-
-        Rectangle { vertical-stretch: 1; }
     }
 }

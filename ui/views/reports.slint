@@ -45,7 +45,8 @@ export component ReportsView inherits Rectangle {
     callback export-reports(string, string);
     callback key-pressed(string, bool, bool, bool, bool) -> bool;
     callback filter-changed(string);    
-
+    callback preview-bill();
+    
     VerticalLayout {
         padding: 15px;
         spacing: Theme.pad-md;
@@ -144,6 +145,7 @@ export component ReportsView inherits Rectangle {
                 key-pressed(text, ctrl, shift, alt, meta) => {
                     root.key-pressed(text, ctrl, shift, alt, meta)
                 }
+                preview-bill => { root.preview-bill(); }
             }
         }
     }

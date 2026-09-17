@@ -11,16 +11,42 @@ export component DashboardView inherits Rectangle {
     in-out property <string> selected-table: "";
     callback table-selected(string);
     callback set-tables(int, int);
+    callback refresh-dashboard();
 
     VerticalLayout {
         padding: Theme.pad-xl;
         spacing: Theme.pad-xl;
 
-        Text {
-            text: "Dashboard";
-            font-size: 24px;
-            color: #fafafa;
-            horizontal-alignment: center;
+        // Header: title + refresh button
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+
+            Text {
+                text: "Dashboard";
+                font-size: 24px;
+                color: #fafafa;
+                horizontal-stretch: 1;
+                vertical-alignment: center;
+            }
+
+            Rectangle {
+                width: 90px;
+                height: 32px;
+                background: refresh-hover.has-hover
+                    ? Theme.btn-neutral-hover
+                    : Theme.btn-neutral;
+                border-radius: Theme.radius-sm;
+                refresh-hover := TouchArea {
+                    clicked => { root.refresh-dashboard(); }
+                }
+                Text {
+                    text: "↻ Refresh";
+                    color: white;
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
         }
 
         for area[i] in root.areas : AreaSection {

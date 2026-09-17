@@ -1,0 +1,144 @@
+import { Theme } from "../../theme.slint";
+
+export component StoreConfigSection inherits Rectangle {
+    width: 100%;
+    background: transparent;
+
+    in-out property <string> store-name-text: "";
+    in-out property <string> store-address-text: "";
+    in-out property <string> store-phone-text: "";
+    in-out property <string> store-footer-text: "";
+
+    callback store-info-changed();
+
+    VerticalLayout {
+        spacing: Theme.pad-md;
+
+        Text {
+            text: "Store Information";
+            color: Theme.accent;
+            font-size: 18px;
+            horizontal-alignment: left;
+        }
+
+        Text {
+            text: "Appears at the top of printed bills";
+            color: Theme.text-dim;
+            font-size: 12px;
+        }
+
+        // Store name
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: "Name:";
+                color: Theme.text-primary;
+                width: 80px;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    font-size: 14px;
+                    vertical-alignment: center;
+                    text <=> root.store-name-text;
+                    edited => { root.store-info-changed(); }
+                }
+            }
+        }
+
+        // Store address (multi-line)
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: "Address:";
+                color: Theme.text-primary;
+                width: 80px;
+                vertical-alignment: top;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 60px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                HorizontalLayout {
+                    padding: 6px;
+                    TextInput {
+                        horizontal-stretch: 1;
+                        height: 100%;
+                        color: black;
+                        wrap: word-wrap;
+                        font-size: 14px;
+                        text <=> root.store-address-text;
+                        edited => { root.store-info-changed(); }
+                    }
+                }
+            }
+        }
+
+        // Phone
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: "Phone:";
+                color: Theme.text-primary;
+                width: 80px;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    font-size: 14px;
+                    vertical-alignment: center;
+                    text <=> root.store-phone-text;
+                    edited => { root.store-info-changed(); }
+                }
+            }
+        }
+
+        // Footer message
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: "Footer:";
+                color: Theme.text-primary;
+                width: 80px;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    font-size: 14px;
+                    vertical-alignment: center;
+                    text <=> root.store-footer-text;
+                    edited => { root.store-info-changed(); }
+                }
+            }
+        }
+    }
+}

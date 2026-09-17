@@ -23,6 +23,7 @@ export component ReportBillsView inherits Rectangle {
     callback search-changed(string);
     callback edit-bill();
     callback key-pressed(string, bool, bool, bool, bool) -> bool;
+    callback preview-bill();
 
     if root.detail-open : BillDetailView {
         detail: root.detail;
@@ -31,6 +32,7 @@ export component ReportBillsView inherits Rectangle {
         void-bill => { root.void-bill(); }
         revive => { root.revive(); }
         edit-bill => { root.edit-bill(); }
+        preview-bill => { root.preview-bill(); }
     }
 
     if !root.detail-open : VerticalLayout {

@@ -169,4 +169,14 @@ pub fn setup_area_callbacks(
             rebuild_areas(&conn_reorder, &model);
         }
     });
+
+    // Refresh dashboard from DB
+    let conn_refresh = conn.clone();
+    let weak_areas_refresh = Rc::downgrade(&areas);
+    window.on_refresh_dashboard(move || {
+        if let Some(model) = weak_areas_refresh.upgrade() {
+            rebuild_areas(&conn_refresh, &model);
+        }
+    });
+
 }

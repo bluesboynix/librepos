@@ -16,6 +16,8 @@ import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportIte
 import { ShortcutCaptureDialog } from "components/shortcut_capture_dialog.slint";
 import { ExportDialog } from "components/export_dialog.slint";
 
+import { BillPreview } from "components/bill_preview.slint";
+
 export component MainWindow inherits Window {
     preferred-width: 100%;
     preferred-height: 100%;
@@ -23,6 +25,8 @@ export component MainWindow inherits Window {
     background: #505050;
 
     forward-focus: main-scope;
+
+    in-out property <bool> bill-preview-open: false;
 
     in-out property <bool> focus-search-requested: false;
     in property <[ShortcutEntry]> shortcut-entries;
@@ -70,7 +74,6 @@ export component MainWindow inherits Window {
     in-out property <string> shortcut-capture-current: "";
     in-out property <string> shortcut-capture-new: "";
     
-
     in-out property <bool> note-dialog-open: false;
     in-out property <int> note-dialog-line-index: -1;
     in-out property <string> note-dialog-text: "";
@@ -78,6 +81,11 @@ export component MainWindow inherits Window {
 
     in-out property <string> void-reason: "";
 
+    in-out property <string> store-name-text: "";
+    in-out property <string> store-address-text: "";
+    in-out property <string> store-phone-text: "";
+    in-out property <string> store-footer-text: "";
+    
     in-out property <string> report-from-date: "";
     in-out property <string> report-to-date: "";
     in-out property <int> report-active-tab: 0;
@@ -146,7 +154,10 @@ export component MainWindow inherits Window {
     callback apply-shortcut-capture();
     callback cancel-shortcut-capture();
     callback reset-shortcut-capture();
-
+    callback refresh-dashboard();
+    callback store-info-changed();
+    callback preview-bill();
+    
     main-scope := FocusScope {
         key-pressed(event) => {
             root.key-pressed(
@@ -194,6 +205,7 @@ export component MainWindow inherits Window {
                     set-tables(area-index, new-count) => {
                         root.set-tables(area-index, new-count);
                     }
+                    refresh-dashboard => { root.refresh-dashboard(); }
                 }
 
                 // Reports
@@ -234,6 +246,7 @@ export component MainWindow inherits Window {
                     export-reports(from, to) => {
                         root.export-reports(from, to);
                     }
+                    preview-bill => { root.bill-preview-open = true; }
                 }
 
                 // Menu
@@ -261,6 +274,11 @@ export component MainWindow inherits Window {
                     currency: root.currency;
                     cgst-text <=> root.cgst-text;
                     sgst-text <=> root.sgst-text;
+                    shortcuts: root.shortcut-entries;
+                    store-name-text <=> root.store-name-text;
+                    store-address-text <=> root.store-address-text;
+                    store-phone-text <=> root.store-phone-text;
+                    store-footer-text <=> root.store-footer-text;
                     add-area => { root.add-area(); }
                     remove-area(index) => { root.remove-area(index); }
                     update-area-name(index, name) => {
@@ -271,10 +289,10 @@ export component MainWindow inherits Window {
                     }
                     gst-changed => { root.recalculate-gst(); }
                     currency-changed => { root.currency-changed(); }
-                    shortcuts: root.shortcut-entries;
                     change-shortcut(action, description, current) => {
                         root.start-shortcut-capture(action, description, current);
                     }
+                    store-info-changed => { root.store-info-changed(); }
                 }
 
                 // Bill
@@ -469,5 +487,19 @@ export component MainWindow inherits Window {
         height: parent.height;
         message: root.export-dialog-message;
         close => { root.export-dialog-open = false; }
+    }
+
+    if root.bill-preview-open : BillPreview {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        detail: root.current-bill-detail;
+        currency: root.currency;
+        store-name: root.store-name-text;
+        store-address: root.store-address-text;
+        store-phone: root.store-phone-text;
+        store-footer: root.store-footer-text;
+        close => { root.bill-preview-open = false; }
     }
 }

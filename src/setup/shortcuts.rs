@@ -123,9 +123,10 @@ pub fn setup_shortcuts(
             } else if window.get_sidebar_open() {
                 window.set_sidebar_open(false);
             } else if window.get_current_view() != 4
-                && window.get_current_view() != 0
-            {
+                && window.get_current_view() != 0 {
                 window.set_current_view(0);
+            } else if window.get_bill_preview_open() {
+                window.set_bill_preview_open(false);
             }
             return true;
         }

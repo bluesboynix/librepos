@@ -1,0 +1,309 @@
+import { BillDetail } from "../db-types.slint";
+import { ScrollView } from "std-widgets.slint";
+import { Theme } from "../theme.slint";
+
+
+export component BillPreview inherits Rectangle {
+    width: 100%;
+    height: 100%;
+    background: #000000aa;
+
+    in property <BillDetail> detail;
+    in property <string> currency: "₹";
+    in property <string> store-name: "";
+    in property <string> store-address: "";
+    in property <string> store-phone: "";
+    in property <string> store-footer: "";
+
+    callback close();
+
+    // Absorb background clicks
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+        clicked => { root.close(); }
+    }
+
+    // Centered dialog
+    Rectangle {
+        x: (parent.width - 380px) / 2;
+        y: (parent.height - 640px) / 2;
+        width: 380px;
+        height: 640px;
+        background: white;
+        border-radius: 6px;
+        border-width: 1px;
+        border-color: #888888;
+
+        VerticalLayout {
+            padding: 12px;
+            spacing: 6px;
+
+            // Close row
+            HorizontalLayout {
+                spacing: 6px;
+                Rectangle {
+                    horizontal-stretch: 1;
+                }
+                Rectangle {
+                    width: 30px;
+                    height: 26px;
+                    background: close-hover.has-hover ? #cc3333 : #aa2222;
+                    border-radius: 4px;
+                    close-hover := TouchArea { clicked => { root.close(); } }
+                    Text {
+                        text: "✕";
+                        color: white;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+
+            // Scrollable receipt
+            ScrollView {
+                horizontal-stretch: 1;
+                vertical-stretch: 1;
+
+                receipt-content := Rectangle {
+                    width: 100%;
+                    background: white;
+
+                    VerticalLayout {
+                        spacing: 4px;
+
+                        // ===== Store header =====
+                        if root.store-name != "" : Text {
+                            text: root.store-name;
+                            color: black;
+                            font-size: 16px;
+                            font-weight: 700;
+                            horizontal-alignment: center;
+                        }
+                        if root.store-address != "" : Text {
+                            text: root.store-address;
+                            color: black;
+                            font-size: 11px;
+                            horizontal-alignment: center;
+                            wrap: word-wrap;
+                        }
+                        if root.store-phone != "" : Text {
+                            text: "Ph: " + root.store-phone;
+                            color: black;
+                            font-size: 11px;
+                            horizontal-alignment: center;
+                        }
+
+                        Text {
+                            text: "------------------------------------------";
+                            color: black;
+                            font-size: 11px;
+                            horizontal-alignment: center;
+                        }
+
+                        // ===== Bill meta =====
+                        Text {
+                            text: "Bill No : " + root.detail.bill-no;
+                            color: black;
+                            font-size: 12px;
+                        }
+                        Text {
+                            text: "Table   : " + root.detail.table-name;
+                            color: black;
+                            font-size: 12px;
+                        }
+                        Text {
+                            text: "Area    : " + root.detail.area-name;
+                            color: black;
+                            font-size: 12px;
+                        }
+                        Text {
+                            text: "Closed  : " + root.detail.closed-at;
+                            color: black;
+                            font-size: 11px;
+                        }
+
+                        // ===== Customer =====
+                        if root.detail.customer-name != "" : Text {
+                            text: "Customer: " + root.detail.customer-name;
+                            color: black;
+                            font-size: 12px;
+                        }
+                        if root.detail.customer-phone != "" : Text {
+                            text: "Phone   : " + root.detail.customer-phone;
+                            color: black;
+                            font-size: 12px;
+                        }
+
+                        Text {
+                            text: "------------------------------------------";
+                            color: black;
+                            font-size: 11px;
+                            horizontal-alignment: center;
+                        }
+
+                        // ===== Item header =====
+                        HorizontalLayout {
+                            spacing: 4px;
+                            Text {
+                                text: "Item";
+                                color: black;
+                                font-size: 12px;
+                                font-weight: 700;
+                                horizontal-stretch: 1;
+                            }
+                            Text {
+                                text: "Qty";
+                                color: black;
+                                font-size: 12px;
+                                font-weight: 700;
+                                width: 40px;
+                                horizontal-alignment: center;
+                            }
+                            Text {
+                                text: "Amount";
+                                color: black;
+                                font-size: 12px;
+                                font-weight: 700;
+                                width: 80px;
+                                horizontal-alignment: right;
+                            }
+                        }
+
+                        // ===== Item rows =====
+                        for item[i] in root.detail.items : VerticalLayout {
+                            spacing: 0px;
+                            HorizontalLayout {
+                                spacing: 4px;
+                                Text {
+                                    text: item.name;
+                                    color: black;
+                                    font-size: 12px;
+                                    horizontal-stretch: 1;
+                                    wrap: word-wrap;
+                                }
+                                Text {
+                                    text: item.quantity;
+                                    color: black;
+                                    font-size: 12px;
+                                    width: 40px;
+                                    horizontal-alignment: center;
+                                }
+                                Text {
+                                    text: item.line-total;
+                                    color: black;
+                                    font-size: 12px;
+                                    width: 80px;
+                                    horizontal-alignment: right;
+                                }
+                            }
+                            if item.note != "" : Text {
+                                text: "  * " + item.note;
+                                color: #555555;
+                                font-size: 10px;
+                            }
+                        }
+
+                        Text {
+                            text: "------------------------------------------";
+                            color: black;
+                            font-size: 11px;
+                            horizontal-alignment: center;
+                        }
+
+                        // ===== Totals =====
+                        HorizontalLayout {
+                            spacing: 4px;
+                            Text { text: "Subtotal"; color: black; font-size: 12px; horizontal-stretch: 1; }
+                            Text { text: root.detail.subtotal; color: black; font-size: 12px; }
+                        }
+                        if root.detail.cgst != "0.00" : HorizontalLayout {
+                            spacing: 4px;
+                            Text { text: "CGST"; color: black; font-size: 12px; horizontal-stretch: 1; }
+                            Text { text: root.detail.cgst; color: black; font-size: 12px; }
+                        }
+                        if root.detail.sgst != "0.00" : HorizontalLayout {
+                            spacing: 4px;
+                            Text { text: "SGST"; color: black; font-size: 12px; horizontal-stretch: 1; }
+                            Text { text: root.detail.sgst; color: black; font-size: 12px; }
+                        }
+                        if root.detail.packaging != "0.00" : HorizontalLayout {
+                            spacing: 4px;
+                            Text { text: "Packaging"; color: black; font-size: 12px; horizontal-stretch: 1; }
+                            Text { text: root.detail.packaging; color: black; font-size: 12px; }
+                        }
+                        if root.detail.delivery != "0.00" : HorizontalLayout {
+                            spacing: 4px;
+                            Text { text: "Delivery"; color: black; font-size: 12px; horizontal-stretch: 1; }
+                            Text { text: root.detail.delivery; color: black; font-size: 12px; }
+                        }
+                        if root.detail.discount != "0.00" : HorizontalLayout {
+                            spacing: 4px;
+                            Text { text: "Discount"; color: black; font-size: 12px; horizontal-stretch: 1; }
+                            Text { text: "-" + root.detail.discount; color: black; font-size: 12px; }
+                        }
+
+                        Text {
+                            text: "------------------------------------------";
+                            color: black;
+                            font-size: 11px;
+                            horizontal-alignment: center;
+                        }
+
+                        HorizontalLayout {
+                            spacing: 4px;
+                            Text {
+                                text: "TOTAL";
+                                color: black;
+                                font-size: 15px;
+                                font-weight: 700;
+                                horizontal-stretch: 1;
+                            }
+                            Text {
+                                text: root.currency + root.detail.total;
+                                color: black;
+                                font-size: 15px;
+                                font-weight: 700;
+                            }
+                        }
+
+                        // ===== Payments =====
+                        if root.detail.payments.length > 0 : Text {
+                            text: "Payment";
+                            color: black;
+                            font-size: 12px;
+                            font-weight: 700;
+                        }
+                        for p in root.detail.payments : HorizontalLayout {
+                            spacing: 4px;
+                            Text { text: p.method; color: black; font-size: 12px; horizontal-stretch: 1; }
+                            Text { text: p.amount; color: black; font-size: 12px; }
+                        }
+
+                        Text {
+                            text: "------------------------------------------";
+                            color: black;
+                            font-size: 11px;
+                            horizontal-alignment: center;
+                        }
+
+                        if root.store-footer != "" : Text {
+                            text: root.store-footer;
+                            color: black;
+                            font-size: 12px;
+                            horizontal-alignment: center;
+                            wrap: word-wrap;
+                        }
+
+                        Text {
+                            text: " ";
+                            color: black;
+                            font-size: 8px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
