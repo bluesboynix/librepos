@@ -129,7 +129,6 @@ The first build will download dependencies and may take a few minutes.
 Pre-built binary
 If a release tarball is provided:
 
-bash
 tar xzf librepos-v0.4.0-alpha-linux.tar.gz
 cd librepos-v0.4.0-alpha
 ./librepos
@@ -271,7 +270,6 @@ Data & Backup
 Where is my data?
 Everything is stored in a single SQLite file:
 
-text
 librepos.db
 This sits in the current working directory (usually the project root when you
 run cargo run, or the folder where you launch the binary).
@@ -279,7 +277,6 @@ run cargo run, or the folder where you launch the binary).
 Backing up
 Simply copy librepos.db to a safe location:
 
-bash
 cp librepos.db "backup-$(date +%Y%m%d).db"
 Do this regularly — daily is recommended. The file is fully portable; copy it
 to another machine and the entire state (menu, orders, reports) comes along.
@@ -287,7 +284,6 @@ to another machine and the entire state (menu, orders, reports) comes along.
 Exports
 CSV and PDF exports are written to an exports/ folder next to the database.
 
-text
 exports/
 ├── bills_2026-09-01_2026-09-17.csv
 ├── items_2026-09-01_2026-09-17.csv
