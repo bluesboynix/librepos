@@ -134,6 +134,7 @@ cd librepos-v0.4.0-alpha
 ./librepos
 First-Time Setup
 On first launch, the app starts empty. Before taking orders:
+```
 
 1. Store Information
 Sidebar → Settings → Store Information
