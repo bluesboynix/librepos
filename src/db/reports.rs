@@ -10,6 +10,7 @@ pub struct Summary {
 
 pub struct ItemSale {
     pub name: String,
+    pub category: String,
     pub quantity: i64,
     pub revenue: f64,
 }
@@ -48,26 +49,54 @@ pub fn get_top_items(
     from: &str,
     to: &str,
     limit: i64,
+    category_filter: &str,
 ) -> Result<Vec<ItemSale>> {
-    let mut stmt = conn.prepare(
-        "SELECT oi.name, SUM(oi.quantity), SUM(oi.line_total)
+    let sql = if category_filter.is_empty() {
+        "SELECT oi.name, COALESCE(oi.category, ''), SUM(oi.quantity), SUM(oi.line_total)
          FROM order_items oi
          JOIN orders o ON o.id = oi.order_id
          WHERE o.status='closed'
            AND date(o.closed_at) BETWEEN ?1 AND ?2
-         GROUP BY oi.name
+         GROUP BY oi.name, oi.category
          ORDER BY SUM(oi.line_total) DESC
-         LIMIT ?3",
-    )?;
-    let rows = stmt
-        .query_map(rusqlite::params![from, to, limit], |row| {
+         LIMIT ?3"
+    } else {
+        "SELECT oi.name, COALESCE(oi.category, ''), SUM(oi.quantity), SUM(oi.line_total)
+         FROM order_items oi
+         JOIN orders o ON o.id = oi.order_id
+         WHERE o.status='closed'
+           AND date(o.closed_at) BETWEEN ?1 AND ?2
+           AND oi.category = ?3
+         GROUP BY oi.name, oi.category
+         ORDER BY SUM(oi.line_total) DESC
+         LIMIT ?4"
+    };
+
+    let mut stmt = conn.prepare(sql)?;
+    let rows = if category_filter.is_empty() {
+        stmt.query_map(rusqlite::params![from, to, limit], |row| {
             Ok(ItemSale {
                 name: row.get(0)?,
-                quantity: row.get(1)?,
-                revenue: row.get(2)?,
+                category: row.get(1)?,
+                quantity: row.get(2)?,
+                revenue: row.get(3)?,
             })
         })?
-        .collect::<Result<Vec<_>>>()?;
+        .collect::<Result<Vec<_>>>()?
+    } else {
+        stmt.query_map(
+            rusqlite::params![from, to, category_filter, limit],
+            |row| {
+                Ok(ItemSale {
+                    name: row.get(0)?,
+                    category: row.get(1)?,
+                    quantity: row.get(2)?,
+                    revenue: row.get(3)?,
+                })
+            },
+        )?
+        .collect::<Result<Vec<_>>>()?
+    };
     Ok(rows)
 }
 

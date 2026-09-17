@@ -26,6 +26,7 @@ fn run_report(
     payments: &Rc<VecModel<ReportPayment>>,
     days: &Rc<VecModel<ReportDay>>,
     bills: &Rc<VecModel<ReportBill>>,
+    category_filter: &str,
 ) {
     if let Ok(s) = db::reports::get_summary(conn, from, to) {
         window.set_report_summary(ReportSummary {
@@ -35,11 +36,12 @@ fn run_report(
         });
     }
 
-    if let Ok(items) = db::reports::get_top_items(conn, from, to, 20) {
+    if let Ok(items) = db::reports::get_top_items(conn, from, to, 20, category_filter) {
         let rows: Vec<ReportItem> = items
             .into_iter()
             .map(|i| ReportItem {
                 name: i.name.into(),
+                category: i.category.into(),
                 quantity: i.quantity as i32,
                 revenue: format!("{:.2}", i.revenue).into(),
             })
@@ -204,6 +206,7 @@ pub fn setup_reports_callbacks(
     let bills_r = bills.clone();
     window.on_load_reports(move |from, to| {
         if let Some(window) = weak_window_refresh.upgrade() {
+            let cat = window.get_report_active_category().to_string();
             run_report(
                 &conn_refresh,
                 &window,
@@ -213,6 +216,7 @@ pub fn setup_reports_callbacks(
                 &payments_r,
                 &days_r,
                 &bills_r,
+                &cat,
             );
         }
     });
@@ -234,6 +238,7 @@ pub fn setup_reports_callbacks(
         window.set_report_from_date(from.clone().into());
         window.set_report_to_date(to.clone().into());
 
+        let cat = window.get_report_active_category().to_string();
         run_report(
             &conn_qr,
             &window,
@@ -243,6 +248,7 @@ pub fn setup_reports_callbacks(
             &payments_qr,
             &days_qr,
             &bills_qr,
+            &cat,
         );
     });
 
@@ -482,5 +488,33 @@ pub fn setup_reports_callbacks(
             }
         }
         window.set_export_dialog_open(true);
+    });
+
+    // ==================== FILTER TOP ITEMS BY CATEGORY ====================
+    let weak_window_cat = window.as_weak();
+    let conn_cat = conn.clone();
+    let top_items_cat = top_items.clone();
+    let payments_cat = payments.clone();
+    let days_cat = days.clone();
+    let bills_cat = bills.clone();
+    window.on_filter_top_items(move |category| {
+        let Some(window) = weak_window_cat.upgrade() else {
+            return;
+        };
+        window.set_report_active_category(category.clone());
+
+        let from = window.get_report_from_date().to_string();
+        let to = window.get_report_to_date().to_string();
+        run_report(
+            &conn_cat,
+            &window,
+            &from,
+            &to,
+            &top_items_cat,
+            &payments_cat,
+            &days_cat,
+            &bills_cat,
+            &category.to_string(),
+        );
     });
 }

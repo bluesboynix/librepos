@@ -16,6 +16,7 @@ export component ReportsView inherits Rectangle {
     in-out property <string> to-date: "";
     in-out property <int> active-tab: 0;
     in-out property <int> active-range: 0;
+    in-out property <string> active-category: "";
     in property <ReportSummary> summary;
     in property <[ReportItem]> top-items;
     in property <[ReportPayment]> payment-breakdown;
@@ -30,7 +31,8 @@ export component ReportsView inherits Rectangle {
     in-out property <bool> bills-show-voided: false;
     in-out property <string> bills-search-text: "";
     in-out property <bool> focus-search-requested: false;
-
+    in property <[string]> bill-categories;
+    
     callback refresh(string, string);
     callback quick-range(int);
     callback load-bill-detail(int);
@@ -42,6 +44,7 @@ export component ReportsView inherits Rectangle {
     callback edit-bill();
     callback export-reports(string, string);
     callback key-pressed(string, bool, bool, bool, bool) -> bool;
+    callback filter-changed(string);    
 
     VerticalLayout {
         padding: 15px;
@@ -110,7 +113,10 @@ export component ReportsView inherits Rectangle {
             }
             if root.active-tab == 1 : ReportItemsView {
                 items: root.top-items;
+                categories: root.bill-categories;
                 currency: root.currency;
+                active-category <=> root.active-category;
+                filter-changed(cat) => { root.filter-changed(cat); }
             }
             if root.active-tab == 2 : ReportPaymentsView {
                 payments: root.payment-breakdown;

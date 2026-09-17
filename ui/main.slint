@@ -69,6 +69,7 @@ export component MainWindow inherits Window {
     in-out property <string> shortcut-capture-description: "";
     in-out property <string> shortcut-capture-current: "";
     in-out property <string> shortcut-capture-new: "";
+    
 
     in-out property <bool> note-dialog-open: false;
     in-out property <int> note-dialog-line-index: -1;
@@ -95,8 +96,9 @@ export component MainWindow inherits Window {
     in-out property <string> bills-search-text: "";
     in-out property <bool> export-dialog-open: false;
     in-out property <string> export-dialog-message: "";
-    
+    in-out property <string> report-active-category: "";
 
+    callback filter-top-items(string);
     callback export-reports(string, string);
     callback quit();
     callback home();
@@ -197,9 +199,12 @@ export component MainWindow inherits Window {
                 // Reports
                 if root.current-view == 1 : ReportsView {
                     from-date <=> root.report-from-date;
+                    bill-categories: root.menu-categories;
                     to-date <=> root.report-to-date;
                     active-tab <=> root.report-active-tab;
                     active-range <=> root.report-active-range;
+                    active-category <=> root.report-active-category;
+                    filter-changed(cat) => { root.filter-top-items(cat); }
                     summary: root.report-summary;
                     top-items: root.report-top-items;
                     payment-breakdown: root.report-payment-breakdown;
