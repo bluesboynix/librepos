@@ -27,6 +27,7 @@ export component MainWindow inherits Window {
     forward-focus: main-scope;
 
     in-out property <bool> bill-preview-open: false;
+    in-out property <string> store-fssai-text: "";
 
     in-out property <bool> focus-search-requested: false;
     in property <[ShortcutEntry]> shortcut-entries;
@@ -157,6 +158,7 @@ export component MainWindow inherits Window {
     callback refresh-dashboard();
     callback store-info-changed();
     callback preview-bill();
+    callback save-bill-pdf();
     
     main-scope := FocusScope {
         key-pressed(event) => {
@@ -293,6 +295,7 @@ export component MainWindow inherits Window {
                         root.start-shortcut-capture(action, description, current);
                     }
                     store-info-changed => { root.store-info-changed(); }
+                    store-fssai-text <=> root.store-fssai-text;
                 }
 
                 // Bill
@@ -501,5 +504,7 @@ export component MainWindow inherits Window {
         store-phone: root.store-phone-text;
         store-footer: root.store-footer-text;
         close => { root.bill-preview-open = false; }
+        store-fssai: root.store-fssai-text;
+        save-pdf => { root.save-bill-pdf(); }
     }
 }

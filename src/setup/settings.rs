@@ -26,6 +26,9 @@ pub fn load_settings(window: &MainWindow, conn: &rusqlite::Connection) {
     if let Ok(Some(v)) = db::settings::get_setting(conn, "store.footer") {
         window.set_store_footer_text(v.into());
     }
+    if let Ok(Some(v)) = db::settings::get_setting(conn, "store.fssai") {
+        window.set_store_fssai_text(v.into());
+    }
 }
 
 pub fn setup_settings_persistence(
@@ -70,11 +73,13 @@ pub fn setup_settings_persistence(
             let name = window.get_store_name_text().to_string();
             let address = window.get_store_address_text().to_string();
             let phone = window.get_store_phone_text().to_string();
+            let fssai = window.get_store_fssai_text().to_string();
             let footer = window.get_store_footer_text().to_string();
-
+            
             let _ = db::settings::set_setting(&conn_store, "store.name", &name);
             let _ = db::settings::set_setting(&conn_store, "store.address", &address);
             let _ = db::settings::set_setting(&conn_store, "store.phone", &phone);
+            let _ = db::settings::set_setting(&conn_store, "store.fssai", &fssai);
             let _ = db::settings::set_setting(&conn_store, "store.footer", &footer);
         }
     });

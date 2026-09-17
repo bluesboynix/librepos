@@ -14,8 +14,10 @@ export component BillPreview inherits Rectangle {
     in property <string> store-address: "";
     in property <string> store-phone: "";
     in property <string> store-footer: "";
+    in property <string> store-fssai: "";
 
     callback close();
+    callback save-pdf();
 
     // Absorb background clicks
     TouchArea {
@@ -39,12 +41,26 @@ export component BillPreview inherits Rectangle {
             padding: 12px;
             spacing: 6px;
 
-            // Close row
+            // Close + Save PDF row
             HorizontalLayout {
                 spacing: 6px;
+                Rectangle { horizontal-stretch: 1; }
+
                 Rectangle {
-                    horizontal-stretch: 1;
+                    width: 110px;
+                    height: 26px;
+                    background: savepdf-hover.has-hover ? #005500 : #004400;
+                    border-radius: 4px;
+                    savepdf-hover := TouchArea { clicked => { root.save-pdf(); } }
+                    Text {
+                        text: "Save as PDF";
+                        color: white;
+                        font-size: 12px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
                 }
+
                 Rectangle {
                     width: 30px;
                     height: 26px;
@@ -95,6 +111,13 @@ export component BillPreview inherits Rectangle {
                             horizontal-alignment: center;
                         }
 
+                        if root.store-fssai != "" : Text {
+                            text: "FSSAI: " + root.store-fssai;
+                            color: black;
+                            font-size: 11px;
+                            horizontal-alignment: center;
+                        }
+
                         Text {
                             text: "------------------------------------------";
                             color: black;
@@ -136,6 +159,7 @@ export component BillPreview inherits Rectangle {
                             font-size: 12px;
                         }
 
+                   
                         Text {
                             text: "------------------------------------------";
                             color: black;

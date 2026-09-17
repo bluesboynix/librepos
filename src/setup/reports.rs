@@ -517,4 +517,58 @@ pub fn setup_reports_callbacks(
             &category.to_string(),
         );
     });
+
+    // ==================== SAVE BILL AS PDF ====================
+    let weak_window_pdf = window.as_weak();
+    let conn_pdf = conn.clone();
+    window.on_save_bill_pdf(move || {
+        let Some(window) = weak_window_pdf.upgrade() else {
+            return;
+        };
+
+        // Load fresh detail from DB using id
+        let detail_slint = window.get_current_bill_detail();
+        let order_id = detail_slint.id as i64;
+
+        let detail = match db::reports::get_bill_detail(&conn_pdf, order_id) {
+            Ok(Some(d)) => d,
+            _ => {
+                window.set_export_dialog_message(
+                    "Failed to load bill detail.".into(),
+                );
+                window.set_export_dialog_open(true);
+                return;
+            }
+        };
+
+        let store_name = window.get_store_name_text().to_string();
+        let store_address = window.get_store_address_text().to_string();
+        let store_phone = window.get_store_phone_text().to_string();
+        let store_fssai = window.get_store_fssai_text().to_string();
+        let store_footer = window.get_store_footer_text().to_string();
+
+        match db::pdf::generate_bill_pdf(
+            &detail,
+            &store_name,
+            &store_address,
+            &store_phone,
+            &store_fssai,
+            &store_footer,
+        ) {
+            Ok(path) => {
+                window.set_export_dialog_message(
+                    format!("Saved PDF:\n./{}", path).into(),
+                );
+            }
+            Err(e) => {
+                window.set_export_dialog_message(
+                    format!("PDF export failed:\n{}", e).into(),
+                );
+            }
+        }
+
+        // Close the preview, then show the result dialog
+        window.set_bill_preview_open(false);
+        window.set_export_dialog_open(true);
+    });
 }

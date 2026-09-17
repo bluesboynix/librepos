@@ -3,6 +3,7 @@ pub mod export;
 pub mod menu;
 pub mod orders;
 pub mod payments;
+pub mod pdf;
 pub mod sequences;
 pub mod settings;
 pub mod reports;

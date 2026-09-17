@@ -22,6 +22,7 @@ export component SettingsView inherits Rectangle {
     in-out property <string> store-address-text: "";
     in-out property <string> store-phone-text: "";
     in-out property <string> store-footer-text: "";
+    in-out property <string> store-fssai-text: "";
 
     callback add-area();
     callback remove-area(int);
@@ -53,6 +54,7 @@ export component SettingsView inherits Rectangle {
                 store-phone-text <=> root.store-phone-text;
                 store-footer-text <=> root.store-footer-text;
                 store-info-changed => { root.store-info-changed(); }
+                store-fssai-text <=> root.store-fssai-text;
             }
 
             AreaConfigSection {

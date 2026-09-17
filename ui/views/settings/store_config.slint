@@ -8,6 +8,7 @@ export component StoreConfigSection inherits Rectangle {
     in-out property <string> store-address-text: "";
     in-out property <string> store-phone-text: "";
     in-out property <string> store-footer-text: "";
+    in-out property <string> store-fssai-text: "";
 
     callback store-info-changed();
 
@@ -108,6 +109,34 @@ export component StoreConfigSection inherits Rectangle {
                     font-size: 14px;
                     vertical-alignment: center;
                     text <=> root.store-phone-text;
+                    edited => { root.store-info-changed(); }
+                }
+            }
+        }
+
+        // FSSAI Licence
+        HorizontalLayout {
+            spacing: Theme.pad-md;
+            Text {
+                text: "FSSAI:";
+                color: Theme.text-primary;
+                width: 80px;
+                vertical-alignment: center;
+            }
+            Rectangle {
+                horizontal-stretch: 1;
+                height: 30px;
+                background: Theme.bg-input;
+                border-radius: Theme.radius-sm;
+                clip: true;
+                TextInput {
+                    horizontal-stretch: 1;
+                    height: 100%;
+                    color: black;
+                    single-line: true;
+                    font-size: 14px;
+                    vertical-alignment: center;
+                    text <=> root.store-fssai-text;
                     edited => { root.store-info-changed(); }
                 }
             }
