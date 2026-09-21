@@ -1,11 +1,11 @@
 import { Theme } from "../theme.slint";
 
 export component TableCard inherits Rectangle {
-    width: 120px;
-    height: 90px;
+    width: 180px;
+    height: 130px;
     background: selected ? Theme.accent-selected : (card-area.has-hover ? #606060 : Theme.bg-panel);
     border-radius: Theme.radius-lg;
-    border-width: 2px;
+    border-width: 4px;
     border-color: occupied ? #aa00aa : Theme.accent;
 
     in property <string> label: "Table";
@@ -22,14 +22,16 @@ export component TableCard inherits Rectangle {
         Text {
             text: root.label;
             color: root.selected ? black : Theme.text-primary;
-            font-size: 16px;
+            font-size: 24px;
+            font-weight: 700;
             horizontal-alignment: center;
         }
 
         if root.occupied : Text {
             text: root.currency + (Math.round(root.total * 100) / 100);
             color: root.selected ? black : Theme.text-note;
-            font-size: 12px;
+            font-size: 18px;
+            font-weight: 700;
             horizontal-alignment: center;
         }
     }

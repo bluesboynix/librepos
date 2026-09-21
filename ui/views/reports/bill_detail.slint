@@ -53,17 +53,35 @@ export component BillDetailView inherits Rectangle {
                 vertical-alignment: center;
             }
 
-            // Preview
+            // Preview (for closed and voided bills)
             if root.detail.status == "closed" || root.detail.status == "void" : Rectangle {
                 width: 90px;
                 height: 32px;
                 background: preview-hover.has-hover
-                ? Theme.btn-neutral-hover
-                : Theme.btn-neutral;
+                    ? Theme.btn-neutral-hover
+                    : Theme.btn-neutral;
                 border-radius: 4px;
                 preview-hover := TouchArea { clicked => { root.preview-bill(); } }
                 Text {
                     text: "Preview";
+                    color: white;
+                    font-size: 13px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            // Edit (only for closed bills)
+            if root.detail.status == "closed" : Rectangle {
+                width: 70px;
+                height: 32px;
+                background: edit-hover.has-hover
+                    ? Theme.btn-neutral-hover
+                    : Theme.btn-neutral;
+                border-radius: 4px;
+                edit-hover := TouchArea { clicked => { root.edit-bill(); } }
+                Text {
+                    text: "Edit";
                     color: white;
                     font-size: 13px;
                     horizontal-alignment: center;

@@ -303,4 +303,112 @@ pub fn setup_order_persistence(
         window.set_current_bill_table(new_table_name.clone());
         rebuild_areas(&conn_move, &areas_move);
     });
+
+    // ==================== PREVIEW OPEN BILL ====================
+    let weak_window_preview = window.as_weak();
+    let conn_preview = conn.clone();
+    let open_orders_preview = open_orders.clone();
+    let order_lines_preview = order_lines.clone();
+    let menu_items_preview = menu_items.clone();
+    window.on_preview_open_bill(move || {
+        let Some(window) = weak_window_preview.upgrade() else {
+            return;
+        };
+
+        let table = window.get_current_bill_table().to_string();
+        if table.is_empty() {
+            return;
+        }
+
+        // Save the current state to DB so we can read it back
+        let order_id = get_or_create_order_id(
+            &conn_preview,
+            &open_orders_preview,
+            &table,
+        );
+
+        save_bill_to_order(
+            &conn_preview,
+            order_id,
+            &order_lines_preview,
+            &menu_items_preview,
+            &window,
+        );
+
+        // Load the fresh detail
+        let Ok(Some(detail)) =
+            db::reports::get_bill_detail(&conn_preview, order_id)
+            else {
+                return;
+            };
+
+        // Convert to Slint-friendly structs
+        let items: Vec<crate::BillLine> = detail
+            .items
+            .into_iter()
+            .map(|i| crate::BillLine {
+                name: i.name.into(),
+                category: i.category.into(),
+                quantity: i.quantity,
+                unit_price: format!("{:.2}", i.unit_price).into(),
+                line_total: format!("{:.2}", i.line_total).into(),
+                note: i.note.into(),
+            })
+            .collect();
+
+        let payments: Vec<crate::BillPayment> = detail
+            .payments
+            .into_iter()
+            .map(|p| crate::BillPayment {
+                method: p.method.into(),
+                amount: format!("{:.2}", p.amount).into(),
+            })
+            .collect();
+
+        // Friendly fallbacks for an open (unsaved-bill) order
+        let bill_no_display = if detail.bill_no.is_empty() {
+            "DRAFT".to_string()
+        } else {
+            detail.bill_no.clone()
+        };
+        let closed_at_display = if detail.closed_at.is_empty() {
+            "(open order)".to_string()
+        } else {
+            detail.closed_at.clone()
+        };
+        let payment_status_display = if detail.payment_status.is_empty() {
+            "open".to_string()
+        } else {
+            detail.payment_status.clone()
+        };
+
+        window.set_current_bill_detail(crate::BillDetail {
+            id: detail.id as i32,
+            bill_no: bill_no_display.into(),
+            table_name: detail.table_name.into(),
+            area_name: detail.area_name.into(),
+            closed_at: closed_at_display.into(),
+            payment_status: payment_status_display.into(),
+            status: detail.status.into(),
+            void_reason: detail.void_reason.into(),
+            voided_at: detail.voided_at.into(),
+            subtotal: format!("{:.2}", detail.subtotal).into(),
+            cgst: format!("{:.2}", detail.cgst).into(),
+            sgst: format!("{:.2}", detail.sgst).into(),
+            gst: format!("{:.2}", detail.gst).into(),
+            packaging: format!("{:.2}", detail.packaging).into(),
+            delivery: format!("{:.2}", detail.delivery).into(),
+            discount: format!("{:.2}", detail.discount).into(),
+            total: format!("{:.2}", detail.total).into(),
+            customer_name: detail.customer_name.into(),
+            customer_phone: detail.customer_phone.into(),
+            customer_address: detail.customer_address.into(),
+            items: Rc::new(VecModel::from(items)).into(),
+            payments: Rc::new(VecModel::from(payments)).into(),
+            edit_history: Rc::new(VecModel::<slint::SharedString>::default())
+                .into(),
+        });
+
+        window.set_bill_preview_open(true);
+    });
 }

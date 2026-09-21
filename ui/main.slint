@@ -158,6 +158,7 @@ export component MainWindow inherits Window {
     callback refresh-dashboard();
     callback store-info-changed();
     callback preview-bill();
+    callback preview-open-bill();
     callback save-bill-pdf();
     
     main-scope := FocusScope {
@@ -354,6 +355,7 @@ export component MainWindow inherits Window {
                     key-pressed(text, ctrl, shift, alt, meta) => {
                         root.key-pressed(text, ctrl, shift, alt, meta)
                     }
+                    preview-bill => { root.preview-open-bill(); }
                 }
 
                 // Item Details

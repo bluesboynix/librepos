@@ -31,8 +31,8 @@ export component BillMenuPanel inherits Rectangle {
 
         // Single search box
         SearchBox {
-            height: 34px;
-            text-size: 15px;
+            height: 45px;
+            text-size: 30px;
             text <=> root.search-text;
             focus-requested <=> root.focus-search-requested;
             edited(t) => {
@@ -72,7 +72,7 @@ export component BillMenuPanel inherits Rectangle {
                         Text {
                             text: item.name;
                             color: Theme.text-primary;
-                            font-size: 15px;
+                            font-size: 25px;
                             horizontal-stretch: 1;
                             height: 100%;
                             vertical-alignment: center;
@@ -80,14 +80,14 @@ export component BillMenuPanel inherits Rectangle {
                         Text {
                             text: item.category;
                             color: Theme.text-secondary;
-                            font-size: 13px;
+                            font-size: 25px;
                             height: 100%;
                             vertical-alignment: center;
                         }
                         Text {
                             text: root.currency + item.price;
                             color: Theme.text-primary;
-                            font-size: 15px;
+                            font-size: 25px;
                             height: 100%;
                             vertical-alignment: center;
                         }

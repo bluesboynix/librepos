@@ -33,6 +33,7 @@ export component BillSummary inherits Rectangle {
     callback go-back();
     callback recalculate();
     callback move-table(string);
+    callback preview-bill();
 
     VerticalLayout {
         alignment: start;
@@ -50,11 +51,13 @@ export component BillSummary inherits Rectangle {
             Text {
                 text: "Bill No:";
                 color: white;
+                font-size: 20px;
                 width: 60px;
                 vertical-alignment: center;
             }
             Text {
                 text: root.bill-no;
+                font-size: 20px;
                 color: white;
                 horizontal-stretch: 1;
                 vertical-alignment: center;
@@ -64,11 +67,13 @@ export component BillSummary inherits Rectangle {
         HorizontalLayout {
             Text {
                 text: "Subtotal:";
+                font-size: 20px;
                 color: white;
                 horizontal-stretch: 1;
             }
             Text {
                 text: root.currency + root.subtotal;
+                font-size: 20px;
                 color: white;
             }
         }
@@ -76,11 +81,13 @@ export component BillSummary inherits Rectangle {
         HorizontalLayout {
             Text {
                 text: "GST (" + root.gst-rate + "%):";
+                font-size: 20px;
                 color: white;
                 horizontal-stretch: 1;
             }
             Text {
                 text: root.currency + root.gst;
+                font-size: 20px;
                 color: white;
             }
         }
@@ -94,7 +101,7 @@ export component BillSummary inherits Rectangle {
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 26px;
+                height: 36px;
                 background: #d0d0d0;
                 border-radius: 2px;
                 clip: true;
@@ -104,6 +111,7 @@ export component BillSummary inherits Rectangle {
                     color: black;
                     single-line: true;
                     text <=> root.packaging-text;
+                    font-size: 25px;
                     edited => { root.recalculate(); }
                 }
             }
@@ -118,7 +126,7 @@ export component BillSummary inherits Rectangle {
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 26px;
+                height: 36px;
                 background: #d0d0d0;
                 border-radius: 2px;
                 clip: true;
@@ -128,6 +136,7 @@ export component BillSummary inherits Rectangle {
                     color: black;
                     single-line: true;
                     text <=> root.delivery-text;
+                    font-size: 25px;
                     edited => { root.recalculate(); }
                 }
             }
@@ -142,7 +151,7 @@ export component BillSummary inherits Rectangle {
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 26px;
+                height: 36px;
                 background: #d0d0d0;
                 border-radius: 2px;
                 clip: true;
@@ -152,6 +161,7 @@ export component BillSummary inherits Rectangle {
                     color: black;
                     single-line: true;
                     text <=> root.discount-text;
+                    font-size: 25px;
                     edited => { root.recalculate(); }
                 }
             }
@@ -161,12 +171,14 @@ export component BillSummary inherits Rectangle {
             Text {
                 text: "Total:";
                 color: #00ff00;
+                font-size: 35px;
                 font-weight: 700;
                 horizontal-stretch: 1;
             }
             Text {
                 text: root.currency + root.total;
                 color: #00ff00;
+                font-size: 35px;
                 font-weight: 700;
             }
         }
@@ -184,70 +196,70 @@ export component BillSummary inherits Rectangle {
             spacing: 4px;
             Rectangle {
                 horizontal-stretch: 1;
-                height: 30px;
+                height: 40px;
                 background: root.payment-mode == 1 ? #00aa00 : #505050;
                 border-radius: 4px;
                 TouchArea { clicked => { root.payment-mode = 1; } }
                 Text {
                     text: "Cash";
                     color: white;
-                    font-size: 12px;
+                    font-size: 20px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 30px;
+                height: 40px;
                 background: root.payment-mode == 2 ? #00aa00 : #505050;
                 border-radius: 4px;
                 TouchArea { clicked => { root.payment-mode = 2; } }
                 Text {
                     text: "UPI";
                     color: white;
-                    font-size: 12px;
+                    font-size: 20px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 30px;
+                height: 40px;
                 background: root.payment-mode == 3 ? #00aa00 : #505050;
                 border-radius: 4px;
                 TouchArea { clicked => { root.payment-mode = 3; } }
                 Text {
                     text: "Card";
                     color: white;
-                    font-size: 12px;
+                    font-size: 20px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 30px;
+                height: 40px;
                 background: root.payment-mode == 4 ? #00aa00 : #505050;
                 border-radius: 4px;
                 TouchArea { clicked => { root.payment-mode = 4; } }
                 Text {
                     text: "Split";
                     color: white;
-                    font-size: 12px;
+                    font-size: 20px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 30px;
+                height: 40px;
                 background: root.payment-mode == 5 ? #00aa00 : #505050;
                 border-radius: 4px;
                 TouchArea { clicked => { root.payment-mode = 5; } }
                 Text {
                     text: "Due";
                     color: white;
-                    font-size: 12px;
+                    font-size: 20px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
@@ -342,7 +354,7 @@ export component BillSummary inherits Rectangle {
                 Text {
                     text: "Save & Close";
                     color: white;
-                    font-size: 11px;
+                    font-size: 20px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
@@ -350,13 +362,13 @@ export component BillSummary inherits Rectangle {
             Rectangle {
                 horizontal-stretch: 1;
                 height: 40px;
-                background: print-hover.has-hover ? #555500 : #444400;
+                background: preview-hover.has-hover ? #555500 : #444400;
                 border-radius: 6px;
-                print-hover := TouchArea { clicked => { root.print(); } }
+                preview-hover := TouchArea { clicked => { root.preview-bill(); } }
                 Text {
-                    text: "Print Bill";
+                    text: "Preview Bill";
                     color: white;
-                    font-size: 11px;
+                    font-size: 20px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
@@ -364,13 +376,24 @@ export component BillSummary inherits Rectangle {
             Rectangle {
                 horizontal-stretch: 1;
                 height: 40px;
-                background: close-hover.has-hover ? #880000 : #660000;
+                background: update-hover.has-hover ? #005500 : #004400;
                 border-radius: 6px;
-                close-hover := TouchArea { clicked => { root.go-back(); } }
+                update-hover := TouchArea {
+                    clicked => {
+                        // If the user filled in Area + Table, move the order there first
+                        if root.new-area != "" && root.new-table != "" {
+                            root.move-table(root.new-area + " " + root.new-table);
+                            root.new-area = "";
+                            root.new-table = "";
+                        }
+                        // Then save the order and return to Dashboard
+                        root.go-back();
+                    }
+                }
                 Text {
-                    text: "Dashboard";
+                    text: "Update Table";
                     color: white;
-                    font-size: 11px;
+                    font-size: 20px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
@@ -394,7 +417,7 @@ export component BillSummary inherits Rectangle {
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 26px;
+                height: 36px;
                 background: #ccffff;
                 border-radius: 2px;
                 clip: true;
@@ -402,6 +425,7 @@ export component BillSummary inherits Rectangle {
                     horizontal-stretch: 1;
                     height: 100%;
                     color: black;
+                    font-size: 25px;
                     single-line: true;
                     text <=> root.customer-name;
                 }
@@ -416,7 +440,7 @@ export component BillSummary inherits Rectangle {
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 26px;
+                height: 36px;
                 background: #ccffff;
                 border-radius: 2px;
                 clip: true;
@@ -424,6 +448,7 @@ export component BillSummary inherits Rectangle {
                     horizontal-stretch: 1;
                     height: 100%;
                     color: black;
+                    font-size: 25px;
                     single-line: true;
                     text <=> root.customer-phone;
                 }
@@ -438,7 +463,7 @@ export component BillSummary inherits Rectangle {
             }
             Rectangle {
                 horizontal-stretch: 1;
-                height: 26px;
+                height: 36px;
                 background: #ccffff;
                 border-radius: 2px;
                 clip: true;
@@ -446,6 +471,7 @@ export component BillSummary inherits Rectangle {
                     horizontal-stretch: 1;
                     height: 100%;
                     color: black;
+                    font-size: 25px;
                     single-line: true;
                     text <=> root.customer-address;
                 }

@@ -40,6 +40,7 @@ export component BillView inherits Rectangle {
     callback go-back();
     callback save();
     callback print();
+    callback preview-bill();
     callback print-order();
     callback add-order-line(string, float);
     callback update-order-line-quantity(int, int);
@@ -58,7 +59,7 @@ export component BillView inherits Rectangle {
 
         // ----- Left: Menu -----
         BillMenuPanel {
-            width: 30%;
+            width: 40%;
             menu-items: root.menu-items;
             currency: root.currency;
             search-text <=> root.search-text;
@@ -72,7 +73,7 @@ export component BillView inherits Rectangle {
 
         // ----- Center: Order -----
         BillOrderPanel {
-            width: 40%;
+            width: 30%;
             order-lines: root.order-lines;
             table-name: root.table-name;
             currency: root.currency;
@@ -121,6 +122,7 @@ export component BillView inherits Rectangle {
             go-back => { root.go-back(); }
             recalculate => { root.recalculate(); }
             move-table(new-table) => { root.move-table(new-table); }
+            preview-bill => { root.preview-bill(); }
         }
     }
 
