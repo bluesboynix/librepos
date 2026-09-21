@@ -1,10 +1,65 @@
 use rusqlite::{Connection, Result};
 use std::fs;
 use std::io::Write;
-use std::path::Path;
+use std::path::PathBuf;
 
-/// Escape a field for CSV: wrap in quotes if it contains comma, quote, or newline,
-/// and double any internal quotes.
+/// Convert month number to a padded folder name like "09-september".
+fn month_name(mm: &str) -> &'static str {
+    match mm {
+        "01" => "01-january",
+        "02" => "02-february",
+        "03" => "03-march",
+        "04" => "04-april",
+        "05" => "05-may",
+        "06" => "06-june",
+        "07" => "07-july",
+        "08" => "08-august",
+        "09" => "09-september",
+        "10" => "10-october",
+        "11" => "11-november",
+        "12" => "12-december",
+        _ => "00-unknown",
+    }
+}
+
+/// Return `exports/YYYY/MM-month/DD` for today's date (local time).
+pub fn today_export_folder(conn: &Connection) -> Result<PathBuf> {
+    let y: String = conn.query_row(
+        "SELECT strftime('%Y', 'now', 'localtime')",
+        [],
+        |r| r.get(0),
+    )?;
+    let m: String = conn.query_row(
+        "SELECT strftime('%m', 'now', 'localtime')",
+        [],
+        |r| r.get(0),
+    )?;
+    let d: String = conn.query_row(
+        "SELECT strftime('%d', 'now', 'localtime')",
+        [],
+        |r| r.get(0),
+    )?;
+    Ok(PathBuf::from("exports")
+        .join(y)
+        .join(month_name(&m))
+        .join(d))
+}
+
+/// Return `exports/YYYY/MM-month/DD` for a given "YYYY-MM-DD HH:MM:SS"
+/// (or "YYYY-MM-DD") string. Falls back to `exports/unknown` on error.
+pub fn folder_for_date(date_str: &str) -> PathBuf {
+    let date_part = date_str.split_whitespace().next().unwrap_or("");
+    let parts: Vec<&str> = date_part.split('-').collect();
+    if parts.len() < 3 {
+        return PathBuf::from("exports").join("unknown");
+    }
+    PathBuf::from("exports")
+        .join(parts[0])
+        .join(month_name(parts[1]))
+        .join(parts[2])
+}
+
+/// Escape a field for CSV.
 fn csv_field(s: &str) -> String {
     if s.contains(',') || s.contains('"') || s.contains('\n') || s.contains('\r') {
         format!("\"{}\"", s.replace('"', "\"\""))
@@ -22,20 +77,19 @@ fn csv_row(fields: &[String]) -> String {
         + "\n"
 }
 
-/// Export everything for the given date range. Returns the folder path.
 pub fn export_reports(
     conn: &Connection,
     from: &str,
     to: &str,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let export_dir = "exports";
-    fs::create_dir_all(export_dir)?;
+    let folder = today_export_folder(conn)?;
+    fs::create_dir_all(&folder)?;
 
     let suffix = format!("{}_{}", from, to);
 
     // ===== Bills =====
     {
-        let path = Path::new(export_dir).join(format!("bills_{}.csv", suffix));
+        let path = folder.join(format!("bills_{}.csv", suffix));
         let mut file = fs::File::create(&path)?;
         file.write_all(
             csv_row(&[
@@ -96,7 +150,7 @@ pub fn export_reports(
 
     // ===== Items =====
     {
-        let path = Path::new(export_dir).join(format!("items_{}.csv", suffix));
+        let path = folder.join(format!("items_{}.csv", suffix));
         let mut file = fs::File::create(&path)?;
         file.write_all(
             csv_row(&[
@@ -141,7 +195,7 @@ pub fn export_reports(
 
     // ===== Payments =====
     {
-        let path = Path::new(export_dir).join(format!("payments_{}.csv", suffix));
+        let path = folder.join(format!("payments_{}.csv", suffix));
         let mut file = fs::File::create(&path)?;
         file.write_all(
             csv_row(&[
@@ -175,5 +229,5 @@ pub fn export_reports(
         }
     }
 
-    Ok(export_dir.to_string())
+    Ok(folder.to_string_lossy().to_string())
 }

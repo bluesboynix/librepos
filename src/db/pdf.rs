@@ -2,7 +2,8 @@ use crate::db::reports::BillDetail;
 use printpdf::*;
 use std::fs::File;
 use std::io::BufWriter;
-use std::path::Path;
+use std::path::PathBuf;
+use crate::db::export::folder_for_date;
 
 const PAGE_WIDTH_MM: f32 = 80.0;
 const MARGIN_MM: f32 = 5.0;
@@ -185,19 +186,25 @@ pub fn generate_bill_pdf(
         y -= LINE_HEIGHT_MM;
     }
 
-    let export_dir = "exports";
-    std::fs::create_dir_all(export_dir)?;
+    // ---- Save file ----
+    // Use the bill's closed date if available, otherwise "unknown".
+    let folder = if !detail.closed_at.is_empty() {
+        folder_for_date(&detail.closed_at)
+    } else {
+        PathBuf::from("exports").join("unknown")
+    };
+    std::fs::create_dir_all(&folder)?;
 
-    let ts = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0);
-    let safe_bill = detail.bill_no.replace(
-        |c: char| !c.is_alphanumeric() && c != '-',
-        "_",
-    );
-    let filename = format!("bill_{}_{}.pdf", safe_bill, ts);
-    let path = Path::new(export_dir).join(&filename);
+    let safe_bill = if detail.bill_no.is_empty() {
+        "draft".to_string()
+    } else {
+        detail.bill_no.replace(
+            |c: char| !c.is_alphanumeric() && c != '-',
+            "_",
+        )
+    };
+    let filename = format!("bill_{}.pdf", safe_bill);
+    let path = folder.join(&filename);
 
     let file = File::create(&path)?;
     let mut writer = BufWriter::new(file);
