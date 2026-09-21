@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 slint::include_modules!();
 
 mod db;
@@ -10,6 +12,7 @@ use std::rc::Rc;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let window = MainWindow::new()?;
+    window.show()?;
     window.window().set_maximized(true);
 
     let conn = Rc::new(db::init_db("librepos.db")?);
