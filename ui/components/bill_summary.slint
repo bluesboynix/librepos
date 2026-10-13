@@ -32,8 +32,9 @@ export component BillSummary inherits Rectangle {
     callback print();
     callback go-back();
     callback recalculate();
-    callback move-table(string);
+    callback remove-order();
     callback preview-bill();
+    callback move-table(string);
 
     VerticalLayout {
         alignment: start;
@@ -376,22 +377,13 @@ export component BillSummary inherits Rectangle {
             Rectangle {
                 horizontal-stretch: 1;
                 height: 40px;
-                background: update-hover.has-hover ? #005500 : #004400;
+                background: remove-order-hover.has-hover ? #aa3333 : #883333;
                 border-radius: 6px;
-                update-hover := TouchArea {
-                    clicked => {
-                        // If the user filled in Area + Table, move the order there first
-                        if root.new-area != "" && root.new-table != "" {
-                            root.move-table(root.new-area + " " + root.new-table);
-                            root.new-area = "";
-                            root.new-table = "";
-                        }
-                        // Then save the order and return to Dashboard
-                        root.go-back();
-                    }
+                remove-order-hover := TouchArea {
+                    clicked => { root.remove-order(); }
                 }
                 Text {
-                    text: "Update Table";
+                    text: "Remove Order";
                     color: white;
                     font-size: 20px;
                     horizontal-alignment: center;

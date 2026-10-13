@@ -3,6 +3,7 @@ export component TopBar inherits Rectangle {
     background: #101010;
 
     in-out property <bool> sidebar-open: false;
+
     callback toggle-sidebar();
     callback home();
 
@@ -53,16 +54,5 @@ export component TopBar inherits Rectangle {
         clicked => {
             root.home();
         }
-    }
-
-    // Version number
-    Text {
-        x: 170px;
-        y: 0px;
-        height: parent.height;
-        text: "v0.4.0-alpha";
-        font-size: 14px;
-        color: #909090;
-        vertical-alignment: center;
     }
 }

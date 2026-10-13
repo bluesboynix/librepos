@@ -18,17 +18,23 @@ import { ExportDialog } from "components/export_dialog.slint";
 
 import { BillPreview } from "components/bill_preview.slint";
 
+import { RemoveOrderDialog } from "components/remove_order_dialog.slint";
+
+import "./fonts/DejaVuSans.ttf";
+
 export component MainWindow inherits Window {
     preferred-width: 100%;
     preferred-height: 100%;
     title: "LibrePOS";
     background: #505050;
+    default-font-family: "DejaVu Sans";
 
     forward-focus: main-scope;
 
     in-out property <bool> bill-preview-open: false;
     in-out property <string> store-fssai-text: "";
-
+    in-out property <string> report-bills-total-text: "";
+    
     in-out property <bool> focus-search-requested: false;
     in property <[ShortcutEntry]> shortcut-entries;
     in-out property <bool> sidebar-open: false;
@@ -161,6 +167,12 @@ export component MainWindow inherits Window {
     callback preview-open-bill();
     callback save-bill-pdf();
     
+    callback remove-order-confirmed();
+    callback remove-order-cancelled();
+    in-out property <bool> remove-order-dialog-open: false;
+
+    callback autosave-order();
+    
     main-scope := FocusScope {
         key-pressed(event) => {
             root.key-pressed(
@@ -250,6 +262,7 @@ export component MainWindow inherits Window {
                         root.export-reports(from, to);
                     }
                     preview-bill => { root.bill-preview-open = true; }
+                    bills-total-text: root.report-bills-total-text;
                 }
 
                 // Menu
@@ -356,6 +369,7 @@ export component MainWindow inherits Window {
                         root.key-pressed(text, ctrl, shift, alt, meta)
                     }
                     preview-bill => { root.preview-open-bill(); }
+                    remove-order => { root.remove-order-dialog-open = true; }
                 }
 
                 // Item Details
@@ -408,25 +422,48 @@ export component MainWindow inherits Window {
                 }
             }
 
-            // Status bar
+            // Status bar — Store Info
             Rectangle {
-                height: 24px;
+                height: 30px;
                 background: #101010;
                 HorizontalLayout {
-                    padding: 4px;
+                    padding-left: 12px;
+                    padding-right: 12px;
+                    spacing: 14px;
+                    alignment: start;
+
+                    // Store name (highlighted)
                     Text {
-                        text: "User: Admin";
-                        color: white;
-                        font-size: 12px;
+                        text: root.store-name-text;
+                        color: #00ffff;
+                        font-size: 14px;
+                        font-weight: 700;
+                        vertical-alignment: center;
+                        height: 100%;
                     }
+
+                    // Address
+                    if root.store-address-text != "" : Text {
+                        text: root.store-address-text;
+                        color: #cccccc;
+                        font-size: 13px;
+                        vertical-alignment: center;
+                        height: 100%;
+                    }
+
+                    // Phone
+                    if root.store-phone-text != "" : Text {
+                        text: "Ph: " + root.store-phone-text;
+                        color: #cccccc;
+                        font-size: 13px;
+                        vertical-alignment: center;
+                        height: 100%;
+                    }
+
+                    // Spacer to push remaining space to the right
                     Rectangle { horizontal-stretch: 1; }
-                    Text {
-                        text: "v0.3.10a";
-                        color: white;
-                        font-size: 12px;
-                    }
                 }
-            }
+            }            
         }
     }
 
@@ -508,5 +545,20 @@ export component MainWindow inherits Window {
         close => { root.bill-preview-open = false; }
         store-fssai: root.store-fssai-text;
         save-pdf => { root.save-bill-pdf(); }
+    }
+
+    if root.remove-order-dialog-open : RemoveOrderDialog {
+        x: 0px;
+        y: 0px;
+        width: parent.width;
+        height: parent.height;
+        confirm => {
+            root.remove-order-dialog-open = false;
+            root.remove-order-confirmed();
+        }
+        cancel => {
+            root.remove-order-dialog-open = false;
+            root.remove-order-cancelled();
+        }
     }
 }

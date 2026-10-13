@@ -1,0 +1,86 @@
+import { Theme } from "../theme.slint";
+
+export component RemoveOrderDialog inherits Rectangle {
+    width: 100%;
+    height: 100%;
+    background: #000000aa;
+
+    callback confirm();
+    callback cancel();
+
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+    }
+
+    Rectangle {
+        x: (parent.width - 420px) / 2;
+        y: (parent.height - 220px) / 2;
+        width: 420px;
+        height: 220px;
+        background: Theme.bg-panel-alt;
+        border-radius: Theme.radius-md;
+        border-width: 2px;
+        border-color: Theme.btn-danger;
+
+        VerticalLayout {
+            padding: 20px;
+            spacing: 12px;
+
+            Text {
+                text: "Remove this order?";
+                color: Theme.btn-danger;
+                font-size: 18px;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "All items on this table will be deleted. This cannot be undone.";
+                color: Theme.text-primary;
+                font-size: 13px;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+                vertical-stretch: 1;
+                vertical-alignment: center;
+            }
+
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: center;
+
+                Rectangle {
+                    width: 110px;
+                    height: 40px;
+                    background: yes-hover.has-hover
+                        ? Theme.btn-danger-hover
+                        : Theme.btn-danger;
+                    border-radius: Theme.radius-md;
+                    yes-hover := TouchArea { clicked => { root.confirm(); } }
+                    Text {
+                        text: "Yes, Remove";
+                        color: white;
+                        font-size: 13px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+                Rectangle {
+                    width: 100px;
+                    height: 40px;
+                    background: no-hover.has-hover
+                        ? Theme.btn-neutral-hover
+                        : Theme.btn-neutral;
+                    border-radius: Theme.radius-md;
+                    no-hover := TouchArea { clicked => { root.cancel(); } }
+                    Text {
+                        text: "Cancel";
+                        color: white;
+                        font-size: 13px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}

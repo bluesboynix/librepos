@@ -322,3 +322,11 @@ pub fn get_order_edit_history(
         .collect::<Result<Vec<_>>>()?;
     Ok(rows)
 }
+
+/// Delete an open order and all its related rows.
+pub fn delete_open_order(conn: &Connection, order_id: i64) -> Result<()> {
+    conn.execute("DELETE FROM order_items WHERE order_id = ?1", [order_id])?;
+    conn.execute("DELETE FROM payments WHERE order_id = ?1", [order_id])?;
+    conn.execute("DELETE FROM orders WHERE id = ?1", [order_id])?;
+    Ok(())
+}

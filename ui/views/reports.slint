@@ -32,6 +32,7 @@ export component ReportsView inherits Rectangle {
     in-out property <string> bills-search-text: "";
     in-out property <bool> focus-search-requested: false;
     in property <[string]> bill-categories;
+    in property <string> bills-total-text: "";
     
     callback refresh(string, string);
     callback quick-range(int);
@@ -135,6 +136,7 @@ export component ReportsView inherits Rectangle {
                 show-voided <=> root.bills-show-voided;
                 search-text <=> root.bills-search-text;
                 focus-search-requested <=> root.focus-search-requested;
+                total-text: root.bills-total-text;      // ← add this line
                 bill-selected(order-id) => { root.load-bill-detail(order-id); }
                 back-to-list => { root.clear-bill-detail(); }
                 void-bill => { root.void-bill(); }
@@ -142,9 +144,6 @@ export component ReportsView inherits Rectangle {
                 toggle-voided => { root.toggle-voided(); }
                 search-changed(query) => { root.filter-bills(query); }
                 edit-bill => { root.edit-bill(); }
-                key-pressed(text, ctrl, shift, alt, meta) => {
-                    root.key-pressed(text, ctrl, shift, alt, meta)
-                }
                 preview-bill => { root.preview-bill(); }
             }
         }

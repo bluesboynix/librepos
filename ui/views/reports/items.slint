@@ -15,21 +15,21 @@ export component ReportItemsView inherits Rectangle {
 
     VerticalLayout {
         padding: 15px;
-        spacing: 8px;
+        spacing: 10px;
 
-        // Category tabs
+        // ---- Category tabs ----
         Flickable {
-            height: 36px;
+            height: 40px;
             viewport-width: cat-row.preferred-width;
             viewport-height: parent.height;
             interactive: true;
 
             cat-row := HorizontalLayout {
-                spacing: 4px;
+                spacing: 5px;
 
                 Rectangle {
-                    width: 80px;
-                    height: 36px;
+                    width: 90px;
+                    height: 40px;
                     background: root.active-category == ""
                         ? Theme.accent-row-active
                         : Theme.btn-neutral;
@@ -43,15 +43,15 @@ export component ReportItemsView inherits Rectangle {
                     Text {
                         text: "All";
                         color: white;
-                        font-size: 13px;
+                        font-size: 16px;
                         horizontal-alignment: center;
                         vertical-alignment: center;
                     }
                 }
 
                 for cat in root.categories : Rectangle {
-                    width: 110px;
-                    height: 36px;
+                    width: 130px;
+                    height: 40px;
                     background: root.active-category == cat
                         ? Theme.accent-row-active
                         : Theme.btn-neutral;
@@ -65,7 +65,7 @@ export component ReportItemsView inherits Rectangle {
                     Text {
                         text: cat;
                         color: white;
-                        font-size: 13px;
+                        font-size: 16px;
                         horizontal-alignment: center;
                         vertical-alignment: center;
                     }
@@ -73,63 +73,68 @@ export component ReportItemsView inherits Rectangle {
             }
         }
 
-        // Header
+        // ---- Column headers ----
         HorizontalLayout {
-            padding-left: 8px;
-            padding-right: 8px;
-            spacing: 8px;
-            Text { text: "#"; color: #00ffff; font-weight: 700; width: 40px; }
-            Text { text: "Item"; color: #00ffff; font-weight: 700; horizontal-stretch: 1; }
-            Text { text: "Category"; color: #00ffff; font-weight: 700; width: 120px; }
-            Text { text: "Qty"; color: #00ffff; font-weight: 700; width: 80px; horizontal-alignment: center; }
-            Text { text: "Revenue"; color: #00ffff; font-weight: 700; width: 120px; horizontal-alignment: right; }
+            padding-left: 10px;
+            padding-right: 10px;
+            spacing: 10px;
+            Text { text: "#"; color: #00ffff; font-weight: 700; font-size: 16px; width: 50px; }
+            Text { text: "Item"; color: #00ffff; font-weight: 700; font-size: 16px; horizontal-stretch: 1; }
+            Text { text: "Category"; color: #00ffff; font-weight: 700; font-size: 16px; width: 140px; }
+            Text { text: "Qty"; color: #00ffff; font-weight: 700; font-size: 16px; width: 90px; horizontal-alignment: center; }
+            Text { text: "Revenue"; color: #00ffff; font-weight: 700; font-size: 16px; width: 140px; horizontal-alignment: right; }
         }
         Rectangle { height: 1px; background: #808080; }
 
+        // ---- Rows ----
         ScrollView {
             horizontal-stretch: 1;
             vertical-stretch: 1;
 
             VerticalLayout {
-                spacing: 4px;
+                spacing: 5px;
                 for item[i] in root.items : Rectangle {
-                    height: 36px;
+                    height: 44px;
                     background: Math.mod(i, 2) == 0 ? #383838 : #404040;
                     border-radius: 4px;
                     HorizontalLayout {
-                        padding-left: 8px;
-                        padding-right: 8px;
-                        spacing: 8px;
+                        padding-left: 10px;
+                        padding-right: 10px;
+                        spacing: 10px;
                         Text {
                             text: (i + 1);
                             color: #cccccc;
-                            width: 40px;
+                            font-size: 16px;
+                            width: 50px;
                             vertical-alignment: center;
                         }
                         Text {
                             text: item.name;
                             color: white;
+                            font-size: 16px;
                             horizontal-stretch: 1;
                             vertical-alignment: center;
                         }
                         Text {
                             text: item.category;
                             color: #cccccc;
-                            width: 120px;
+                            font-size: 15px;
+                            width: 140px;
                             vertical-alignment: center;
-                            font-size: 13px;
                         }
                         Text {
                             text: item.quantity;
                             color: white;
-                            width: 80px;
+                            font-size: 16px;
+                            width: 90px;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
                         Text {
                             text: root.currency + item.revenue;
                             color: #00ff00;
-                            width: 120px;
+                            font-size: 16px;
+                            width: 140px;
                             horizontal-alignment: right;
                             vertical-alignment: center;
                         }

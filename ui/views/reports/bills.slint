@@ -1,7 +1,6 @@
 import { ScrollView } from "std-widgets.slint";
 import { ReportBill, BillDetail } from "../../db-types.slint";
 import { BillDetailView } from "bill_detail.slint";
-import { SearchBox } from "../../components/search_box.slint";
 
 export component ReportBillsView inherits Rectangle {
     width: 100%;
@@ -10,6 +9,7 @@ export component ReportBillsView inherits Rectangle {
     in property <[ReportBill]> bills;
     in property <string> currency: "₹";
     in property <BillDetail> detail;
+    in property <string> total-text: "";
     in-out property <bool> detail-open: false;
     in-out property <bool> show-voided: false;
     in-out property <string> search-text: "";
@@ -22,9 +22,10 @@ export component ReportBillsView inherits Rectangle {
     callback toggle-voided();
     callback search-changed(string);
     callback edit-bill();
-    callback key-pressed(string, bool, bool, bool, bool) -> bool;
     callback preview-bill();
+    callback key-pressed(string, bool, bool, bool, bool) -> bool;
 
+    // ---- Detail view ----
     if root.detail-open : BillDetailView {
         detail: root.detail;
         currency: root.currency;
@@ -35,52 +36,49 @@ export component ReportBillsView inherits Rectangle {
         preview-bill => { root.preview-bill(); }
     }
 
+    // ---- List view ----
     if !root.detail-open : VerticalLayout {
         padding: 15px;
-        spacing: 8px;
+        spacing: 10px;
 
+        // Search + Total + Show voided row
         HorizontalLayout {
             spacing: 8px;
 
             Rectangle {
                 horizontal-stretch: 1;
-                height: 32px;
+                height: 38px;
                 background: #d0d0d0;
                 border-radius: 4px;
                 clip: true;
 
-                SearchBox {
-                    horizontal-stretch: 1;
-                    height: 32px;
-                    text-size: 14px;
-                    text <=> root.search-text;
-                    focus-requested <=> root.focus-search-requested;
-                    edited(t) => {
-                        root.search-changed(t);
-                    }
-                    key-pressed(text, ctrl, shift, alt, meta) => {
-                        root.key-pressed(text, ctrl, shift, alt, meta)
-                    }
-                }
-                
                 HorizontalLayout {
-                    padding-left: 10px;
+                    padding-left: 12px;
                     padding-right: 6px;
                     search-box := TextInput {
                         horizontal-stretch: 1;
                         height: 100%;
                         color: black;
                         single-line: true;
-                        font-size: 14px;
+                        font-size: 16px;
                         vertical-alignment: center;
                         text <=> root.search-text;
                         edited => { root.search-changed(self.text); }
+                        key-pressed(event) => {
+                            root.key-pressed(
+                                event.text,
+                                event.modifiers.control,
+                                event.modifiers.shift,
+                                event.modifiers.alt,
+                                event.modifiers.meta,
+                            ) ? accept : reject
+                        }
                     }
                     Rectangle {
-                        width: 22px;
-                        height: 22px;
+                        width: 24px;
+                        height: 24px;
                         background: clear-hover.has-hover ? #aaaaaa : #cccccc;
-                        border-radius: 11px;
+                        border-radius: 12px;
                         clear-hover := TouchArea {
                             clicked => {
                                 root.search-text = "";
@@ -90,7 +88,7 @@ export component ReportBillsView inherits Rectangle {
                         Text {
                             text: "×";
                             color: black;
-                            font-size: 15px;
+                            font-size: 16px;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
@@ -98,9 +96,31 @@ export component ReportBillsView inherits Rectangle {
                 }
             }
 
+            // Total display
             Rectangle {
-                width: 22px;
-                height: 22px;
+                height: 38px;
+                background: #202020;
+                border-radius: 4px;
+                HorizontalLayout {
+                    padding-left: 14px;
+                    padding-right: 14px;
+                    Text {
+                        text: root.total-text == ""
+                            ? ""
+                            : "Total: " + root.currency + root.total-text;
+                        color: #00ff00;
+                        font-size: 17px;
+                        font-weight: 700;
+                        vertical-alignment: center;
+                        height: 100%;
+                    }
+                }
+            }
+
+            // Show voided checkbox
+            Rectangle {
+                width: 24px;
+                height: 24px;
                 background: root.show-voided ? #0066aa : #444444;
                 border-radius: 4px;
                 TouchArea {
@@ -109,7 +129,7 @@ export component ReportBillsView inherits Rectangle {
                 Text {
                     text: root.show-voided ? "✓" : "";
                     color: white;
-                    font-size: 14px;
+                    font-size: 15px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
@@ -117,33 +137,35 @@ export component ReportBillsView inherits Rectangle {
             Text {
                 text: "Show voided";
                 color: white;
-                font-size: 13px;
+                font-size: 15px;
                 vertical-alignment: center;
             }
         }
 
+        // Column headers
         HorizontalLayout {
-            padding-left: 8px;
-            padding-right: 8px;
-            spacing: 8px;
-            Text { text: "Bill No"; color: #00ffff; font-weight: 700; width: 140px; }
-            Text { text: "Table"; color: #00ffff; font-weight: 700; width: 120px; }
-            Text { text: "Area"; color: #00ffff; font-weight: 700; width: 80px; }
-            Text { text: "Total"; color: #00ffff; font-weight: 700; width: 100px; horizontal-alignment: right; }
-            Text { text: "Closed At"; color: #00ffff; font-weight: 700; width: 160px; }
-            Text { text: "Status"; color: #00ffff; font-weight: 700; width: 100px; }
-            Text { text: "Mode"; color: #00ffff; font-weight: 700; horizontal-stretch: 1; }
+            padding-left: 10px;
+            padding-right: 10px;
+            spacing: 10px;
+            Text { text: "Bill No"; color: #00ffff; font-weight: 700; font-size: 16px; width: 160px; }
+            Text { text: "Table"; color: #00ffff; font-weight: 700; font-size: 16px; width: 140px; }
+            Text { text: "Area"; color: #00ffff; font-weight: 700; font-size: 16px; width: 100px; }
+            Text { text: "Total"; color: #00ffff; font-weight: 700; font-size: 16px; width: 120px; horizontal-alignment: right; }
+            Text { text: "Closed At"; color: #00ffff; font-weight: 700; font-size: 16px; width: 180px; }
+            Text { text: "Status"; color: #00ffff; font-weight: 700; font-size: 16px; width: 110px; }
+            Text { text: "Mode"; color: #00ffff; font-weight: 700; font-size: 16px; horizontal-stretch: 1; }
         }
         Rectangle { height: 1px; background: #808080; }
 
+        // Bill list
         ScrollView {
             horizontal-stretch: 1;
             vertical-stretch: 1;
 
             VerticalLayout {
-                spacing: 4px;
+                spacing: 5px;
                 for b[i] in root.bills : Rectangle {
-                    height: 36px;
+                    height: 44px;
                     background: row-hover.has-hover
                         ? #505050
                         : (b.status == "void"
@@ -156,24 +178,58 @@ export component ReportBillsView inherits Rectangle {
                     }
 
                     HorizontalLayout {
-                        padding-left: 8px;
-                        padding-right: 8px;
-                        spacing: 8px;
-                        Text { text: b.bill-no; color: white; width: 140px; vertical-alignment: center; }
-                        Text { text: b.table-name; color: white; width: 120px; vertical-alignment: center; }
-                        Text { text: b.area-name; color: white; width: 80px; vertical-alignment: center; }
-                        Text { text: root.currency + b.total; color: #00ff00; width: 100px; horizontal-alignment: right; vertical-alignment: center; }
-                        Text { text: b.closed-at; color: #cccccc; width: 160px; font-size: 12px; vertical-alignment: center; }
+                        padding-left: 10px;
+                        padding-right: 10px;
+                        spacing: 10px;
+                        Text {
+                            text: b.bill-no;
+                            color: white;
+                            font-size: 16px;
+                            width: 160px;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: b.table-name;
+                            color: white;
+                            font-size: 16px;
+                            width: 140px;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: b.area-name;
+                            color: white;
+                            font-size: 16px;
+                            width: 100px;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: root.currency + b.total;
+                            color: #00ff00;
+                            font-size: 16px;
+                            width: 120px;
+                            horizontal-alignment: right;
+                            vertical-alignment: center;
+                        }
+                        Text {
+                            text: b.closed-at;
+                            color: #cccccc;
+                            font-size: 14px;
+                            width: 180px;
+                            vertical-alignment: center;
+                        }
                         Text {
                             text: b.status == "void" ? "voided" : b.payment-status;
-                            color: b.status == "void" ? #ff6666 : (b.payment-status == "paid" ? #00ff00 : #ffaa00);
-                            width: 100px;
+                            color: b.status == "void"
+                                ? #ff6666
+                                : (b.payment-status == "paid" ? #00ff00 : #ffaa00);
+                            font-size: 16px;
+                            width: 110px;
                             vertical-alignment: center;
                         }
                         Text {
                             text: b.payment-methods;
                             color: #aaaaaa;
-                            font-size: 12px;
+                            font-size: 14px;
                             horizontal-stretch: 1;
                             vertical-alignment: center;
                         }

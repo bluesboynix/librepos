@@ -37,6 +37,7 @@ export component BillView inherits Rectangle {
     in-out property <string> note-dialog-text: "";
     in-out property <string> note-dialog-item-name: "";
 
+    callback remove-order();
     callback go-back();
     callback save();
     callback print();
@@ -123,6 +124,7 @@ export component BillView inherits Rectangle {
             recalculate => { root.recalculate(); }
             move-table(new-table) => { root.move-table(new-table); }
             preview-bill => { root.preview-bill(); }
+            remove-order => { root.remove-order(); }
         }
     }
 

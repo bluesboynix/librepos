@@ -411,4 +411,100 @@ pub fn setup_order_persistence(
 
         window.set_bill_preview_open(true);
     });
+
+    // ==================== REMOVE ORDER ====================
+    let weak_window_remove = window.as_weak();
+    let conn_remove = conn.clone();
+    let open_orders_remove = open_orders.clone();
+    let order_lines_remove = order_lines.clone();
+    let areas_remove = areas.clone();
+    window.on_remove_order_confirmed(move || {
+        let Some(window) = weak_window_remove.upgrade() else {
+            return;
+        };
+
+        let table = window.get_current_bill_table().to_string();
+        if table.is_empty() {
+            return;
+        }
+
+        // Get the order id (cache or DB)
+        let order_id = open_orders_remove
+            .borrow()
+            .get(&table)
+            .copied()
+            .or_else(|| {
+                db::orders::get_open_order_by_table(&conn_remove, &table)
+                    .ok()
+                    .flatten()
+                    .map(|o| o.id)
+            });
+
+        if let Some(id) = order_id {
+            let _ = db::orders::delete_open_order(&conn_remove, id);
+            open_orders_remove.borrow_mut().remove(&table);
+        }
+
+        // Clear in-memory model
+        order_lines_remove.set_vec(Vec::<OrderLine>::new());
+
+        // Refresh dashboard
+        rebuild_areas(&conn_remove, &areas_remove);
+
+        // Return to Dashboard
+        window.set_current_view(0);
+    });
+
+    // Cancel handler — nothing to do
+    let weak_window_cancel = window.as_weak();
+    window.on_remove_order_cancelled(move || {
+        let _ = weak_window_cancel.upgrade();  // keep handle alive
+    });
+
+    // ==================== AUTOSAVE ====================
+    let weak_window_autosave = window.as_weak();
+    let conn_autosave = conn.clone();
+    let order_lines_autosave = order_lines.clone();
+    let menu_items_autosave = menu_items.clone();
+    let areas_autosave = areas.clone();
+    let open_orders_autosave = open_orders.clone();
+    window.on_autosave_order(move || {
+        let Some(window) = weak_window_autosave.upgrade() else {
+            return;
+        };
+
+        let table = window.get_current_bill_table().to_string();
+        if table.is_empty() {
+            return;
+        }
+
+        // If all items were removed, delete the open order (if any)
+        if order_lines_autosave.row_count() == 0 {
+            if let Ok(Some(existing)) =
+                db::orders::get_open_order_by_table(&conn_autosave, &table)
+            {
+                let _ = db::orders::delete_open_order(&conn_autosave, existing.id);
+                open_orders_autosave.borrow_mut().remove(&table);
+                rebuild_areas(&conn_autosave, &areas_autosave);
+            }
+            return;
+        }
+
+        // Otherwise create/update the order
+        let order_id = get_or_create_order_id(
+            &conn_autosave,
+            &open_orders_autosave,
+            &table,
+        );
+
+        save_bill_to_order(
+            &conn_autosave,
+            order_id,
+            &order_lines_autosave,
+            &menu_items_autosave,
+            &window,
+        );
+
+        rebuild_areas(&conn_autosave, &areas_autosave);
+    });
 }

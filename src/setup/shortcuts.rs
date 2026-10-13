@@ -8,10 +8,11 @@ use std::rc::Rc;
 pub type ShortcutMap = Rc<RefCell<HashMap<String, String>>>;
 
 pub const ACTION_LIST: &[(&str, &str, &str)] = &[
-    ("goto-home", "Go to Dashboard", "Alt+0"),
-    ("goto-reports", "Go to Reports", "Alt+1"),
-    ("goto-menu", "Go to Menu", "Alt+2"),
-    ("goto-settings", "Go to Settings", "Alt+3"),
+    ("goto-home", "Go to Dashboard", "Ctrl+0"),
+    ("goto-reports", "Go to Reports", "Ctrl+1"),
+    ("goto-menu", "Go to Menu", "Ctrl+2"),
+    ("goto-settings", "Go to Settings", "Ctrl+3"),
+    ("focus-search", "Focus search box", "Ctrl+F"),
     ("close-dialog", "Close dialog / return to Dashboard", "Esc"),
 ];
 
@@ -85,6 +86,7 @@ pub fn setup_shortcuts(
     conn: Rc<rusqlite::Connection>,
     map: ShortcutMap,
 ) {
+    // ==================== KEY HANDLER ====================
     let weak = window.as_weak();
     let map_key = map.clone();
     window.on_key_pressed(move |text, ctrl, shift, alt, meta| {
@@ -94,6 +96,7 @@ pub fn setup_shortcuts(
         let text = text.to_string();
         let combo = normalize_combo(&text, ctrl, shift, alt, meta);
 
+        // ---- Capture dialog intercept ----
         if window.get_shortcut_capture_open() {
             if text == "\u{1b}" {
                 window.set_shortcut_capture_open(false);
@@ -106,6 +109,7 @@ pub fn setup_shortcuts(
             return true;
         }
 
+        // ---- Esc handling ----
         if text == "\u{1b}" {
             if window.get_quit_dialog_open() {
                 window.set_quit_dialog_open(false);
@@ -117,6 +121,8 @@ pub fn setup_shortcuts(
                 window.set_unpaid_dialog_open(false);
             } else if window.get_export_dialog_open() {
                 window.set_export_dialog_open(false);
+            } else if window.get_remove_order_dialog_open() {
+                window.set_remove_order_dialog_open(false);
             } else if window.get_bill_preview_open() {
                 window.set_bill_preview_open(false);
             } else if window.get_sidebar_open() {
@@ -129,14 +135,7 @@ pub fn setup_shortcuts(
             return true;
         }
 
-        if combo == "Alt+F" {
-            let view = window.get_current_view();
-            if view == 1 || view == 2 || view == 4 {
-                window.set_focus_search_requested(true);
-            }
-            return true;
-        }
-
+        // ---- Look up combo in map ----
         let matched_action: Option<String> = {
             let borrowed = map_key.borrow();
             borrowed
@@ -162,10 +161,18 @@ pub fn setup_shortcuts(
                 window.set_current_view(3);
                 true
             }
+            Some("focus-search") => {
+                let view = window.get_current_view();
+                if view == 1 || view == 2 || view == 4 {
+                    window.set_focus_search_requested(true);
+                }
+                true
+            }
             _ => false,
         }
     });
 
+    // ==================== START CAPTURE ====================
     let weak = window.as_weak();
     window.on_start_shortcut_capture(move |action, description, current| {
         if let Some(window) = weak.upgrade() {
@@ -177,6 +184,7 @@ pub fn setup_shortcuts(
         }
     });
 
+    // ==================== APPLY CAPTURE ====================
     let weak = window.as_weak();
     let conn_apply = conn.clone();
     let map_apply = map.clone();
@@ -201,6 +209,7 @@ pub fn setup_shortcuts(
         refresh_shortcut_entries(&window, &map_apply);
     });
 
+    // ==================== CANCEL CAPTURE ====================
     let weak = window.as_weak();
     window.on_cancel_shortcut_capture(move || {
         if let Some(window) = weak.upgrade() {
@@ -208,6 +217,7 @@ pub fn setup_shortcuts(
         }
     });
 
+    // ==================== RESET TO DEFAULT ====================
     let weak = window.as_weak();
     window.on_reset_shortcut_capture(move || {
         if let Some(window) = weak.upgrade() {

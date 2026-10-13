@@ -7,7 +7,7 @@ pub fn setup_order_callbacks(
     window: &MainWindow,
     order_lines: Rc<VecModel<OrderLine>>,
 ) {
-    // Add order line
+    // ==================== ADD ORDER LINE ====================
     let weak_order_lines_add = Rc::downgrade(&order_lines);
     let weak_window_order_add = window.as_weak();
     window.on_add_order_line(move |name, price| {
@@ -15,7 +15,7 @@ pub fn setup_order_callbacks(
             let mut found = false;
             for i in 0..model.row_count() {
                 let mut line = model.row_data(i).unwrap();
-                if line.name == name {
+                if line.name == name && line.note.is_empty() {
                     line.quantity += 1;
                     model.set_row_data(i, line);
                     found = true;
@@ -32,11 +32,12 @@ pub fn setup_order_callbacks(
             }
             if let Some(window) = weak_window_order_add.upgrade() {
                 update_bill_totals(&window);
+                window.invoke_autosave_order();
             }
         }
     });
 
-    // Update order line quantity
+    // ==================== UPDATE QUANTITY ====================
     let weak_order_lines_update = Rc::downgrade(&order_lines);
     let weak_window_order_update = window.as_weak();
     window.on_update_order_line_quantity(move |index, qty| {
@@ -51,12 +52,13 @@ pub fn setup_order_callbacks(
                 }
                 if let Some(window) = weak_window_order_update.upgrade() {
                     update_bill_totals(&window);
+                    window.invoke_autosave_order();
                 }
             }
         }
     });
 
-    // Remove order line
+    // ==================== REMOVE ORDER LINE ====================
     let weak_order_lines_remove = Rc::downgrade(&order_lines);
     let weak_window_order_remove = window.as_weak();
     window.on_remove_order_line(move |index| {
@@ -65,28 +67,35 @@ pub fn setup_order_callbacks(
                 model.remove(index as usize);
                 if let Some(window) = weak_window_order_remove.upgrade() {
                     update_bill_totals(&window);
+                    window.invoke_autosave_order();
                 }
             }
         }
     });
 
-    // Recalculate bill from charge inputs
-    let weak_window_recalc = window.as_weak();
-    window.on_recalculate_bill(move || {
-        if let Some(window) = weak_window_recalc.upgrade() {
-            update_bill_totals(&window);
-        }
-    });
-
-    // Update order line note (in-memory)
+    // ==================== UPDATE NOTE ====================
     let weak_order_lines_note = Rc::downgrade(&order_lines);
+    let weak_window_order_note = window.as_weak();
     window.on_update_order_line_note(move |index, note| {
         if let Some(model) = weak_order_lines_note.upgrade() {
             if index >= 0 && (index as usize) < model.row_count() {
                 let mut line = model.row_data(index as usize).unwrap();
                 line.note = note;
                 model.set_row_data(index as usize, line);
+                if let Some(window) = weak_window_order_note.upgrade() {
+                    update_bill_totals(&window);
+                    window.invoke_autosave_order();
+                }
             }
+        }
+    });
+
+    // ==================== RECALCULATE (charges) ====================
+    let weak_window_recalc = window.as_weak();
+    window.on_recalculate_bill(move || {
+        if let Some(window) = weak_window_recalc.upgrade() {
+            update_bill_totals(&window);
+            window.invoke_autosave_order();
         }
     });
 }

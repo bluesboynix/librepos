@@ -1,8 +1,18 @@
 use crate::{
-    BillDetail, BillLine, BillPayment, MainWindow, ReportBill, ReportDay, ReportItem, ReportPayment, ReportSummary};
+    BillDetail, BillLine, BillPayment, MainWindow, ReportBill, ReportDay,
+    ReportItem, ReportPayment, ReportSummary,
+};
 use crate::db;
 use slint::{ComponentHandle, VecModel};
 use std::rc::Rc;
+
+fn sum_bills_total(bills: &[db::reports::BillRow]) -> f64 {
+    bills
+        .iter()
+        .filter(|x| x.status == "closed")
+        .map(|x| x.total)
+        .sum()
+}
 
 fn nice_label(v: f64) -> String {
     if v <= 0.0 {
@@ -26,8 +36,8 @@ fn run_report(
     payments: &Rc<VecModel<ReportPayment>>,
     days: &Rc<VecModel<ReportDay>>,
     bills: &Rc<VecModel<ReportBill>>,
-    category_filter: &str,
 ) {
+    // Summary
     if let Ok(s) = db::reports::get_summary(conn, from, to) {
         window.set_report_summary(ReportSummary {
             total_sales: format!("{:.2}", s.total_sales).into(),
@@ -36,7 +46,8 @@ fn run_report(
         });
     }
 
-    if let Ok(items) = db::reports::get_top_items(conn, from, to, 20, category_filter) {
+    // Top items
+    if let Ok(items) = db::reports::get_top_items(conn, from, to, 20, "") {
         let rows: Vec<ReportItem> = items
             .into_iter()
             .map(|i| ReportItem {
@@ -49,6 +60,7 @@ fn run_report(
         top_items.set_vec(rows);
     }
 
+    // Payments
     if let Ok(p) = db::reports::get_payment_breakdown(conn, from, to) {
         let rows: Vec<ReportPayment> = p
             .into_iter()
@@ -61,6 +73,7 @@ fn run_report(
         payments.set_vec(rows);
     }
 
+    // Daily sales
     if let Ok(d) = db::reports::get_daily_sales(conn, from, to) {
         let rows: Vec<ReportDay> = d
             .into_iter()
@@ -72,7 +85,6 @@ fn run_report(
             })
             .collect();
 
-        // Compute max for chart scaling
         let max_sale = rows
             .iter()
             .map(|d| d.sales)
@@ -82,7 +94,6 @@ fn run_report(
             format!("{:.2}", max_sale).into(),
         );
 
-        // Build y-axis labels
         let max_f = max_sale as f64;
         let ticks: Vec<slint::SharedString> = vec![
             nice_label(max_f).into(),
@@ -91,14 +102,12 @@ fn run_report(
             nice_label(max_f * 0.25).into(),
             nice_label(0.0).into(),
         ];
-        window.set_report_y_labels(
-            Rc::new(VecModel::from(ticks)).into(),
-        );
+        window.set_report_y_labels(Rc::new(VecModel::from(ticks)).into());
 
         days.set_vec(rows);
     }
-    
-        
+
+    // Bills + total
     if let Ok(b) = db::reports::get_bills(
         conn,
         from,
@@ -107,6 +116,9 @@ fn run_report(
         window.get_bills_show_voided(),
         "",
     ) {
+        let total = sum_bills_total(&b);
+        window.set_report_bills_total_text(format!("{:.2}", total).into());
+
         let rows: Vec<ReportBill> = b
             .into_iter()
             .map(|x| ReportBill {
@@ -130,7 +142,6 @@ fn run_report(
 fn compute_range(conn: &rusqlite::Connection, kind: i32) -> (String, String) {
     match kind {
         0 => {
-            // Today
             let today: String = conn
                 .query_row(
                     "SELECT date('now', 'localtime')",
@@ -141,7 +152,6 @@ fn compute_range(conn: &rusqlite::Connection, kind: i32) -> (String, String) {
             (today.clone(), today)
         }
         1 => {
-            // Last 7 days
             let from: String = conn
                 .query_row(
                     "SELECT date('now', 'localtime', '-6 days')",
@@ -159,7 +169,6 @@ fn compute_range(conn: &rusqlite::Connection, kind: i32) -> (String, String) {
             (from, to)
         }
         2 => {
-            // This month
             let from: String = conn
                 .query_row(
                     "SELECT date('now', 'localtime', 'start of month')",
@@ -197,7 +206,7 @@ pub fn setup_reports_callbacks(
     days: Rc<VecModel<ReportDay>>,
     bills: Rc<VecModel<ReportBill>>,
 ) {
-    // Refresh with explicit from/to
+    // ==================== LOAD REPORTS ====================
     let weak_window_refresh = window.as_weak();
     let conn_refresh = conn.clone();
     let top_items_r = top_items.clone();
@@ -206,7 +215,6 @@ pub fn setup_reports_callbacks(
     let bills_r = bills.clone();
     window.on_load_reports(move |from, to| {
         if let Some(window) = weak_window_refresh.upgrade() {
-            let cat = window.get_report_active_category().to_string();
             run_report(
                 &conn_refresh,
                 &window,
@@ -216,12 +224,11 @@ pub fn setup_reports_callbacks(
                 &payments_r,
                 &days_r,
                 &bills_r,
-                &cat,
             );
         }
     });
 
-    // Quick range selector
+    // ==================== QUICK RANGE ====================
     let weak_window_qr = window.as_weak();
     let conn_qr = conn.clone();
     let top_items_qr = top_items.clone();
@@ -232,13 +239,9 @@ pub fn setup_reports_callbacks(
         let Some(window) = weak_window_qr.upgrade() else {
             return;
         };
-
         let (from, to) = compute_range(&conn_qr, kind);
-
         window.set_report_from_date(from.clone().into());
         window.set_report_to_date(to.clone().into());
-
-        let cat = window.get_report_active_category().to_string();
         run_report(
             &conn_qr,
             &window,
@@ -248,7 +251,6 @@ pub fn setup_reports_callbacks(
             &payments_qr,
             &days_qr,
             &bills_qr,
-            &cat,
         );
     });
 
@@ -260,10 +262,12 @@ pub fn setup_reports_callbacks(
             return;
         };
         let Some(detail) =
-            db::reports::get_bill_detail(&conn_bill, order_id as i64).ok().flatten()
-            else {
-                return;
-            };
+            db::reports::get_bill_detail(&conn_bill, order_id as i64)
+                .ok()
+                .flatten()
+        else {
+            return;
+        };
 
         let items: Vec<BillLine> = detail
             .items
@@ -285,6 +289,12 @@ pub fn setup_reports_callbacks(
                 method: p.method.into(),
                 amount: format!("{:.2}", p.amount).into(),
             })
+            .collect();
+
+        let edit_history: Vec<slint::SharedString> = detail
+            .edit_history
+            .into_iter()
+            .map(slint::SharedString::from)
             .collect();
 
         window.set_current_bill_detail(BillDetail {
@@ -310,16 +320,12 @@ pub fn setup_reports_callbacks(
             customer_address: detail.customer_address.into(),
             items: Rc::new(VecModel::from(items)).into(),
             payments: Rc::new(VecModel::from(payments)).into(),
-            edit_history: Rc::new(VecModel::from(
-                detail.edit_history
-                    .into_iter()
-                    .map(slint::SharedString::from)
-                    .collect::<Vec<_>>(),
-            )).into(),
+            edit_history: Rc::new(VecModel::from(edit_history)).into(),
         });
         window.set_bills_detail_open(true);
     });
 
+    // ==================== CLEAR BILL DETAIL ====================
     let weak_window_clear = window.as_weak();
     window.on_clear_bill_detail(move || {
         if let Some(window) = weak_window_clear.upgrade() {
@@ -328,27 +334,29 @@ pub fn setup_reports_callbacks(
     });
 
     // ==================== VOID BILL ====================
-    // Perform void (after dialog confirmed)
     let weak_window_v = window.as_weak();
     let conn_v = conn.clone();
     window.on_perform_void(move || {
-        let Some(window) = weak_window_v.upgrade() else { return; };
+        let Some(window) = weak_window_v.upgrade() else {
+            return;
+        };
         let detail = window.get_current_bill_detail();
         let reason = window.get_void_reason().to_string();
         let _ = db::orders::void_order(&conn_v, detail.id as i64, &reason);
         window.set_void_reason("".into());
         window.set_bills_detail_open(false);
-        // Reload bills list
         let from = window.get_report_from_date().to_string();
         let to = window.get_report_to_date().to_string();
         window.invoke_load_reports(from.into(), to.into());
     });
 
-    // Revive
+    // ==================== REVIVE BILL ====================
     let weak_window_rv = window.as_weak();
     let conn_rv = conn.clone();
     window.on_revive(move || {
-        let Some(window) = weak_window_rv.upgrade() else { return; };
+        let Some(window) = weak_window_rv.upgrade() else {
+            return;
+        };
         let detail = window.get_current_bill_detail();
         let _ = db::orders::revive_order(&conn_rv, detail.id as i64);
         window.set_bills_detail_open(false);
@@ -357,7 +365,7 @@ pub fn setup_reports_callbacks(
         window.invoke_load_reports(from.into(), to.into());
     });
 
-    // Toggle voided view
+    // ==================== TOGGLE VOIDED ====================
     let weak_window_t = window.as_weak();
     let conn_t = conn.clone();
     let bills_t = bills.clone();
@@ -373,6 +381,9 @@ pub fn setup_reports_callbacks(
             if let Ok(b) = db::reports::get_bills(
                 &conn_t, &from, &to, 100, include_voided, &query,
             ) {
+                let total = sum_bills_total(&b);
+                window.set_report_bills_total_text(format!("{:.2}", total).into());
+
                 let rows: Vec<ReportBill> = b
                     .into_iter()
                     .map(|x| ReportBill {
@@ -410,6 +421,9 @@ pub fn setup_reports_callbacks(
         if let Ok(b) =
             db::reports::get_bills(&conn_filt, &from, &to, 100, include_voided, &q)
         {
+            let total = sum_bills_total(&b);
+            window.set_report_bills_total_text(format!("{:.2}", total).into());
+
             let rows: Vec<ReportBill> = b
                 .into_iter()
                 .map(|x| ReportBill {
@@ -430,38 +444,6 @@ pub fn setup_reports_callbacks(
         }
     });
 
-    
-    // ==================== EDIT CLOSED BILL ====================
-    let weak_window_edit = window.as_weak();
-    let conn_edit = conn.clone();
-    window.on_edit_bill(move || {
-        let Some(window) = weak_window_edit.upgrade() else {
-            return;
-        };
-        let detail = window.get_current_bill_detail();
-        let order_id = detail.id as i64;
-        let table_name = detail.table_name.to_string();
-
-        // Safety: don't reopen if the table already has a different open order
-        if let Ok(Some(existing)) =
-            db::orders::get_open_order_by_table(&conn_edit, &table_name)
-        {
-            if existing.id != order_id {
-                eprintln!(
-                    "[edit] table {} already has open order id={}",
-                    table_name, existing.id
-                );
-                return;
-            }
-        }
-
-        let _ = db::orders::reopen_order(&conn_edit, order_id);
-
-        // Close detail view and hand off to BillView
-        window.set_bills_detail_open(false);
-        window.invoke_open_table(table_name.into());
-    });
-
     // ==================== EXPORT REPORTS ====================
     let weak_window_exp = window.as_weak();
     let conn_exp = conn.clone();
@@ -478,7 +460,7 @@ pub fn setup_reports_callbacks(
                         "Saved 3 CSV files to ./{}/\n\nbills_{}_{}.csv\nitems_{}_{}.csv\npayments_{}_{}.csv",
                         dir, from_s, to_s, from_s, to_s, from_s, to_s
                     )
-                        .into(),
+                    .into(),
                 );
             }
             Err(e) => {
@@ -490,34 +472,6 @@ pub fn setup_reports_callbacks(
         window.set_export_dialog_open(true);
     });
 
-    // ==================== FILTER TOP ITEMS BY CATEGORY ====================
-    let weak_window_cat = window.as_weak();
-    let conn_cat = conn.clone();
-    let top_items_cat = top_items.clone();
-    let payments_cat = payments.clone();
-    let days_cat = days.clone();
-    let bills_cat = bills.clone();
-    window.on_filter_top_items(move |category| {
-        let Some(window) = weak_window_cat.upgrade() else {
-            return;
-        };
-        window.set_report_active_category(category.clone());
-
-        let from = window.get_report_from_date().to_string();
-        let to = window.get_report_to_date().to_string();
-        run_report(
-            &conn_cat,
-            &window,
-            &from,
-            &to,
-            &top_items_cat,
-            &payments_cat,
-            &days_cat,
-            &bills_cat,
-            &category.to_string(),
-        );
-    });
-
     // ==================== SAVE BILL AS PDF ====================
     let weak_window_pdf = window.as_weak();
     let conn_pdf = conn.clone();
@@ -526,7 +480,6 @@ pub fn setup_reports_callbacks(
             return;
         };
 
-        // Load fresh detail from DB using id
         let detail_slint = window.get_current_bill_detail();
         let order_id = detail_slint.id as i64;
 
@@ -567,8 +520,36 @@ pub fn setup_reports_callbacks(
             }
         }
 
-        // Close the preview, then show the result dialog
         window.set_bill_preview_open(false);
         window.set_export_dialog_open(true);
+    });
+
+    // ==================== EDIT CLOSED BILL ====================
+    let weak_window_edit = window.as_weak();
+    let conn_edit = conn.clone();
+    window.on_edit_bill(move || {
+        let Some(window) = weak_window_edit.upgrade() else {
+            return;
+        };
+        let detail = window.get_current_bill_detail();
+        let order_id = detail.id as i64;
+        let table_name = detail.table_name.to_string();
+
+        if let Ok(Some(existing)) =
+            db::orders::get_open_order_by_table(&conn_edit, &table_name)
+        {
+            if existing.id != order_id {
+                eprintln!(
+                    "[edit] table {} already has open order id={}",
+                    table_name, existing.id
+                );
+                return;
+            }
+        }
+
+        let _ = db::orders::reopen_order(&conn_edit, order_id);
+
+        window.set_bills_detail_open(false);
+        window.invoke_open_table(table_name.into());
     });
 }
