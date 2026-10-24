@@ -51,6 +51,7 @@ export component BillView inherits Rectangle {
     callback move-table(string);
     callback search-changed(string);
     callback key-pressed(string, bool, bool, bool, bool) -> bool;
+    callback data-changed();
 
     HorizontalLayout {
         width: 100%;
@@ -125,6 +126,7 @@ export component BillView inherits Rectangle {
             move-table(new-table) => { root.move-table(new-table); }
             preview-bill => { root.preview-bill(); }
             remove-order => { root.remove-order(); }
+            data-changed => { root.data-changed(); }
         }
     }
 

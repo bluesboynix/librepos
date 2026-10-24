@@ -172,6 +172,8 @@ export component MainWindow inherits Window {
     in-out property <bool> remove-order-dialog-open: false;
 
     callback autosave-order();
+
+    callback data-changed();
     
     main-scope := FocusScope {
         key-pressed(event) => {
@@ -370,6 +372,7 @@ export component MainWindow inherits Window {
                     }
                     preview-bill => { root.preview-open-bill(); }
                     remove-order => { root.remove-order-dialog-open = true; }
+                    data-changed => { root.autosave-order(); }
                 }
 
                 // Item Details

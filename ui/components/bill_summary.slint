@@ -35,6 +35,7 @@ export component BillSummary inherits Rectangle {
     callback remove-order();
     callback preview-bill();
     callback move-table(string);
+    callback data-changed();
 
     VerticalLayout {
         alignment: start;
@@ -113,7 +114,10 @@ export component BillSummary inherits Rectangle {
                     single-line: true;
                     text <=> root.packaging-text;
                     font-size: 25px;
-                    edited => { root.recalculate(); }
+                    edited => {
+                        root.recalculate();
+                        root.data-changed();
+                    }
                 }
             }
         }
@@ -138,7 +142,10 @@ export component BillSummary inherits Rectangle {
                     single-line: true;
                     text <=> root.delivery-text;
                     font-size: 25px;
-                    edited => { root.recalculate(); }
+                    edited => {
+                        root.recalculate();
+                        root.data-changed();
+                    }
                 }
             }
         }
@@ -163,7 +170,10 @@ export component BillSummary inherits Rectangle {
                     single-line: true;
                     text <=> root.discount-text;
                     font-size: 25px;
-                    edited => { root.recalculate(); }
+                    edited => {
+                        root.recalculate();
+                        root.data-changed();
+                    }
                 }
             }
         }
@@ -420,6 +430,10 @@ export component BillSummary inherits Rectangle {
                     font-size: 25px;
                     single-line: true;
                     text <=> root.customer-name;
+                    edited => {
+                        root.recalculate();
+                        root.data-changed();
+                    }
                 }
             }
         }
@@ -443,6 +457,10 @@ export component BillSummary inherits Rectangle {
                     font-size: 25px;
                     single-line: true;
                     text <=> root.customer-phone;
+                    edited => {
+                        root.recalculate();
+                        root.data-changed();
+                    }
                 }
             }
         }
@@ -466,6 +484,10 @@ export component BillSummary inherits Rectangle {
                     font-size: 25px;
                     single-line: true;
                     text <=> root.customer-address;
+                    edited => {
+                        root.recalculate();
+                        root.data-changed();
+                    }
                 }
             }
         }
