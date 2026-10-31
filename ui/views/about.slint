@@ -1,0 +1,130 @@
+import { Theme } from "../theme.slint";
+
+export component AboutView inherits Rectangle {
+    width: 100%;
+    height: 100%;
+
+    in property <string> store-name: "";
+    in property <string> store-address: "";
+    in property <string> store-phone: "";
+    in property <string> store-fssai: "";
+
+    VerticalLayout {
+        padding: 30px;
+        spacing: 14px;
+        alignment: start;
+
+        Text {
+            text: "About LibrePOS";
+            font-size: 28px;
+            font-weight: 700;
+            color: #00ffff;
+            horizontal-alignment: center;
+        }
+
+        Rectangle { height: 10px; }
+
+        HorizontalLayout {
+            spacing: 10px;
+            Text {
+                text: "Version:";
+                color: Theme.text-primary;
+                font-size: 16px;
+                width: 180px;
+                vertical-alignment: center;
+            }
+            Text {
+                text: "v0.4.0-alpha.5";
+                color: Theme.text-note;
+                font-size: 16px;
+                font-weight: 700;
+                vertical-alignment: center;
+            }
+        }
+
+        Rectangle { height: 1px; background: Theme.border-line; }
+
+        Text {
+            text: "Store Information";
+            color: #00ffff;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        HorizontalLayout {
+            spacing: 10px;
+            Text {
+                text: "Name:";
+                color: Theme.text-primary;
+                font-size: 15px;
+                width: 180px;
+                vertical-alignment: center;
+            }
+            Text {
+                text: root.store-name == "" ? "(not set)" : root.store-name;
+                color: Theme.text-secondary;
+                font-size: 15px;
+                vertical-alignment: center;
+            }
+        }
+        HorizontalLayout {
+            spacing: 10px;
+            Text {
+                text: "Address:";
+                color: Theme.text-primary;
+                font-size: 15px;
+                width: 180px;
+                vertical-alignment: center;
+            }
+            Text {
+                text: root.store-address == "" ? "(not set)" : root.store-address;
+                color: Theme.text-secondary;
+                font-size: 15px;
+                vertical-alignment: center;
+            }
+        }
+        HorizontalLayout {
+            spacing: 10px;
+            Text {
+                text: "Phone:";
+                color: Theme.text-primary;
+                font-size: 15px;
+                width: 180px;
+                vertical-alignment: center;
+            }
+            Text {
+                text: root.store-phone == "" ? "(not set)" : root.store-phone;
+                color: Theme.text-secondary;
+                font-size: 15px;
+                vertical-alignment: center;
+            }
+        }
+        HorizontalLayout {
+            spacing: 10px;
+            Text {
+                text: "FSSAI:";
+                color: Theme.text-primary;
+                font-size: 15px;
+                width: 180px;
+                vertical-alignment: center;
+            }
+            Text {
+                text: root.store-fssai == "" ? "(not set)" : root.store-fssai;
+                color: Theme.text-secondary;
+                font-size: 15px;
+                vertical-alignment: center;
+            }
+        }
+
+        Rectangle { height: 1px; background: Theme.border-line; }
+
+        Text {
+            text: "LibrePOS is an offline-first Point of Sale system for restaurants and cafés. Built with Rust and Slint. All data stays on this device.";
+            color: Theme.text-secondary;
+            font-size: 14px;
+            wrap: word-wrap;
+        }
+
+        Rectangle { vertical-stretch: 1; }
+    }
+}

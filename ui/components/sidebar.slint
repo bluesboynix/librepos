@@ -85,7 +85,7 @@ export component SideBar inherits Rectangle {
             background: settings-hover.has-hover ? #8a8a8a : transparent;
             settings-hover := TouchArea {
                 clicked => {
-                    root.navigate(3);
+                    root.navigate(6);
                 }
             }
             Text {
@@ -99,6 +99,23 @@ export component SideBar inherits Rectangle {
         Rectangle { height: 1px; background: #3a4a5a; }
         Text { text: ""; color: white; font-size: 18px; }
 
+        // About
+        Rectangle {
+            height: 30px;
+            background: about-hover.has-hover ? #8a8a8a : transparent;
+            about-hover := TouchArea {
+                clicked => {
+                    root.navigate(6);
+                }
+            }
+            Text {
+                text: "About";
+                color: white;
+                font-size: 18px;
+                vertical-alignment: center;
+            }
+        }
+                
         Rectangle { vertical-stretch: 1; }
 
         // Quit

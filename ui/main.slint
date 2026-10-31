@@ -11,6 +11,8 @@ import { QuitDialog } from "components/quit_dialog.slint";
 import { UnpaidDialog } from "components/unpaid_dialog.slint";
 import { VoidDialog } from "components/void_dialog.slint";
 
+import { AboutView } from "views/about.slint";
+
 import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill, BillDetail, ShortcutEntry } from "db-types.slint";
 
 import { ShortcutCaptureDialog } from "components/shortcut_capture_dialog.slint";
@@ -404,6 +406,14 @@ export component MainWindow inherits Window {
                     update-ingredient-cost(index, text) => {
                         root.update-ingredient-cost(index, text);
                     }
+                }
+
+                // About
+                if root.current-view == 6 : AboutView {
+                    store-name: root.store-name-text;
+                    store-address: root.store-address-text;
+                    store-phone: root.store-phone-text;
+                    store-fssai: root.store-fssai-text;
                 }
 
                 SideBar {
