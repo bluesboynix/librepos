@@ -12,16 +12,19 @@ export component ReportDailyView inherits Rectangle {
         padding: 15px;
         spacing: 10px;
 
+        // Header
         HorizontalLayout {
             padding-left: 10px;
             padding-right: 10px;
             spacing: 10px;
             Text { text: "Date"; color: #00ffff; font-weight: 700; font-size: 16px; width: 160px; }
             Text { text: "Orders"; color: #00ffff; font-weight: 700; font-size: 16px; width: 120px; horizontal-alignment: center; }
-            Text { text: "Sales"; color: #00ffff; font-weight: 700; font-size: 16px; horizontal-stretch: 1; horizontal-alignment: right; }
+            Text { text: "Sales"; color: #00ffff; font-weight: 700; font-size: 16px; width: 160px; horizontal-alignment: right; }
+            Rectangle { horizontal-stretch: 1; }  // spacer absorbs remaining space
         }
         Rectangle { height: 1px; background: #808080; }
 
+        // Rows
         ScrollView {
             horizontal-stretch: 1;
             vertical-stretch: 1;
@@ -55,10 +58,11 @@ export component ReportDailyView inherits Rectangle {
                             text: root.currency + d.sales_display;
                             color: #00ff00;
                             font-size: 16px;
-                            horizontal-stretch: 1;
+                            width: 160px;
                             horizontal-alignment: right;
                             vertical-alignment: center;
                         }
+                        Rectangle { horizontal-stretch: 1; }  // spacer absorbs remaining space
                     }
                 }
             }

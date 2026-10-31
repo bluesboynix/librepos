@@ -46,8 +46,9 @@ fn run_report(
         });
     }
 
-    // Top items
-    if let Ok(items) = db::reports::get_top_items(conn, from, to, 20, "") {
+    let cat = window.get_report_active_category().to_string();
+    // top items
+    if let Ok(items) = db::reports::get_top_items(conn, from, to, 20, &cat) {
         let rows: Vec<ReportItem> = items
             .into_iter()
             .map(|i| ReportItem {
@@ -225,6 +226,36 @@ pub fn setup_reports_callbacks(
                 &days_r,
                 &bills_r,
             );
+        }
+    });
+
+    // ==================== FILTER TOP ITEMS BY CATEGORY ====================
+    let weak_window_cat = window.as_weak();
+    let conn_cat = conn.clone();
+    let top_items_cat = top_items.clone();
+    window.on_filter_top_items(move |category| {
+        let Some(window) = weak_window_cat.upgrade() else {
+            return;
+        };
+        window.set_report_active_category(category.clone());
+
+        let from = window.get_report_from_date().to_string();
+        let to = window.get_report_to_date().to_string();
+        let cat = category.to_string();
+
+        if let Ok(items) =
+            db::reports::get_top_items(&conn_cat, &from, &to, 20, &cat)
+        {
+            let rows: Vec<ReportItem> = items
+                .into_iter()
+                .map(|i| ReportItem {
+                    name: i.name.into(),
+                    category: i.category.into(),
+                    quantity: i.quantity as i32,
+                    revenue: format!("{:.2}", i.revenue).into(),
+                })
+                .collect();
+            top_items_cat.set_vec(rows);
         }
     });
 

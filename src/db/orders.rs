@@ -181,7 +181,7 @@ pub fn close_order(
             bill_no = ?1,
             area_name = ?2,
             payment_status = ?3,
-            closed_at = datetime('now','localtime'),
+            closed_at = COALESCE(closed_at, datetime('now','localtime')),
             updated_at = datetime('now','localtime')
          WHERE id = ?4",
         params![bill_no, area_name, payment_status, order_id],
@@ -295,7 +295,6 @@ pub fn reopen_order(conn: &Connection, order_id: i64) -> Result<()> {
     conn.execute(
         "UPDATE orders SET
             status = 'open',
-            closed_at = NULL,
             payment_status = 'unpaid',
             updated_at = datetime('now','localtime')
          WHERE id = ?1",

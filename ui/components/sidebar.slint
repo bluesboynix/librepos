@@ -1,15 +1,17 @@
-export component SideBar inherits Rectangle {
-    width: 250px;
-    height: 100%;
-    background: #707070;
-    border-width: 1px;
-    border-color: #808080;
+import { Theme } from "../theme.slint";
 
-    in-out property <int> current-view: 0;
-    callback navigate(int);   // <-- changed: removed parameter name
+export component SideBar inherits Rectangle {
+    width: 100%;
+    height: 100%;
+    background: Theme.bg-panel;
+    border-width: 1px;
+    border-color: Theme.border-line;
+
+    in property <int> current-view: 0;
+    callback navigate(int);
     callback quit-requested();
 
-    // Absorb clicks inside sidebar
+    // Absorb clicks so they don't reach the background
     TouchArea {
         width: parent.width;
         height: parent.height;
@@ -21,120 +23,119 @@ export component SideBar inherits Rectangle {
 
         // Dashboard
         Rectangle {
-            height: 30px;
+            height: 40px;
             background: dashboard-hover.has-hover ? #8a8a8a : transparent;
             dashboard-hover := TouchArea {
-                clicked => {
-                    root.navigate(0);
+                clicked => { root.navigate(0); }
+            }
+            HorizontalLayout {
+                padding-left: 8px;
+                Text {
+                    text: "Dashboard";
+                    color: Theme.text-primary;
+                    font-size: 18px;
+                    vertical-alignment: center;
                 }
             }
-            Text {
-                text: "Dashboard";
-                color: white;
-                font-size: 18px;
-                vertical-alignment: center;
-            }
         }
-        Text { text: ""; color: white; font-size: 18px; }
-        Rectangle { height: 1px; background: #3a4a5a; }
-        Text { text: ""; color: white; font-size: 18px; }
+        Rectangle { height: 1px; background: Theme.border-subtle; }
 
         // Reports
         Rectangle {
-            height: 30px;
+            height: 40px;
             background: reports-hover.has-hover ? #8a8a8a : transparent;
             reports-hover := TouchArea {
-                clicked => {
-                    root.navigate(1);
+                clicked => { root.navigate(1); }
+            }
+            HorizontalLayout {
+                padding-left: 8px;
+                Text {
+                    text: "Reports";
+                    color: Theme.text-primary;
+                    font-size: 18px;
+                    vertical-alignment: center;
                 }
             }
-            Text {
-                text: "Reports";
-                color: white;
-                font-size: 18px;
-                vertical-alignment: center;
-            }
         }
-        Text { text: ""; color: white; font-size: 18px; }
-        Rectangle { height: 1px; background: #3a4a5a; }
-        Text { text: ""; color: white; font-size: 18px; }
+        Rectangle { height: 1px; background: Theme.border-subtle; }
 
         // Menu
         Rectangle {
-            height: 30px;
+            height: 40px;
             background: menu-hover.has-hover ? #8a8a8a : transparent;
             menu-hover := TouchArea {
-                clicked => {
-                    root.navigate(2);
+                clicked => { root.navigate(2); }
+            }
+            HorizontalLayout {
+                padding-left: 8px;
+                Text {
+                    text: "Menu";
+                    color: Theme.text-primary;
+                    font-size: 18px;
+                    vertical-alignment: center;
                 }
             }
-            Text {
-                text: "Menu";
-                color: white;
-                font-size: 18px;
-                vertical-alignment: center;
-            }
         }
-        Text { text: ""; color: white; font-size: 18px; }
-        Rectangle { height: 1px; background: #3a4a5a; }
-        Text { text: ""; color: white; font-size: 18px; }
+        Rectangle { height: 1px; background: Theme.border-subtle; }
 
         // Settings
         Rectangle {
-            height: 30px;
+            height: 40px;
             background: settings-hover.has-hover ? #8a8a8a : transparent;
             settings-hover := TouchArea {
-                clicked => {
-                    root.navigate(6);
+                clicked => { root.navigate(3); }
+            }
+            HorizontalLayout {
+                padding-left: 8px;
+                Text {
+                    text: "Settings";
+                    color: Theme.text-primary;
+                    font-size: 18px;
+                    vertical-alignment: center;
                 }
             }
-            Text {
-                text: "Settings";
-                color: white;
-                font-size: 18px;
-                vertical-alignment: center;
-            }
         }
-        Text { text: ""; color: white; font-size: 18px; }
-        Rectangle { height: 1px; background: #3a4a5a; }
-        Text { text: ""; color: white; font-size: 18px; }
+        Rectangle { height: 1px; background: Theme.border-subtle; }
 
         // About
         Rectangle {
-            height: 30px;
+            height: 40px;
             background: about-hover.has-hover ? #8a8a8a : transparent;
             about-hover := TouchArea {
-                clicked => {
-                    root.navigate(6);
+                clicked => { root.navigate(6); }
+            }
+            HorizontalLayout {
+                padding-left: 8px;
+                Text {
+                    text: "About";
+                    color: Theme.text-primary;
+                    font-size: 18px;
+                    vertical-alignment: center;
                 }
             }
-            Text {
-                text: "About";
-                color: white;
-                font-size: 18px;
-                vertical-alignment: center;
-            }
         }
-                
+        Rectangle { height: 1px; background: Theme.border-subtle; }
+
+        // Spacer
         Rectangle { vertical-stretch: 1; }
 
         // Quit
         Rectangle {
-            height: 30px;
+            height: 40px;
             background: quit-hover.has-hover ? #8a8a8a : transparent;
             quit-hover := TouchArea {
-                clicked => {
-                    root.quit-requested();
+                clicked => { root.quit-requested(); }
+            }
+            HorizontalLayout {
+                padding-left: 8px;
+                Text {
+                    text: "Quit";
+                    color: Theme.text-primary;
+                    font-size: 18px;
+                    vertical-alignment: center;
                 }
             }
-            Text {
-                text: "Quit";
-                color: white;
-                font-size: 18px;
-                vertical-alignment: center;
-            }
         }
-        Rectangle { height: 1px; background: #3a4a5a; }
-        Rectangle { height: 12px; }
+        Rectangle { height: 1px; background: Theme.border-subtle; }
     }
 }
