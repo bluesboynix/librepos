@@ -4,23 +4,20 @@ import { MenuView } from "views/menu.slint";
 import { SettingsView } from "views/settings.slint";
 import { BillView } from "views/bill.slint";
 import { ItemDetailsView } from "views/item_details.slint";
-import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill, BillDetail } from "db-types.slint";
+import { AboutView } from "views/about.slint";
+
+import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill, BillDetail, ShortcutEntry } from "db-types.slint";
+
 import { TopBar } from "components/top_bar.slint";
 import { SideBar } from "components/sidebar.slint";
 import { QuitDialog } from "components/quit_dialog.slint";
 import { UnpaidDialog } from "components/unpaid_dialog.slint";
 import { VoidDialog } from "components/void_dialog.slint";
-
-import { AboutView } from "views/about.slint";
-
-import { MenuItem, IngredientRow, OrderLine, TableArea, ReportSummary, ReportItem, ReportPayment, ReportDay, ReportBill, BillDetail, ShortcutEntry } from "db-types.slint";
-
 import { ShortcutCaptureDialog } from "components/shortcut_capture_dialog.slint";
 import { ExportDialog } from "components/export_dialog.slint";
-
 import { BillPreview } from "components/bill_preview.slint";
-
 import { RemoveOrderDialog } from "components/remove_order_dialog.slint";
+import { EditBlockedDialog } from "components/edit_blocked_dialog.slint";
 
 import "./fonts/DejaVuSans.ttf";
 
@@ -33,12 +30,7 @@ export component MainWindow inherits Window {
 
     forward-focus: main-scope;
 
-    in-out property <bool> bill-preview-open: false;
-    in-out property <string> store-fssai-text: "";
-    in-out property <string> report-bills-total-text: "";
-    
-    in-out property <bool> focus-search-requested: false;
-    in property <[ShortcutEntry]> shortcut-entries;
+    // ==================== PROPERTIES ====================
     in-out property <bool> sidebar-open: false;
     in-out property <bool> quit-dialog-open: false;
     in-out property <bool> void-dialog-open: false;
@@ -77,24 +69,23 @@ export component MainWindow inherits Window {
     in-out property <string> customer-name: "";
     in-out property <string> customer-phone: "";
     in-out property <string> customer-address: "";
+    in-out property <bool> note-dialog-open: false;
+    in-out property <int> note-dialog-line-index: -1;
+    in-out property <string> note-dialog-text: "";
+    in-out property <string> note-dialog-item-name: "";
+    in-out property <string> void-reason: "";
+    in-out property <string> store-name-text: "";
+    in-out property <string> store-address-text: "";
+    in-out property <string> store-phone-text: "";
+    in-out property <string> store-fssai-text: "";
+    in-out property <string> store-footer-text: "";
+    in-out property <bool> focus-search-requested: false;
+    in property <[ShortcutEntry]> shortcut-entries;
     in-out property <bool> shortcut-capture-open: false;
     in-out property <string> shortcut-capture-action: "";
     in-out property <string> shortcut-capture-description: "";
     in-out property <string> shortcut-capture-current: "";
     in-out property <string> shortcut-capture-new: "";
-    
-    in-out property <bool> note-dialog-open: false;
-    in-out property <int> note-dialog-line-index: -1;
-    in-out property <string> note-dialog-text: "";
-    in-out property <string> note-dialog-item-name: "";
-
-    in-out property <string> void-reason: "";
-
-    in-out property <string> store-name-text: "";
-    in-out property <string> store-address-text: "";
-    in-out property <string> store-phone-text: "";
-    in-out property <string> store-footer-text: "";
-    
     in-out property <string> report-from-date: "";
     in-out property <string> report-to-date: "";
     in-out property <int> report-active-tab: 0;
@@ -114,9 +105,12 @@ export component MainWindow inherits Window {
     in-out property <bool> export-dialog-open: false;
     in-out property <string> export-dialog-message: "";
     in-out property <string> report-active-category: "";
+    in-out property <bool> edit-blocked-dialog-open: false;
+    in-out property <bool> remove-order-dialog-open: false;
+    in-out property <bool> bill-preview-open: false;
+    in-out property <string> report-bills-total-text: "";
 
-    callback filter-top-items(string);
-    callback export-reports(string, string);
+    // ==================== CALLBACKS ====================
     callback quit();
     callback home();
     callback add-area();
@@ -168,15 +162,14 @@ export component MainWindow inherits Window {
     callback preview-bill();
     callback preview-open-bill();
     callback save-bill-pdf();
-    
     callback remove-order-confirmed();
     callback remove-order-cancelled();
-    in-out property <bool> remove-order-dialog-open: false;
-
     callback autosave-order();
-
     callback data-changed();
-    
+    callback filter-top-items(string);
+    callback export-reports(string, string);
+
+    // ==================== UI LAYOUT ====================
     main-scope := FocusScope {
         key-pressed(event) => {
             root.key-pressed(
@@ -193,9 +186,7 @@ export component MainWindow inherits Window {
 
             TopBar {
                 sidebar-open: root.sidebar-open;
-                toggle-sidebar => {
-                    root.sidebar-open = !root.sidebar-open;
-                }
+                toggle-sidebar => { root.sidebar-open = !root.sidebar-open; }
                 home => {
                     root.current-view = 0;
                     root.sidebar-open = false;
@@ -209,21 +200,15 @@ export component MainWindow inherits Window {
                 TouchArea {
                     width: parent.width;
                     height: parent.height;
-                    clicked => {
-                        root.sidebar-open = false;
-                    }
+                    clicked => { root.sidebar-open = false; }
                 }
 
                 // Dashboard
                 if root.current-view == 0 : DashboardView {
                     areas: root.areas;
                     currency: root.currency;
-                    table-selected(table) => {
-                        root.open-table(table);
-                    }
-                    set-tables(area-index, new-count) => {
-                        root.set-tables(area-index, new-count);
-                    }
+                    table-selected(table) => { root.open-table(table); }
+                    set-tables(area-index, new-count) => { root.set-tables(area-index, new-count); }
                     refresh-dashboard => { root.refresh-dashboard(); }
                 }
 
@@ -249,6 +234,7 @@ export component MainWindow inherits Window {
                     bills-detail-open <=> root.bills-detail-open;
                     bills-show-voided <=> root.bills-show-voided;
                     bills-search-text <=> root.bills-search-text;
+                    bills-total-text: root.report-bills-total-text;
                     refresh(from, to) => { root.load-reports(from, to); }
                     quick-range(kind) => { root.reports-quick-range(kind); }
                     load-bill-detail(order-id) => { root.load-bill-detail(order-id); }
@@ -259,14 +245,9 @@ export component MainWindow inherits Window {
                     filter-bills(query) => { root.filter-bills(query); }
                     edit-bill => { root.edit-bill(); }
                     focus-search-requested <=> root.focus-search-requested;
-                    key-pressed(text, ctrl, shift, alt, meta) => {
-                        root.key-pressed(text, ctrl, shift, alt, meta)
-                    }
-                    export-reports(from, to) => {
-                        root.export-reports(from, to);
-                    }
+                    key-pressed(text, ctrl, shift, alt, meta) => { root.key-pressed(text, ctrl, shift, alt, meta) }
+                    export-reports(from, to) => { root.export-reports(from, to); }
                     preview-bill => { root.bill-preview-open = true; }
-                    bills-total-text: root.report-bills-total-text;
                 }
 
                 // Menu
@@ -276,16 +257,12 @@ export component MainWindow inherits Window {
                     currency: root.currency;
                     search-text <=> root.menu-search-text;
                     active-category <=> root.menu-active-category;
-                    filter-changed(query, cat) => {
-                        root.filter-menu-items(query, cat);
-                    }
+                    filter-changed(query, cat) => { root.filter-menu-items(query, cat); }
                     add-item => { root.add-menu-item(); }
                     remove-item(id) => { root.remove-menu-item(id); }
                     open-item(id) => { root.open-menu-item(id); }
                     focus-search-requested <=> root.focus-search-requested;
-                    key-pressed(text, ctrl, shift, alt, meta) => {
-                        root.key-pressed(text, ctrl, shift, alt, meta)
-                    }
+                    key-pressed(text, ctrl, shift, alt, meta) => { root.key-pressed(text, ctrl, shift, alt, meta) }
                 }
 
                 // Settings
@@ -299,21 +276,15 @@ export component MainWindow inherits Window {
                     store-address-text <=> root.store-address-text;
                     store-phone-text <=> root.store-phone-text;
                     store-footer-text <=> root.store-footer-text;
+                    store-fssai-text <=> root.store-fssai-text;
                     add-area => { root.add-area(); }
                     remove-area(index) => { root.remove-area(index); }
-                    update-area-name(index, name) => {
-                        root.update-area-name(index, name);
-                    }
-                    reorder-area(from, to) => {
-                        root.reorder-area(from, to);
-                    }
+                    update-area-name(index, name) => { root.update-area-name(index, name); }
+                    reorder-area(from, to) => { root.reorder-area(from, to); }
                     gst-changed => { root.recalculate-gst(); }
                     currency-changed => { root.currency-changed(); }
-                    change-shortcut(action, description, current) => {
-                        root.start-shortcut-capture(action, description, current);
-                    }
+                    change-shortcut(action, description, current) => { root.start-shortcut-capture(action, description, current); }
                     store-info-changed => { root.store-info-changed(); }
-                    store-fssai-text <=> root.store-fssai-text;
                 }
 
                 // Bill
@@ -345,18 +316,10 @@ export component MainWindow inherits Window {
                         root.menu-active-category = "";
                         root.filter-menu-items(text, "");
                     }
-                    add-order-line(name, price) => {
-                        root.add-order-line(name, price);
-                    }
-                    update-order-line-quantity(index, qty) => {
-                        root.update-order-line-quantity(index, qty);
-                    }
-                    update-order-line-note(index, note) => {
-                        root.update-order-line-note(index, note);
-                    }
-                    remove-order-line(index) => {
-                        root.remove-order-line(index);
-                    }
+                    add-order-line(name, price) => { root.add-order-line(name, price); }
+                    update-order-line-quantity(index, qty) => { root.update-order-line-quantity(index, qty); }
+                    update-order-line-note(index, note) => { root.update-order-line-note(index, note); }
+                    remove-order-line(index) => { root.remove-order-line(index); }
                     recalculate => { root.recalculate-bill(); }
                     move-table(new-table) => { root.move-table(new-table); }
                     go-back => { root.close-bill(); }
@@ -369,9 +332,7 @@ export component MainWindow inherits Window {
                     }
                     print-order => { root.save-order(); }
                     focus-search-requested <=> root.focus-search-requested;
-                    key-pressed(text, ctrl, shift, alt, meta) => {
-                        root.key-pressed(text, ctrl, shift, alt, meta)
-                    }
+                    key-pressed(text, ctrl, shift, alt, meta) => { root.key-pressed(text, ctrl, shift, alt, meta) }
                     preview-bill => { root.preview-open-bill(); }
                     remove-order => { root.remove-order-dialog-open = true; }
                     data-changed => { root.autosave-order(); }
@@ -391,21 +352,11 @@ export component MainWindow inherits Window {
                     save => { root.save-menu-item(); }
                     cancel => { root.cancel-menu-item(); }
                     add-ingredient => { root.add-ingredient(); }
-                    remove-ingredient(index) => {
-                        root.remove-ingredient(index);
-                    }
-                    update-ingredient-name(index, text) => {
-                        root.update-ingredient-name(index, text);
-                    }
-                    update-ingredient-quantity(index, text) => {
-                        root.update-ingredient-quantity(index, text);
-                    }
-                    update-ingredient-unit(index, text) => {
-                        root.update-ingredient-unit(index, text);
-                    }
-                    update-ingredient-cost(index, text) => {
-                        root.update-ingredient-cost(index, text);
-                    }
+                    remove-ingredient(index) => { root.remove-ingredient(index); }
+                    update-ingredient-name(index, text) => { root.update-ingredient-name(index, text); }
+                    update-ingredient-quantity(index, text) => { root.update-ingredient-quantity(index, text); }
+                    update-ingredient-unit(index, text) => { root.update-ingredient-unit(index, text); }
+                    update-ingredient-cost(index, text) => { root.update-ingredient-cost(index, text); }
                 }
 
                 // About
@@ -423,15 +374,12 @@ export component MainWindow inherits Window {
                     height: parent.height;
                     animate width { duration: 300ms; easing: ease-in-out; }
                     clip: true;
-
                     current-view: root.current-view;
                     navigate(view) => {
                         root.current-view = view;
                         root.sidebar-open = false;
                     }
-                    quit-requested => {
-                        root.quit-dialog-open = true;
-                    }
+                    quit-requested => { root.quit-dialog-open = true; }
                 }
             }
 
@@ -445,7 +393,6 @@ export component MainWindow inherits Window {
                     spacing: 14px;
                     alignment: start;
 
-                    // Store name (highlighted)
                     Text {
                         text: root.store-name-text;
                         color: #00ffff;
@@ -454,8 +401,6 @@ export component MainWindow inherits Window {
                         vertical-alignment: center;
                         height: 100%;
                     }
-
-                    // Address
                     if root.store-address-text != "" : Text {
                         text: root.store-address-text;
                         color: #cccccc;
@@ -463,8 +408,6 @@ export component MainWindow inherits Window {
                         vertical-alignment: center;
                         height: 100%;
                     }
-
-                    // Phone
                     if root.store-phone-text != "" : Text {
                         text: "Ph: " + root.store-phone-text;
                         color: #cccccc;
@@ -472,60 +415,42 @@ export component MainWindow inherits Window {
                         vertical-alignment: center;
                         height: 100%;
                     }
-
-                    // Spacer to push remaining space to the right
                     Rectangle { horizontal-stretch: 1; }
                 }
             }            
         }
     }
 
+    // ==================== DIALOGS & OVERLAYS ====================
+    
     if root.quit-dialog-open : QuitDialog {
-        x: 0px;
-        y: 0px;
-        width: parent.width;
-        height: parent.height;
+        x: 0px; y: 0px; width: parent.width; height: parent.height;
         open: true;
-        confirmed => {
-            root.quit();
-        }
+        confirmed => { root.quit(); }
     }
 
     if root.void-dialog-open : VoidDialog {
-        x: 0px;
-        y: 0px;
-        width: parent.width;
-        height: parent.height;
+        x: 0px; y: 0px; width: parent.width; height: parent.height;
         reason-text <=> root.void-reason;
         confirm => {
             root.void-dialog-open = false;
             root.perform-void();
         }
-        cancel => {
-            root.void-dialog-open = false;
-        }
+        cancel => { root.void-dialog-open = false; }
     }
 
     if root.unpaid-dialog-open : UnpaidDialog {
-        x: 0px;
-        y: 0px;
-        width: parent.width;
-        height: parent.height;
+        x: 0px; y: 0px; width: parent.width; height: parent.height;
         confirm => {
             root.unpaid-dialog-open = false;
             root.payment-mode = 5;
             root.save-and-close-order();
         }
-        cancel => {
-            root.unpaid-dialog-open = false;
-        }
+        cancel => { root.unpaid-dialog-open = false; }
     }
 
     if root.shortcut-capture-open : ShortcutCaptureDialog {
-        x: 0px;
-        y: 0px;
-        width: parent.width;
-        height: parent.height;
+        x: 0px; y: 0px; width: parent.width; height: parent.height;
         action: root.shortcut-capture-action;
         description: root.shortcut-capture-description;
         current: root.shortcut-capture-current;
@@ -536,35 +461,26 @@ export component MainWindow inherits Window {
     }
 
     if root.export-dialog-open : ExportDialog {
-        x: 0px;
-        y: 0px;
-        width: parent.width;
-        height: parent.height;
+        x: 0px; y: 0px; width: parent.width; height: parent.height;
         message: root.export-dialog-message;
         close => { root.export-dialog-open = false; }
     }
 
     if root.bill-preview-open : BillPreview {
-        x: 0px;
-        y: 0px;
-        width: parent.width;
-        height: parent.height;
+        x: 0px; y: 0px; width: parent.width; height: parent.height;
         detail: root.current-bill-detail;
         currency: root.currency;
         store-name: root.store-name-text;
         store-address: root.store-address-text;
         store-phone: root.store-phone-text;
         store-footer: root.store-footer-text;
-        close => { root.bill-preview-open = false; }
         store-fssai: root.store-fssai-text;
         save-pdf => { root.save-bill-pdf(); }
+        close => { root.bill-preview-open = false; }
     }
 
     if root.remove-order-dialog-open : RemoveOrderDialog {
-        x: 0px;
-        y: 0px;
-        width: parent.width;
-        height: parent.height;
+        x: 0px; y: 0px; width: parent.width; height: parent.height;
         confirm => {
             root.remove-order-dialog-open = false;
             root.remove-order-confirmed();
@@ -573,5 +489,10 @@ export component MainWindow inherits Window {
             root.remove-order-dialog-open = false;
             root.remove-order-cancelled();
         }
+    }
+
+    if root.edit-blocked-dialog-open : EditBlockedDialog {
+        x: 0px; y: 0px; width: parent.width; height: parent.height;
+        close => { root.edit-blocked-dialog-open = false; }
     }
 }

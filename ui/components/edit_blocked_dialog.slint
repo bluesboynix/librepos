@@ -1,0 +1,70 @@
+import { Theme } from "../theme.slint";
+
+export component EditBlockedDialog inherits Rectangle {
+    width: 100%;
+    height: 100%;
+    background: #000000aa;
+
+    callback close();
+
+    TouchArea {
+        width: parent.width;
+        height: parent.height;
+    }
+
+    Rectangle {
+        x: (parent.width - 420px) / 2;
+        y: (parent.height - 200px) / 2;
+        width: 420px;
+        height: 200px;
+        background: Theme.bg-panel-alt;
+        border-radius: Theme.radius-md;
+        border-width: 2px;
+        border-color: #ffaa00;
+
+        VerticalLayout {
+            padding: 20px;
+            spacing: 12px;
+
+            Text {
+                text: "Table is Active";
+                color: #ffaa00;
+                font-size: 20px;
+                font-weight: 700;
+                horizontal-alignment: center;
+            }
+
+            Text {
+                text: "This table has an active order on the Dashboard. Please move or remove the active table first before editing this bill.";
+                color: Theme.text-primary;
+                font-size: 14px;
+                horizontal-alignment: center;
+                wrap: word-wrap;
+                vertical-stretch: 1;
+                vertical-alignment: center;
+            }
+
+            // Wrap the button in a HorizontalLayout to center it
+            HorizontalLayout {
+                alignment: center;
+                
+                Rectangle {
+                    width: 100px;
+                    height: 40px;
+                    background: ok-hover.has-hover ? Theme.btn-neutral-hover : Theme.btn-neutral;
+                    border-radius: Theme.radius-md;
+                    
+                    ok-hover := TouchArea { clicked => { root.close(); } }
+                    
+                    Text {
+                        text: "OK";
+                        color: white;
+                        font-size: 14px;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                }
+            }
+        }
+    }
+}

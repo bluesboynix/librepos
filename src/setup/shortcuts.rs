@@ -131,7 +131,8 @@ pub fn setup_shortcuts(
                 && window.get_current_view() != 0
             {
                 window.set_current_view(0);
-            }
+            } 
+            
             return true;
         }
 

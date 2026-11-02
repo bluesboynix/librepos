@@ -134,6 +134,8 @@ fn run_report(
                 void_reason: x.void_reason.into(),
                 edit_count: x.edit_count,
                 payment_methods: x.payment_methods.into(),
+                customer_name: x.customer_name.into(),       // ← add
+                customer_phone: x.customer_phone.into(),     // ← add
             })
             .collect();
         bills.set_vec(rows);
@@ -296,9 +298,9 @@ pub fn setup_reports_callbacks(
             db::reports::get_bill_detail(&conn_bill, order_id as i64)
                 .ok()
                 .flatten()
-        else {
-            return;
-        };
+            else {
+                return;
+            };
 
         let items: Vec<BillLine> = detail
             .items
@@ -429,6 +431,8 @@ pub fn setup_reports_callbacks(
                         void_reason: x.void_reason.into(),
                         edit_count: x.edit_count,
                         payment_methods: x.payment_methods.into(),
+                        customer_name: x.customer_name.into(),
+                        customer_phone: x.customer_phone.into(),
                     })
                     .collect();
                 bills_t.set_vec(rows);
@@ -469,6 +473,8 @@ pub fn setup_reports_callbacks(
                     void_reason: x.void_reason.into(),
                     edit_count: x.edit_count,
                     payment_methods: x.payment_methods.into(),
+                    customer_name: x.customer_name.into(),       // ← add
+                    customer_phone: x.customer_phone.into(),     // ← add
                 })
                 .collect();
             bills_filt.set_vec(rows);
@@ -491,7 +497,7 @@ pub fn setup_reports_callbacks(
                         "Saved 3 CSV files to ./{}/\n\nbills_{}_{}.csv\nitems_{}_{}.csv\npayments_{}_{}.csv",
                         dir, from_s, to_s, from_s, to_s, from_s, to_s
                     )
-                    .into(),
+                        .into(),
                 );
             }
             Err(e) => {
@@ -566,18 +572,18 @@ pub fn setup_reports_callbacks(
         let order_id = detail.id as i64;
         let table_name = detail.table_name.to_string();
 
+        // Check if the table has ANY active order right now
         if let Ok(Some(existing)) =
             db::orders::get_open_order_by_table(&conn_edit, &table_name)
         {
-            if existing.id != order_id {
-                eprintln!(
-                    "[edit] table {} already has open order id={}",
-                    table_name, existing.id
-                );
-                return;
-            }
+            // If the table is active, block the edit and show the popup.
+            // (Even if it's technically the same order ID, it's currently open).
+            eprintln!("[edit] Blocked! Table {} has active order id={}", table_name, existing.id);
+            window.set_edit_blocked_dialog_open(true);
+            return;
         }
 
+        // Safe to edit
         let _ = db::orders::reopen_order(&conn_edit, order_id);
 
         window.set_bills_detail_open(false);

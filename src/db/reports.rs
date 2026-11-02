@@ -164,7 +164,9 @@ pub struct BillRow {
     pub status: String,
     pub void_reason: String,
     pub edit_count: i32,
-    pub payment_methods: String,   // new
+    pub payment_methods: String,
+    pub customer_name: String,    // <-- Added
+    pub customer_phone: String,   // <-- Added
 }
 
 pub fn get_bills(
@@ -182,7 +184,9 @@ pub fn get_bills(
                 o.status, COALESCE(o.void_reason, ''),
                 (SELECT COUNT(*) FROM order_edits WHERE order_id = o.id),
                 COALESCE((SELECT GROUP_CONCAT(DISTINCT method)
-                          FROM payments WHERE order_id = o.id), '')
+                          FROM payments WHERE order_id = o.id), ''),
+                o.customer_name,
+                o.customer_phone
          FROM orders o
          WHERE o.status IN ('closed', 'void')
            AND date(o.closed_at) BETWEEN ?1 AND ?2
@@ -201,7 +205,9 @@ pub fn get_bills(
                 o.status, COALESCE(o.void_reason, ''),
                 (SELECT COUNT(*) FROM order_edits WHERE order_id = o.id),
                 COALESCE((SELECT GROUP_CONCAT(DISTINCT method)
-                          FROM payments WHERE order_id = o.id), '')
+                          FROM payments WHERE order_id = o.id), ''),
+                o.customer_name,
+                o.customer_phone
          FROM orders o
          WHERE o.status = 'closed'
            AND date(o.closed_at) BETWEEN ?1 AND ?2
@@ -230,6 +236,8 @@ pub fn get_bills(
                 void_reason: row.get(8)?,
                 edit_count: row.get(9)?,
                 payment_methods: row.get(10)?,
+                customer_name: row.get(11)?,   // <-- Added
+                customer_phone: row.get(12)?,  // <-- Added
             })
         })?
         .collect::<Result<Vec<_>>>()?;

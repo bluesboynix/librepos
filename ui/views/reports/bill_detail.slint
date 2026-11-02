@@ -32,7 +32,7 @@ export component BillDetailView inherits Rectangle {
                 Text {
                     text: "← Back";
                     color: white;
-                    font-size: 13px;
+                    font-size: 14px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
@@ -41,7 +41,7 @@ export component BillDetailView inherits Rectangle {
             Text {
                 text: "Bill: " + root.detail.bill-no;
                 color: #00ffff;
-                font-size: 18px;
+                font-size: 20px;
                 vertical-alignment: center;
                 horizontal-stretch: 1;
             }
@@ -49,47 +49,40 @@ export component BillDetailView inherits Rectangle {
             Text {
                 text: root.detail.payment-status;
                 color: root.detail.payment-status == "paid" ? #00ff00 : #ffaa00;
-                font-size: 14px;
+                font-size: 16px;
                 vertical-alignment: center;
             }
 
-            // Preview (for closed and voided bills)
             if root.detail.status == "closed" || root.detail.status == "void" : Rectangle {
                 width: 90px;
                 height: 32px;
-                background: preview-hover.has-hover
-                    ? Theme.btn-neutral-hover
-                    : Theme.btn-neutral;
+                background: preview-hover.has-hover ? Theme.btn-neutral-hover : Theme.btn-neutral;
                 border-radius: 4px;
                 preview-hover := TouchArea { clicked => { root.preview-bill(); } }
                 Text {
                     text: "Preview";
                     color: white;
-                    font-size: 13px;
+                    font-size: 14px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
             }
 
-            // Edit (only for closed bills)
             if root.detail.status == "closed" : Rectangle {
                 width: 70px;
                 height: 32px;
-                background: edit-hover.has-hover
-                    ? Theme.btn-neutral-hover
-                    : Theme.btn-neutral;
+                background: edit-hover.has-hover ? Theme.btn-neutral-hover : Theme.btn-neutral;
                 border-radius: 4px;
                 edit-hover := TouchArea { clicked => { root.edit-bill(); } }
                 Text {
                     text: "Edit";
                     color: white;
-                    font-size: 13px;
+                    font-size: 14px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
             }
 
-            // Revive (only for voided bills)
             if root.detail.status == "void" : Rectangle {
                 width: 100px;
                 height: 32px;
@@ -99,13 +92,12 @@ export component BillDetailView inherits Rectangle {
                 Text {
                     text: "Revive";
                     color: white;
-                    font-size: 13px;
+                    font-size: 14px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
             }
 
-            // Void (only for closed bills)
             if root.detail.status == "closed" : Rectangle {
                 width: 80px;
                 height: 32px;
@@ -115,7 +107,7 @@ export component BillDetailView inherits Rectangle {
                 Text {
                     text: "Void";
                     color: white;
-                    font-size: 13px;
+                    font-size: 14px;
                     horizontal-alignment: center;
                     vertical-alignment: center;
                 }
@@ -132,21 +124,21 @@ export component BillDetailView inherits Rectangle {
                 Text {
                     text: "VOIDED";
                     color: #ff6666;
-                    font-size: 14px;
+                    font-size: 16px;
                     font-weight: 700;
                     vertical-alignment: center;
                 }
                 Text {
                     text: root.detail.void-reason;
                     color: white;
-                    font-size: 13px;
+                    font-size: 15px;
                     horizontal-stretch: 1;
                     vertical-alignment: center;
                 }
                 Text {
                     text: root.detail.voided-at;
                     color: #cccccc;
-                    font-size: 12px;
+                    font-size: 14px;
                     vertical-alignment: center;
                 }
             }
@@ -164,28 +156,28 @@ export component BillDetailView inherits Rectangle {
                     background: #303030;
                     border-radius: 8px;
                     VerticalLayout {
-                        padding: 10px;
-                        spacing: 4px;
+                        padding: 12px;
+                        spacing: 6px;
                         HorizontalLayout {
                             spacing: 20px;
-                            Text { text: "Table: " + root.detail.table-name; color: white; font-size: 13px; }
-                            Text { text: "Area: " + root.detail.area-name; color: white; font-size: 13px; }
-                            Text { text: "Closed: " + root.detail.closed-at; color: #cccccc; font-size: 13px; }
+                            Text { text: "Table: " + root.detail.table-name; color: white; font-size: 16px; }
+                            Text { text: "Area: " + root.detail.area-name; color: white; font-size: 16px; }
+                            Text { text: "Closed: " + root.detail.closed-at; color: #cccccc; font-size: 16px; }
                         }
                         if root.detail.customer-name != "" : Text {
                             text: "Customer: " + root.detail.customer-name;
                             color: white;
-                            font-size: 13px;
+                            font-size: 16px;
                         }
                         if root.detail.customer-phone != "" : Text {
                             text: "Phone: " + root.detail.customer-phone;
                             color: white;
-                            font-size: 13px;
+                            font-size: 16px;
                         }
                         if root.detail.customer-address != "" : Text {
                             text: "Address: " + root.detail.customer-address;
                             color: white;
-                            font-size: 13px;
+                            font-size: 16px;
                         }
                     }
                 }
@@ -195,117 +187,128 @@ export component BillDetailView inherits Rectangle {
                     background: #303030;
                     border-radius: 8px;
                     VerticalLayout {
-                        padding: 10px;
-                        spacing: 4px;
-                        Text { text: "Items"; color: #00ffff; font-size: 14px; }
+                        padding: 12px;
+                        spacing: 6px;
+                        Text { text: "Items"; color: #00ffff; font-size: 18px; }
+                        
                         HorizontalLayout {
-                            spacing: 8px;
-                            Text { text: "Item"; color: #00ffff; font-weight: 700; horizontal-stretch: 1; }
-                            Text { text: "Category"; color: #00ffff; font-weight: 700; width: 100px; }
-                            Text { text: "Qty"; color: #00ffff; font-weight: 700; width: 50px; horizontal-alignment: center; }
-                            Text { text: "Unit"; color: #00ffff; font-weight: 700; width: 80px; horizontal-alignment: right; }
-                            Text { text: "Total"; color: #00ffff; font-weight: 700; width: 90px; horizontal-alignment: right; }
+                            spacing: 0px;
+                            Text { text: "Item"; color: #00ffff; font-weight: 700; font-size: 16px; width: 320px; }
+                            Text { text: "Qty"; color: #00ffff; font-weight: 700; font-size: 16px; width: 60px; horizontal-alignment: center; }
+                            Text { text: "Category"; color: #00ffff; font-weight: 700; font-size: 16px; width: 140px; }
+                            Text { text: "Unit"; color: #00ffff; font-weight: 700; font-size: 16px; width: 100px; horizontal-alignment: right; }
+                            Text { text: "Total"; color: #00ffff; font-weight: 700; font-size: 16px; width: 120px; horizontal-alignment: right; }
                         }
                         Rectangle { height: 1px; background: #606060; }
 
                         for item[i] in root.detail.items : HorizontalLayout {
-                            spacing: 8px;
+                            spacing: 0px;
+                            
                             VerticalLayout {
-                                horizontal-stretch: 1;
-                                spacing: 0px;
+                                width: 320px;
+                                spacing: 2px;
                                 Text {
                                     text: item.name;
                                     color: white;
-                                    font-size: 13px;
+                                    font-size: 16px;
                                 }
                                 if item.note != "" : Text {
                                     text: "↳ " + item.note;
                                     color: #ffcc00;
-                                    font-size: 11px;
+                                    font-size: 14px;
                                 }
                             }
-                            Text { text: item.category; color: #cccccc; width: 100px; font-size: 13px; }
-                            Text { text: item.quantity; color: white; width: 50px; horizontal-alignment: center; font-size: 13px; }
-                            Text { text: root.currency + item.unit-price; color: white; width: 80px; horizontal-alignment: right; font-size: 13px; }
-                            Text { text: root.currency + item.line-total; color: #00ff00; width: 90px; horizontal-alignment: right; font-size: 13px; }
+                            
+                            Text { text: item.quantity; color: white; width: 60px; horizontal-alignment: center; font-size: 16px; vertical-alignment: top; }
+                            Text { text: item.category; color: #cccccc; width: 140px; font-size: 16px; vertical-alignment: top; }
+                            Text { text: root.currency + item.unit-price; color: white; width: 100px; horizontal-alignment: right; font-size: 16px; vertical-alignment: top; }
+                            Text { text: root.currency + item.line-total; color: #00ff00; width: 120px; horizontal-alignment: right; font-size: 16px; vertical-alignment: top; }
                         }
                     }
                 }
 
-                // Summary
+                // Summary (Aligned to match Item column)
                 Rectangle {
                     background: #303030;
                     border-radius: 8px;
                     VerticalLayout {
-                        padding: 10px;
-                        spacing: 4px;
-                        Text { text: "Summary"; color: #00ffff; font-size: 14px; }
+                        padding: 12px;
+                        spacing: 6px;
+                        Text { text: "Summary"; color: #00ffff; font-size: 18px; }
+                        
                         HorizontalLayout {
-                            Text { text: "Subtotal:"; color: white; horizontal-stretch: 1; font-size: 13px; }
-                            Text { text: root.currency + root.detail.subtotal; color: white; font-size: 13px; }
+                            spacing: 0px;
+                            Text { text: "Subtotal:"; color: white; width: 320px; font-size: 16px; }
+                            Text { text: root.currency + root.detail.subtotal; color: white; width: 120px; horizontal-alignment: right; font-size: 16px; }
                         }
                         if root.detail.cgst != "0.00" : HorizontalLayout {
-                            Text { text: "CGST:"; color: white; horizontal-stretch: 1; font-size: 13px; }
-                            Text { text: root.currency + root.detail.cgst; color: white; font-size: 13px; }
+                            spacing: 0px;
+                            Text { text: "CGST:"; color: white; width: 320px; font-size: 16px; }
+                            Text { text: root.currency + root.detail.cgst; color: white; width: 120px; horizontal-alignment: right; font-size: 16px; }
                         }
                         if root.detail.sgst != "0.00" : HorizontalLayout {
-                            Text { text: "SGST:"; color: white; horizontal-stretch: 1; font-size: 13px; }
-                            Text { text: root.currency + root.detail.sgst; color: white; font-size: 13px; }
+                            spacing: 0px;
+                            Text { text: "SGST:"; color: white; width: 320px; font-size: 16px; }
+                            Text { text: root.currency + root.detail.sgst; color: white; width: 120px; horizontal-alignment: right; font-size: 16px; }
                         }
                         if root.detail.packaging != "0.00" : HorizontalLayout {
-                            Text { text: "Packaging:"; color: white; horizontal-stretch: 1; font-size: 13px; }
-                            Text { text: root.currency + root.detail.packaging; color: white; font-size: 13px; }
+                            spacing: 0px;
+                            Text { text: "Packaging:"; color: white; width: 320px; font-size: 16px; }
+                            Text { text: root.currency + root.detail.packaging; color: white; width: 120px; horizontal-alignment: right; font-size: 16px; }
                         }
                         if root.detail.delivery != "0.00" : HorizontalLayout {
-                            Text { text: "Delivery:"; color: white; horizontal-stretch: 1; font-size: 13px; }
-                            Text { text: root.currency + root.detail.delivery; color: white; font-size: 13px; }
+                            spacing: 0px;
+                            Text { text: "Delivery:"; color: white; width: 320px; font-size: 16px; }
+                            Text { text: root.currency + root.detail.delivery; color: white; width: 120px; horizontal-alignment: right; font-size: 16px; }
                         }
                         if root.detail.discount != "0.00" : HorizontalLayout {
-                            Text { text: "Discount:"; color: white; horizontal-stretch: 1; font-size: 13px; }
-                            Text { text: "-" + root.currency + root.detail.discount; color: white; font-size: 13px; }
+                            spacing: 0px;
+                            Text { text: "Discount:"; color: white; width: 320px; font-size: 16px; }
+                            Text { text: "-" + root.currency + root.detail.discount; color: white; width: 120px; horizontal-alignment: right; font-size: 16px; }
                         }
                         Rectangle { height: 1px; background: #606060; }
                         HorizontalLayout {
-                            Text { text: "Total:"; color: #00ff00; font-weight: 700; horizontal-stretch: 1; font-size: 15px; }
-                            Text { text: root.currency + root.detail.total; color: #00ff00; font-weight: 700; font-size: 15px; }
+                            spacing: 0px;
+                            Text { text: "Total:"; color: #00ff00; font-weight: 700; width: 320px; font-size: 18px; }
+                            Text { text: root.currency + root.detail.total; color: #00ff00; font-weight: 700; width: 120px; horizontal-alignment: right; font-size: 18px; }
                         }
                     }
                 }
 
-                // Payments
+                // Payments (Aligned to match Item column)
                 if root.detail.payments.length > 0 : Rectangle {
                     background: #303030;
                     border-radius: 8px;
                     VerticalLayout {
-                        padding: 10px;
-                        spacing: 4px;
-                        Text { text: "Payments"; color: #00ffff; font-size: 14px; }
+                        padding: 12px;
+                        spacing: 6px;
+                        Text { text: "Payments"; color: #00ffff; font-size: 18px; }
                         for p[i] in root.detail.payments : HorizontalLayout {
-                            spacing: 8px;
-                            Text { text: p.method; color: white; horizontal-stretch: 1; font-size: 13px; }
-                            Text { text: root.currency + p.amount; color: #00ff00; font-size: 13px; }
+                            spacing: 0px;
+                            Text { text: p.method; color: white; width: 320px; font-size: 16px; }
+                            Text { text: root.currency + p.amount; color: #00ff00; width: 120px; horizontal-alignment: right; font-size: 16px; }
                         }
                     }
                 }
-            }
-        }
 
-        // Edit History
-        if root.detail.edit-history.length > 0 : Rectangle {
-            background: #303030;
-            border-radius: 8px;
-            VerticalLayout {
-                padding: 10px;
-                spacing: 4px;
-                Text {
-                    text: "Edit History";
-                    color: #00ffff;
-                    font-size: 14px;
-                }
-                for e in root.detail.edit-history : Text {
-                    text: "• " + e;
-                    color: #cccccc;
-                    font-size: 12px;
+                // Edit History
+                if root.detail.edit-history.length > 0 : Rectangle {
+                    background: #303030;
+                    border-radius: 8px;
+                    VerticalLayout {
+                        padding: 12px;
+                        spacing: 6px;
+                        Text {
+                            text: "Edit History";
+                            color: #00ffff;
+                            font-size: 18px;
+                        }
+                        for e in root.detail.edit-history : Text {
+                            text: "• " + e;
+                            color: #cccccc;
+                            font-size: 16px;
+                        }
+                    }
                 }
             }
         }

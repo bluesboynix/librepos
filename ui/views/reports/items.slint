@@ -13,131 +13,236 @@ export component ReportItemsView inherits Rectangle {
 
     callback filter-changed(string);
 
-    VerticalLayout {
+    HorizontalLayout {
         padding: 15px;
-        spacing: 10px;
+        spacing: 15px;
 
-        // ---- Category tabs ----
-        Flickable {
-            height: 40px;
-            viewport-width: cat-row.preferred-width;
-            viewport-height: parent.height;
-            interactive: true;
+        // ---- LEFT SIDE: Category Panel ----
+        Rectangle {
+            width: 250px; 
+            height: 100%;
+            background: Theme.bg-panel;
+            border-radius: Theme.radius-md;
+            border-width: 1px;
+            border-color: Theme.border-line;
 
-            cat-row := HorizontalLayout {
-                spacing: 5px;
+            VerticalLayout {
+                padding: 10px;
+                spacing: 10px;
 
-                Rectangle {
-                    width: 90px;
-                    height: 40px;
-                    background: root.active-category == ""
-                        ? Theme.accent-row-active
-                        : Theme.btn-neutral;
-                    border-radius: Theme.radius-sm;
-                    TouchArea {
-                        clicked => {
-                            root.active-category = "";
-                            root.filter-changed("");
-                        }
-                    }
-                    Text {
-                        text: "All";
-                        color: white;
-                        font-size: 16px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
-                    }
+                Text {
+                    text: "Categories";
+                    color: Theme.accent;
+                    font-size: 20px;
+                    font-weight: 700;
+                    horizontal-alignment: center;
                 }
 
-                for cat in root.categories : Rectangle {
-                    width: 130px;
-                    height: 40px;
-                    background: root.active-category == cat
-                        ? Theme.accent-row-active
-                        : Theme.btn-neutral;
-                    border-radius: Theme.radius-sm;
-                    TouchArea {
-                        clicked => {
-                            root.active-category = cat;
-                            root.filter-changed(cat);
+                ScrollView {
+                    horizontal-stretch: 1;
+                    vertical-stretch: 1;
+
+                    VerticalLayout {
+                        spacing: 5px;
+                        
+                        Rectangle { height: 0px; }
+
+                        Rectangle {
+                            height: 48px;
+                            background: root.active-category == ""
+                                ? Theme.accent-row-active
+                                : Theme.btn-neutral;
+                            border-radius: Theme.radius-sm;
+                            TouchArea {
+                                clicked => {
+                                    root.active-category = "";
+                                    root.filter-changed("");
+                                }
+                            }
+                            Text {
+                                text: "All Items";
+                                color: white;
+                                font-size: 18px;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
                         }
-                    }
-                    Text {
-                        text: cat;
-                        color: white;
-                        font-size: 16px;
-                        horizontal-alignment: center;
-                        vertical-alignment: center;
+
+                        for cat in root.categories : Rectangle {
+                            height: 48px;
+                            background: root.active-category == cat
+                                ? Theme.accent-row-active
+                                : Theme.btn-neutral;
+                            border-radius: Theme.radius-sm;
+                            TouchArea {
+                                clicked => {
+                                    root.active-category = cat;
+                                    root.filter-changed(cat);
+                                }
+                            }
+                            Text {
+                                text: cat;
+                                color: white;
+                                font-size: 18px;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                        
+                        Rectangle { vertical-stretch: 1; }
                     }
                 }
             }
         }
 
-        // ---- Column headers ----
-        HorizontalLayout {
-            padding-left: 10px;
-            padding-right: 10px;
-            spacing: 10px;
-            Text { text: "#"; color: #00ffff; font-weight: 700; font-size: 16px; width: 50px; }
-            Text { text: "Item"; color: #00ffff; font-weight: 700; font-size: 16px; horizontal-stretch: 1; }
-            Text { text: "Category"; color: #00ffff; font-weight: 700; font-size: 16px; width: 140px; }
-            Text { text: "Qty"; color: #00ffff; font-weight: 700; font-size: 16px; width: 90px; horizontal-alignment: center; }
-            Text { text: "Revenue"; color: #00ffff; font-weight: 700; font-size: 16px; width: 140px; horizontal-alignment: right; }
-        }
-        Rectangle { height: 1px; background: #808080; }
-
-        // ---- Rows ----
-        ScrollView {
+        // ---- CENTER: Full Items List ----
+        Rectangle {
             horizontal-stretch: 1;
-            vertical-stretch: 1;
+            height: 100%;
+            background: Theme.bg-panel;
+            border-radius: Theme.radius-md;
+            border-width: 1px;
+            border-color: Theme.border-line;
 
             VerticalLayout {
-                spacing: 5px;
-                for item[i] in root.items : Rectangle {
-                    height: 44px;
-                    background: Math.mod(i, 2) == 0 ? #383838 : #404040;
-                    border-radius: 4px;
-                    HorizontalLayout {
-                        padding-left: 10px;
-                        padding-right: 10px;
-                        spacing: 10px;
-                        Text {
-                            text: (i + 1);
-                            color: #cccccc;
-                            font-size: 16px;
-                            width: 50px;
-                            vertical-alignment: center;
+                padding: 15px;
+                spacing: 10px;
+
+                Text {
+                    text: "Item Sales";
+                    color: Theme.accent;
+                    font-size: 18px;
+                    font-weight: 700;
+                }
+
+                // Header Row (Item width reduced to 180px)
+                HorizontalLayout {
+                    spacing: 0px; 
+                    Text { text: "#"; color: #00ffff; font-weight: 700; font-size: 15px; width: 40px; }
+                    Text { text: "Item"; color: #00ffff; font-weight: 700; font-size: 15px; width: 180px; }
+                    Text { text: "Qty"; color: #00ffff; font-weight: 700; font-size: 15px; width: 70px; horizontal-alignment: center; }
+                    Text { text: "Category"; color: #00ffff; font-weight: 700; font-size: 15px; width: 120px; }
+                    Text { text: "Revenue"; color: #00ffff; font-weight: 700; font-size: 15px; width: 100px; horizontal-alignment: right; }
+                }
+                Rectangle { height: 1px; background: #808080; }
+
+                ScrollView {
+                    horizontal-stretch: 1;
+                    vertical-stretch: 1;
+
+                    VerticalLayout {
+                        spacing: 5px;
+                        
+                        Rectangle { height: 0px; }
+
+                        // Rows (Item width reduced to 180px)
+                        for item[i] in root.items : Rectangle {
+                            height: 40px;
+                            background: Math.mod(i, 2) == 0 ? #383838 : #404040;
+                            border-radius: 4px;
+                            HorizontalLayout {
+                                spacing: 0px; 
+                                
+                                Text { text: (i + 1); color: #cccccc; font-size: 15px; width: 40px; vertical-alignment: center; }
+                                Text { text: item.name; color: white; font-size: 15px; width: 180px; vertical-alignment: center; }
+                                Text { text: item.quantity; color: white; font-size: 15px; width: 70px; horizontal-alignment: center; vertical-alignment: center; }
+                                Text { text: item.category; color: #cccccc; font-size: 15px; width: 120px; vertical-alignment: center; }
+                                Text { text: root.currency + item.revenue; color: #00ff00; font-size: 15px; width: 100px; horizontal-alignment: right; vertical-alignment: center; }
+                            }
                         }
-                        Text {
-                            text: item.name;
-                            color: white;
-                            font-size: 16px;
-                            horizontal-stretch: 1;
-                            vertical-alignment: center;
+                        
+                        Rectangle { vertical-stretch: 1; }
+                    }
+                }
+            }
+        }
+
+        // ---- RIGHT SIDE: Top 10 Items ----
+        Rectangle {
+            width: 320px;
+            height: 100%;
+            background: Theme.bg-panel;
+            border-radius: Theme.radius-md;
+            border-width: 1px;
+            border-color: Theme.border-line;
+
+            VerticalLayout {
+                padding: 15px;
+                spacing: 10px;
+
+                Text {
+                    text: "Top 10 Best Sellers";
+                    color: Theme.text-note; 
+                    font-size: 18px;
+                    font-weight: 700;
+                    horizontal-alignment: center;
+                }
+
+                // Header Row
+                HorizontalLayout {
+                    spacing: 0px;
+                    Text { text: "#"; color: #00ffff; font-weight: 700; font-size: 15px; width: 30px; }
+                    Text { text: "Item"; color: #00ffff; font-weight: 700; font-size: 15px; width: 120px; }
+                    Text { text: "Qty"; color: #00ffff; font-weight: 700; font-size: 15px; width: 50px; horizontal-alignment: center; }
+                    Text { text: "Amount"; color: #00ffff; font-weight: 700; font-size: 15px; width: 90px; horizontal-alignment: right; }
+                }
+                Rectangle { height: 1px; background: #808080; }
+
+                ScrollView {
+                    horizontal-stretch: 1;
+                    vertical-stretch: 1;
+
+                    VerticalLayout {
+                        spacing: 5px;
+                        
+                        Rectangle { height: 0px; }
+
+                        for item[i] in root.items : Rectangle {
+                            if i < 10 : Rectangle {
+                                height: 40px;
+                                background: Math.mod(i, 2) == 0 ? #383838 : #404040;
+                                border-radius: 4px;
+                                HorizontalLayout {
+                                    spacing: 0px;
+                                    
+                                    Text { 
+                                        text: (i + 1); 
+                                        color: i == 0 ? #ffd700 : (i == 1 ? #c0c0c0 : (i == 2 ? #cd7f32 : white));
+                                        font-weight: 700;
+                                        font-size: 15px; 
+                                        width: 30px; 
+                                        vertical-alignment: center; 
+                                        horizontal-alignment: center;
+                                    }
+                                    Text { 
+                                        text: item.name; 
+                                        color: white; 
+                                        font-size: 15px; 
+                                        width: 120px; 
+                                        vertical-alignment: center; 
+                                        overflow: elide;
+                                    }
+                                    Text { 
+                                        text: item.quantity; 
+                                        color: #00ff00; 
+                                        font-size: 15px; 
+                                        width: 50px; 
+                                        horizontal-alignment: center; 
+                                        vertical-alignment: center; 
+                                    }
+                                    Text { 
+                                        text: root.currency + item.revenue; 
+                                        color: #00ff00; 
+                                        font-size: 15px; 
+                                        width: 90px; 
+                                        horizontal-alignment: right; 
+                                        vertical-alignment: center; 
+                                    }
+                                }
+                            }
                         }
-                        Text {
-                            text: item.category;
-                            color: #cccccc;
-                            font-size: 15px;
-                            width: 140px;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            text: item.quantity;
-                            color: white;
-                            font-size: 16px;
-                            width: 90px;
-                            horizontal-alignment: center;
-                            vertical-alignment: center;
-                        }
-                        Text {
-                            text: root.currency + item.revenue;
-                            color: #00ff00;
-                            font-size: 16px;
-                            width: 140px;
-                            horizontal-alignment: right;
-                            vertical-alignment: center;
-                        }
+                        
+                        Rectangle { vertical-stretch: 1; }
                     }
                 }
             }

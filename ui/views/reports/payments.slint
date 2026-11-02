@@ -12,16 +12,19 @@ export component ReportPaymentsView inherits Rectangle {
         padding: 15px;
         spacing: 10px;
 
+        // Header
         HorizontalLayout {
             padding-left: 10px;
             padding-right: 10px;
             spacing: 10px;
-            Text { text: "Method"; color: #00ffff; font-weight: 700; font-size: 16px; horizontal-stretch: 1; }
-            Text { text: "Count"; color: #00ffff; font-weight: 700; font-size: 16px; width: 100px; horizontal-alignment: center; }
+            Text { text: "Method"; color: #00ffff; font-weight: 700; font-size: 16px; width: 200px; }
+            Text { text: "Count"; color: #00ffff; font-weight: 700; font-size: 16px; width: 120px; horizontal-alignment: center; }
             Text { text: "Amount"; color: #00ffff; font-weight: 700; font-size: 16px; width: 160px; horizontal-alignment: right; }
+            Rectangle { horizontal-stretch: 1; } // Spacer to absorb remaining space
         }
         Rectangle { height: 1px; background: #808080; }
 
+        // Rows
         ScrollView {
             horizontal-stretch: 1;
             vertical-stretch: 1;
@@ -40,14 +43,14 @@ export component ReportPaymentsView inherits Rectangle {
                             text: p.method;
                             color: white;
                             font-size: 16px;
-                            horizontal-stretch: 1;
+                            width: 200px;
                             vertical-alignment: center;
                         }
                         Text {
                             text: p.count;
                             color: white;
                             font-size: 16px;
-                            width: 100px;
+                            width: 120px;
                             horizontal-alignment: center;
                             vertical-alignment: center;
                         }
@@ -59,6 +62,7 @@ export component ReportPaymentsView inherits Rectangle {
                             horizontal-alignment: right;
                             vertical-alignment: center;
                         }
+                        Rectangle { horizontal-stretch: 1; } // Spacer to absorb remaining space
                     }
                 }
             }
